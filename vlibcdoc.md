@@ -121,8 +121,9 @@ The **string** module provides fundamental operations needed by most C programs:
 - Minimal locale or encoding support; all strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
-  delimiter characters. `strtok` uses internal static storage while
-  `strtok_r` lets the caller maintain context.
+  delimiter characters. `strtok` stores its parsing state in static
+  memory and is not thread-safe. `strtok_r` lets the caller maintain the
+  context and is safe for concurrent use.
 - Simple number conversion helpers `atoi` and `strtol`.
 
 Basic time formatting is available via `strftime`. Only a small subset of

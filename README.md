@@ -122,6 +122,23 @@ char *end;
 long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
 ```
 
+## String Tokenization
+
+`strtok()` splits a string into tokens separated by any characters in the
+delimiter set. The function keeps its state in static storage, so it is not
+thread-safe or reentrant. Call `strtok(NULL, delim)` to continue scanning the
+same string. When concurrency is needed, prefer `strtok_r` which lets the
+caller manage the context.
+
+```c
+char buf[] = "a b c";
+char *tok = strtok(buf, " ");
+while (tok) {
+    printf("%s\n", tok);
+    tok = strtok(NULL, " ");
+}
+```
+
 ## Sorting Helpers
 
 `qsort()` sorts an array in-place using a user-provided comparison
