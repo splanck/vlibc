@@ -14,6 +14,7 @@ SRC := \
     src/process.c \
     src/string.c \
     src/socket.c \
+    src/syscall.c \
     src/mmap.c \
     src/env.c \
     src/time.c \

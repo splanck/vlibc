@@ -1,8 +1,8 @@
 #include "time.h"
+#include "errno.h"
 #include <sys/syscall.h>
 #include <unistd.h>
-
-extern long syscall(long number, ...);
+#include "syscall.h"
 
 #ifdef SYS_clock_gettime
 #ifndef CLOCK_REALTIME
@@ -13,14 +13,22 @@ extern long syscall(long number, ...);
 time_t time(time_t *t)
 {
 #ifdef SYS_time
-    time_t sec = (time_t)syscall(SYS_time, t);
+    long ret = vlibc_syscall(SYS_time, (long)t, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return (time_t)-1;
+    }
+    time_t sec = (time_t)ret;
     if (t)
         *t = sec;
     return sec;
 #elif defined(SYS_clock_gettime)
     struct timespec ts;
-    if (syscall(SYS_clock_gettime, CLOCK_REALTIME, &ts) < 0)
+    long ret = vlibc_syscall(SYS_clock_gettime, CLOCK_REALTIME, (long)&ts, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
         return (time_t)-1;
+    }
     if (t)
         *t = ts.tv_sec;
     return ts.tv_sec;
@@ -34,9 +42,12 @@ int gettimeofday(struct timeval *tv, void *tz)
 {
     (void)tz;
 #ifdef SYS_time
-    time_t sec = (time_t)syscall(SYS_time, NULL);
-    if (sec == (time_t)-1)
+    long ret = vlibc_syscall(SYS_time, 0, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
         return -1;
+    }
+    time_t sec = (time_t)ret;
     if (tv) {
         tv->tv_sec = sec;
         tv->tv_usec = 0;
@@ -44,8 +55,11 @@ int gettimeofday(struct timeval *tv, void *tz)
     return 0;
 #elif defined(SYS_clock_gettime)
     struct timespec ts;
-    if (syscall(SYS_clock_gettime, CLOCK_REALTIME, &ts) < 0)
+    long ret = vlibc_syscall(SYS_clock_gettime, CLOCK_REALTIME, (long)&ts, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
         return -1;
+    }
     if (tv) {
         tv->tv_sec = ts.tv_sec;
         tv->tv_usec = ts.tv_nsec / 1000;
