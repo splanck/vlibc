@@ -4,6 +4,7 @@
 #include "errno.h"
 #include <fcntl.h>
 #include <string.h>
+#include <unistd.h>
 
 FILE *stdin = NULL;
 FILE *stdout = NULL;
@@ -71,5 +72,30 @@ int fclose(FILE *stream)
     int ret = close(stream->fd);
     free(stream);
     return ret;
+}
+
+int fseek(FILE *stream, long offset, int whence)
+{
+    if (!stream)
+        return -1;
+    off_t r = lseek(stream->fd, (off_t)offset, whence);
+    return r == (off_t)-1 ? -1 : 0;
+}
+
+long ftell(FILE *stream)
+{
+    if (!stream)
+        return -1L;
+    off_t r = lseek(stream->fd, 0, SEEK_CUR);
+    if (r == (off_t)-1)
+        return -1L;
+    return (long)r;
+}
+
+void rewind(FILE *stream)
+{
+    if (!stream)
+        return;
+    lseek(stream->fd, 0, SEEK_SET);
 }
 

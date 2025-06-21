@@ -280,6 +280,36 @@ static const char *test_printf_functions(void)
     return 0;
 }
 
+static const char *test_fseek_rewind(void)
+{
+    FILE *f = fopen("tmp_seek", "w+");
+    mu_assert("fopen seek", f != NULL);
+
+    const char *msg = "abcdef";
+    size_t w = fwrite(msg, 1, strlen(msg), f);
+    mu_assert("fwrite seek", w == strlen(msg));
+
+    mu_assert("fseek set", fseek(f, 0, SEEK_SET) == 0);
+    char buf[4] = {0};
+    size_t r = fread(buf, 1, 3, f);
+    mu_assert("fread seek", r == 3);
+    mu_assert("content seek", strncmp(buf, "abc", 3) == 0);
+
+    long pos = ftell(f);
+    mu_assert("ftell pos", pos == 3);
+
+    mu_assert("fseek end", fseek(f, 0, SEEK_END) == 0);
+    pos = ftell(f);
+    mu_assert("ftell end", pos == (long)strlen(msg));
+
+    rewind(f);
+    mu_assert("rewind pos", ftell(f) == 0);
+
+    fclose(f);
+    unlink("tmp_seek");
+    return 0;
+}
+
 
 static const char *test_pthread(void)
 {
@@ -442,6 +472,7 @@ static const char *all_tests(void)
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_string_helpers);
     mu_run_test(test_printf_functions);
+    mu_run_test(test_fseek_rewind);
     mu_run_test(test_pthread);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_environment);
