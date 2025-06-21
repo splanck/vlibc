@@ -80,6 +80,18 @@ make test
 
 This command builds `tests/run_tests` and runs it automatically.
 
+## String Conversion
+
+vlibc provides simple helpers to convert strings into integers. Use
+`atoi()` for basic decimal parsing or `strtol()` when you need other
+bases or the end pointer.
+
+```c
+int v = atoi("123");            /* v == 123 */
+char *end;
+long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
+```
+
 ## Limitations
 
 - The I/O routines (`open`, `read`, `write`, `close`) are thin wrappers around

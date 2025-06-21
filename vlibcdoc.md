@@ -108,6 +108,7 @@ The **string** module provides fundamental operations needed by most C programs:
 - `vstrlen`, `vstrcpy`, and `vstrncmp` equivalents.
 - Minimal locale or encoding support; all strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
+- Simple number conversion helpers `atoi` and `strtol`.
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 

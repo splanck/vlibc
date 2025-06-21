@@ -234,6 +234,11 @@ static const char *test_string_helpers(void)
     mu_assert("strdup failed", dup && strcmp(dup, "test") == 0);
     free(dup);
 
+    mu_assert("atoi", atoi("42") == 42);
+    char *end;
+    mu_assert("strtol hex", strtol("ff", &end, 16) == 255 && *end == '\0');
+    mu_assert("strtol partial", strtol("12xy", &end, 10) == 12 && strcmp(end, "xy") == 0);
+
     return 0;
 }
 
@@ -297,6 +302,10 @@ static const char *test_sleep_functions(void)
     t2 = time(NULL);
     mu_assert("nanosleep delay", t2 - t1 >= 1 && t2 - t1 <= 3);
 
+    return 0;
+}
+
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -336,6 +345,10 @@ static const char *test_dirent(void)
     }
     closedir(d);
     mu_assert("entries missing", found == 3);
+
+    return 0;
+}
+
 
 static const char *all_tests(void)
 {
