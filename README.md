@@ -242,6 +242,11 @@ human-readable timestamps. Supported conversion sequences are `%Y`, `%m`,
 `%d`, `%H`, `%M`, and `%S`. All other specifiers are copied verbatim and
 no locale handling is performed.
 
+Basic conversion helpers `gmtime`, `localtime`, `mktime`, and `ctime` are
+provided for transforming between `time_t` values and `struct tm` or
+human-readable strings. `localtime` does not apply any timezone logic and
+behaves identically to `gmtime`.
+
 
 ## Limitations
 
