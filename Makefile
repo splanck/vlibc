@@ -23,6 +23,7 @@ SRC := \
     src/socket.c \
     src/fd.c \
     src/file.c \
+    src/dir.c \
     src/syscall.c \
     src/mmap.c \
     src/env.c \
