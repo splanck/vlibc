@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/syscall.h>
+#include "syscall.h"
 
 FILE *stdin = NULL;
 FILE *stdout = NULL;
@@ -151,5 +153,19 @@ int fputs(const char *s, FILE *stream)
     if (w != (ssize_t)len)
         return -1;
     return (int)w;
+}
+
+int fflush(FILE *stream)
+{
+    if (!stream)
+        return 0;
+#ifdef SYS_fsync
+    long ret = vlibc_syscall(SYS_fsync, stream->fd, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+#endif
+    return 0;
 }
 
