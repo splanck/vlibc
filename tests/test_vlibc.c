@@ -6,6 +6,7 @@
 #include "../include/stdio.h"
 #include "../include/pthread.h"
 #include "../include/dirent.h"
+#include "../include/vlibc.h"
 
 #include <fcntl.h>
 #include "../include/string.h"
@@ -342,6 +343,32 @@ static const char *test_environment(void)
     return 0;
 }
 
+static const char *test_error_reporting(void)
+{
+    vlibc_init();
+    const char *msg = strerror(ENOENT);
+    mu_assert("strerror", strcmp(msg, "No such file or directory") == 0);
+
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+    int old = dup(2);
+    mu_assert("dup", old >= 0);
+    dup2(p[1], 2);
+    close(p[1]);
+    errno = ENOENT;
+    perror("test");
+    dup2(old, 2);
+    close(old);
+    char buf[64] = {0};
+    ssize_t n = read(p[0], buf, sizeof(buf) - 1);
+    close(p[0]);
+    mu_assert("perror read", n > 0);
+    const char *exp = "test: No such file or directory\n";
+    mu_assert("perror output", (size_t)n == strlen(exp) && memcmp(buf, exp, n) == 0);
+
+    return 0;
+}
+
 static const char *test_system_fn(void)
 {
     int r = system("true");
@@ -385,6 +412,7 @@ static const char *all_tests(void)
     mu_run_test(test_pthread);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_environment);
+    mu_run_test(test_error_reporting);
     mu_run_test(test_system_fn);
     mu_run_test(test_dirent);
 
