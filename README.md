@@ -96,6 +96,18 @@ char *end;
 long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
 ```
 
+## Sorting Helpers
+
+`qsort()` sorts an array in-place using a user-provided comparison
+function, while `bsearch()` performs binary search on a sorted array.
+
+```c
+int values[] = {4, 2, 7};
+qsort(values, 3, sizeof(int), cmp_int);
+int key = 7;
+int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
+```
+
 ## Standard Streams
 
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
