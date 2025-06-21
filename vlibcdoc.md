@@ -123,6 +123,7 @@ int execve(const char *pathname, char *const argv[], char *const envp[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 sighandler_t signal(int signum, sighandler_t handler);
+int system(const char *command);
 ```
 
 ### Example
@@ -141,6 +142,10 @@ void on_int(int signo) { (void)signo; }
 signal(SIGINT, on_int);
 kill(getpid(), SIGINT);
 ```
+
+The convenience `system()` call executes a shell command by forking and
+invoking `/bin/sh -c command`. It returns the raw status from `waitpid`
+and is intended only for simple helper tasks.
 
 
 The design favors straightforward semantics over comprehensive POSIX

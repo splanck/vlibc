@@ -14,6 +14,7 @@ SRC := \
     src/memory.c \
     src/memory_ops.c \
     src/process.c \
+    src/system.c \
     src/string.c \
     src/socket.c \
     src/fd.c \

@@ -88,5 +88,7 @@ This command builds `tests/run_tests` and runs it automatically.
 - Process creation and signal functions rely on Linux `fork`, `execve`,
   `wait4`/`waitpid`, and `rt_sigaction` syscalls. Porting to other UNIX-like
   kernels may require adapting these calls.
+- The `system()` helper simply spawns `/bin/sh -c` in a child process.
+  It does not handle complex quoting or return detailed status codes.
 - Basic thread support is implemented using the `clone` syscall. Only
   `pthread_create`, `pthread_join`, and simple mutexes are provided.
