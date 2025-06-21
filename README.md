@@ -63,6 +63,7 @@ io.h         - unbuffered I/O primitives
 memory.h     - heap allocation
 process.h    - process creation and control
 pthread.h    - minimal threading support
+poll.h       - I/O multiplexing helpers
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
@@ -163,8 +164,8 @@ provided `fread`, `fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`,
 
 The socket layer exposes thin wrappers around the kernel's networking
 syscalls. Available functions include `socket`, `bind`, `listen`,
-`accept`, `connect`, `send`, `recv`, `sendto`, `recvfrom`, and
-`select`.
+`accept`, `connect`, `send`, `recv`, `sendto`, `recvfrom`, as well as
+the I/O multiplexing helpers `select` and `poll`.
 These calls accept the same arguments as their POSIX counterparts and
 translate directly to the underlying `socket`, `bind`, `connect`, and
 `sendto`/`recvfrom` syscalls.

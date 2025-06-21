@@ -6,6 +6,7 @@
 #include "../include/stdio.h"
 #include "../include/pthread.h"
 #include "../include/sys/select.h"
+#include "../include/poll.h"
 #include "../include/dirent.h"
 #include "../include/vlibc.h"
 
@@ -482,6 +483,31 @@ static const char *test_select_pipe(void)
     return 0;
 }
 
+static const char *test_poll_pipe(void)
+{
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+
+    pthread_t t;
+    pthread_create(&t, NULL, delayed_write, &p[1]);
+
+    struct pollfd fds[1];
+    fds[0].fd = p[0];
+    fds[0].events = POLLIN;
+
+    int r = poll(fds, 1, 2000);
+    pthread_join(&t, NULL);
+    mu_assert("poll ret", r == 1);
+    mu_assert("poll event", fds[0].revents & POLLIN);
+
+    char c;
+    mu_assert("read", read(p[0], &c, 1) == 1 && c == 'z');
+
+    close(p[0]);
+    close(p[1]);
+    return 0;
+}
+
 static const char *test_sleep_functions(void)
 {
     time_t t1 = time(NULL);
@@ -554,8 +580,8 @@ static const char *test_error_reporting(void)
     mu_assert("strerror", msg && *msg != '\0');
     perror("test");
     vlibc_init();
-    const char *msg = strerror(ENOENT);
-    mu_assert("strerror", strcmp(msg, "No such file or directory") == 0);
+    const char *msg2 = strerror(ENOENT);
+    mu_assert("strerror", strcmp(msg2, "No such file or directory") == 0);
 
     int p[2];
     mu_assert("pipe", pipe(p) == 0);
@@ -717,6 +743,7 @@ static const char *all_tests(void)
     mu_run_test(test_fgets_fputs);
     mu_run_test(test_pthread);
     mu_run_test(test_select_pipe);
+    mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_environment);
