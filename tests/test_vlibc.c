@@ -369,6 +369,48 @@ static const char *test_dirent(void)
     return 0;
 }
 
+static int int_cmp(const void *a, const void *b)
+{
+    int ia = *(const int *)a;
+    int ib = *(const int *)b;
+    return (ia > ib) - (ia < ib);
+}
+
+static int str_cmp(const void *a, const void *b)
+{
+    const char *sa = *(const char * const *)a;
+    const char *sb = *(const char * const *)b;
+    return strcmp(sa, sb);
+}
+
+static const char *test_qsort_int(void)
+{
+    int arr[] = {4, 2, 7, 1, -1};
+    qsort(arr, 5, sizeof(int), int_cmp);
+    int sorted[] = {-1, 1, 2, 4, 7};
+    for (int i = 0; i < 5; ++i)
+        mu_assert("int sort", arr[i] == sorted[i]);
+
+    int key = 4;
+    int *res = bsearch(&key, arr, 5, sizeof(int), int_cmp);
+    mu_assert("bsearch int", res && *res == 4);
+    return 0;
+}
+
+static const char *test_qsort_strings(void)
+{
+    const char *arr[] = {"pear", "apple", "orange", "banana"};
+    qsort((void *)arr, 4, sizeof(char *), str_cmp);
+    const char *sorted[] = {"apple", "banana", "orange", "pear"};
+    for (int i = 0; i < 4; ++i)
+        mu_assert("string sort", strcmp(arr[i], sorted[i]) == 0);
+
+    const char *key = "orange";
+    char **p = bsearch(&key, arr, 4, sizeof(char *), str_cmp);
+    mu_assert("bsearch str", p && strcmp(*p, "orange") == 0);
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
@@ -387,6 +429,8 @@ static const char *all_tests(void)
     mu_run_test(test_environment);
     mu_run_test(test_system_fn);
     mu_run_test(test_dirent);
+    mu_run_test(test_qsort_int);
+    mu_run_test(test_qsort_strings);
 
     return 0;
 }

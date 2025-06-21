@@ -26,7 +26,8 @@ SRC := \
     src/time.c \
     src/stat.c \
     src/pthread.c \
-    src/dirent.c
+    src/dirent.c \
+    src/qsort.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a

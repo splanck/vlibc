@@ -16,4 +16,10 @@ int system(const char *command);
 long strtol(const char *nptr, char **endptr, int base);
 int atoi(const char *nptr);
 
+/* Sorting helpers */
+void qsort(void *base, size_t nmemb, size_t size,
+           int (*compar)(const void *, const void *));
+void *bsearch(const void *key, const void *base, size_t nmemb, size_t size,
+              int (*compar)(const void *, const void *));
+
 #endif /* STDLIB_H */
