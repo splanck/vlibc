@@ -77,3 +77,27 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
     }
     return (ssize_t)ret;
 }
+
+ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
+               const struct sockaddr *dest, socklen_t addrlen)
+{
+    long ret = vlibc_syscall(SYS_sendto, sockfd, (long)buf, len, flags,
+                             (long)dest, addrlen);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+}
+
+ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
+                 struct sockaddr *src, socklen_t *addrlen)
+{
+    long ret = vlibc_syscall(SYS_recvfrom, sockfd, (long)buf, len, flags,
+                             (long)src, (long)addrlen);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+}

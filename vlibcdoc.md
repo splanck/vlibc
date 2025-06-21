@@ -161,6 +161,27 @@ and is intended only for simple helper tasks.
 The design favors straightforward semantics over comprehensive POSIX
 conformance.
 
+## Networking
+
+vlibc currently provides minimal socket wrappers for basic network
+communication:
+
+```c
+int socket(int domain, int type, int protocol);
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+ssize_t recv(int sockfd, void *buf, size_t len, int flags);
+ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
+               const struct sockaddr *dest, socklen_t addrlen);
+ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
+                 struct sockaddr *src, socklen_t *addrlen);
+```
+
+These wrappers directly invoke the underlying `socket`, `bind`,
+`connect`, `sendto`, and `recvfrom` syscalls without additional
+buffering or complex address handling.
+
 ## Threading
 
 Basic thread support is implemented on top of the Linux `clone` syscall.

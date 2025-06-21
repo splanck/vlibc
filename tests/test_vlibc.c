@@ -21,6 +21,20 @@ int printf(const char *fmt, ...);
 
 int tests_run = 0;
 
+static uint16_t bswap16(uint16_t v)
+{
+    return (uint16_t)((v << 8) | (v >> 8));
+}
+
+static uint32_t bswap32(uint32_t v)
+{
+    return __builtin_bswap32(v);
+}
+
+#define htons(x) bswap16(x)
+#define ntohs(x) bswap16(x)
+#define htonl(x) bswap32(x)
+
 static void *thread_fn(void *arg)
 {
     int *p = arg;
@@ -174,6 +188,44 @@ static const char *test_socket(void)
     mu_assert("socket creation failed", fd >= 0);
     if (fd >= 0)
         close(fd);
+    return 0;
+}
+
+static const char *test_udp_send_recv(void)
+{
+    int s1 = socket(AF_INET, SOCK_DGRAM, 0);
+    int s2 = socket(AF_INET, SOCK_DGRAM, 0);
+    mu_assert("udp socket1", s1 >= 0);
+    mu_assert("udp socket2", s2 >= 0);
+
+    struct sockaddr_in a1 = {0};
+    a1.sin_family = AF_INET;
+    a1.sin_port = htons(12345);
+    a1.sin_addr.s_addr = htonl(0x7F000001);
+    mu_assert("bind1", bind(s1, (struct sockaddr *)&a1, sizeof(a1)) == 0);
+
+    struct sockaddr_in a2 = {0};
+    a2.sin_family = AF_INET;
+    a2.sin_port = htons(12346);
+    a2.sin_addr.s_addr = htonl(0x7F000001);
+    mu_assert("bind2", bind(s2, (struct sockaddr *)&a2, sizeof(a2)) == 0);
+
+    const char *msg = "udp";
+    ssize_t sent = sendto(s1, msg, strlen(msg), 0,
+                          (struct sockaddr *)&a2, sizeof(a2));
+    mu_assert("sendto", sent == (ssize_t)strlen(msg));
+
+    char buf[8] = {0};
+    struct sockaddr_in src = {0};
+    socklen_t slen = sizeof(src);
+    ssize_t rec = recvfrom(s2, buf, sizeof(buf) - 1, 0,
+                           (struct sockaddr *)&src, &slen);
+    mu_assert("recvfrom", rec == (ssize_t)strlen(msg));
+    mu_assert("udp content", strcmp(buf, msg) == 0);
+    mu_assert("src port", ntohs(src.sin_port) == 12345);
+
+    close(s1);
+    close(s2);
     return 0;
 }
 
@@ -377,6 +429,7 @@ static const char *all_tests(void)
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
     mu_run_test(test_socket);
+    mu_run_test(test_udp_send_recv);
     mu_run_test(test_errno_open);
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);

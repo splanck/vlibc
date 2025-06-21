@@ -103,6 +103,15 @@ vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 are initialized when `vlibc_init()` is called. They can be used with the
 provided `fread`, `fwrite`, `fprintf`, and `printf` functions.
 
+## Networking
+
+The socket layer exposes thin wrappers around the kernel's networking
+syscalls. Available functions include `socket`, `bind`, `listen`,
+`accept`, `connect`, `send`, `recv`, `sendto`, and `recvfrom`.
+These calls accept the same arguments as their POSIX counterparts and
+translate directly to the underlying `socket`, `bind`, `connect`, and
+`sendto`/`recvfrom` syscalls.
+
 
 ## Limitations
 
