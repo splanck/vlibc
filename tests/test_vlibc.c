@@ -342,6 +342,15 @@ static const char *test_environment(void)
     return 0;
 }
 
+static const char *test_system_fn(void)
+{
+    int r = system("true");
+    mu_assert("system true", r == 0);
+    r = system("exit 7");
+    mu_assert("system exit code", (r >> 8) == 7);
+    return 0;
+}
+
 static const char *test_dirent(void)
 {
     DIR *d = opendir("tests");
@@ -376,6 +385,7 @@ static const char *all_tests(void)
     mu_run_test(test_pthread);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_environment);
+    mu_run_test(test_system_fn);
     mu_run_test(test_dirent);
 
     return 0;
