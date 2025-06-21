@@ -5,6 +5,7 @@
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
 #include "../include/pthread.h"
+#include "../include/sys/select.h"
 #include "../include/dirent.h"
 #include "../include/vlibc.h"
 
@@ -316,6 +317,35 @@ static const char *test_string_helpers(void)
     return 0;
 }
 
+static const char *test_strtok_basic(void)
+{
+    char buf[] = "a,b,c";
+    char *tok = strtok(buf, ",");
+    mu_assert("tok1", tok && strcmp(tok, "a") == 0);
+    tok = strtok(NULL, ",");
+    mu_assert("tok2", tok && strcmp(tok, "b") == 0);
+    tok = strtok(NULL, ",");
+    mu_assert("tok3", tok && strcmp(tok, "c") == 0);
+    tok = strtok(NULL, ",");
+    mu_assert("tok end", tok == NULL);
+    return 0;
+}
+
+static const char *test_strtok_r_basic(void)
+{
+    char buf[] = "1 2 3";
+    char *save = NULL;
+    char *tok = strtok_r(buf, " ", &save);
+    mu_assert("tok_r1", tok && strcmp(tok, "1") == 0);
+    tok = strtok_r(NULL, " ", &save);
+    mu_assert("tok_r2", tok && strcmp(tok, "2") == 0);
+    tok = strtok_r(NULL, " ", &save);
+    mu_assert("tok_r3", tok && strcmp(tok, "3") == 0);
+    tok = strtok_r(NULL, " ", &save);
+    mu_assert("tok_r end", tok == NULL);
+    return 0;
+}
+
 static const char *test_printf_functions(void)
 {
     char buf[32];
@@ -371,6 +401,19 @@ static const char *test_fseek_rewind(void)
     return 0;
 }
 
+static const char *test_fgetc_fputc(void)
+{
+    FILE *f = fopen("tmp_char", "w+");
+    mu_assert("fopen char", f != NULL);
+    mu_assert("fputc ret", fputc('X', f) == 'X');
+    rewind(f);
+    int c = fgetc(f);
+    mu_assert("fgetc val", c == 'X');
+    fclose(f);
+    unlink("tmp_char");
+    return 0;
+}
+
 
 static const char *test_pthread(void)
 {
@@ -383,6 +426,40 @@ static const char *test_pthread(void)
     mu_assert("thread retval", ret == (void *)123);
     mu_assert("shared value", val == 42);
   
+    return 0;
+}
+
+static void *delayed_write(void *arg)
+{
+    int fd = *(int *)arg;
+    usleep(100000);
+    write(fd, "z", 1);
+    return NULL;
+}
+
+static const char *test_select_pipe(void)
+{
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+
+    pthread_t t;
+    pthread_create(&t, NULL, delayed_write, &p[1]);
+
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(p[0], &rfds);
+    struct timeval tv = {2, 0};
+
+    int r = select(p[0] + 1, &rfds, NULL, NULL, &tv);
+    pthread_join(&t, NULL);
+    mu_assert("select ret", r == 1);
+    mu_assert("fd set", FD_ISSET(p[0], &rfds));
+
+    char c;
+    mu_assert("read", read(p[0], &c, 1) == 1 && c == 'z');
+
+    close(p[0]);
+    close(p[1]);
     return 0;
 }
 
@@ -457,6 +534,27 @@ static const char *test_error_reporting(void)
     char *msg = strerror(errno);
     mu_assert("strerror", msg && *msg != '\0');
     perror("test");
+    vlibc_init();
+    const char *msg = strerror(ENOENT);
+    mu_assert("strerror", strcmp(msg, "No such file or directory") == 0);
+
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+    int old = dup(2);
+    mu_assert("dup", old >= 0);
+    dup2(p[1], 2);
+    close(p[1]);
+    errno = ENOENT;
+    perror("test");
+    dup2(old, 2);
+    close(old);
+    char buf[64] = {0};
+    ssize_t n = read(p[0], buf, sizeof(buf) - 1);
+    close(p[0]);
+    mu_assert("perror read", n > 0);
+    const char *exp = "test: No such file or directory\n";
+    mu_assert("perror output", (size_t)n == strlen(exp) && memcmp(buf, exp, n) == 0);
+
     return 0;
 }
 
@@ -466,6 +564,7 @@ static const char *test_pid_functions(void)
     pid_t ppid = getppid();
     mu_assert("getpid", pid > 0);
     mu_assert("getppid", ppid >= 0);
+
     return 0;
 }
 
@@ -475,6 +574,18 @@ static const char *test_system_fn(void)
     mu_assert("system true", r == 0);
     r = system("exit 7");
     mu_assert("system exit code", (r >> 8) == 7);
+    return 0;
+}
+
+static const char *test_popen_fn(void)
+{
+    FILE *f = popen("echo popen", "r");
+    mu_assert("popen", f != NULL);
+    char buf[32] = {0};
+    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+    pclose(f);
+    mu_assert("popen read", n > 0);
+    mu_assert("popen content", strncmp(buf, "popen", 5) == 0);
     return 0;
 }
 
@@ -579,15 +690,18 @@ static const char *all_tests(void)
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_string_helpers);
+    mu_run_test(test_strtok_basic);
+    mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);
     mu_run_test(test_fseek_rewind);
+    mu_run_test(test_fgetc_fputc);
     mu_run_test(test_pthread);
+    mu_run_test(test_select_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_environment);
-    mu_run_test(test_error_reporting);
-    mu_run_test(test_pid_functions);
     mu_run_test(test_system_fn);
+    mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_dirent);

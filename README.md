@@ -48,6 +48,30 @@ Common memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) are available
 as wrappers around the internal `v*` implementations so existing code can use
 the familiar names.
 
+## Provided Headers
+
+vlibc installs a small set of public headers for application use:
+
+```
+ctype.h      - character classification helpers
+dirent.h     - directory iteration
+env.h        - environment variable access
+errno.h      - standard error codes
+io.h         - unbuffered I/O primitives
+memory.h     - heap allocation
+process.h    - process creation and control
+pthread.h    - minimal threading support
+stdio.h      - simple stream I/O
+stdlib.h     - basic utilities
+string.h     - string manipulation
+sys/mman.h   - memory mapping helpers
+sys/socket.h - networking wrappers
+sys/stat.h   - file status functions
+syscall.h    - raw syscall interface
+time.h       - time related helpers
+vlibc.h      - library initialization
+```
+
 ## Building the Library
 
 The project uses a simple `make`-based build system. To compile the
@@ -113,14 +137,15 @@ int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 `stderr`. These lightweight streams wrap file descriptors 0, 1 and 2 and
 are initialized when `vlibc_init()` is called. They can be used with the
-provided `fread`, `fwrite`, `fseek`, `ftell`, `rewind`, `fprintf`, and
-`printf` functions.
+provided `fread`, `fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`,
+`fputc`, `fprintf`, and `printf` functions.
 
 ## Networking
 
 The socket layer exposes thin wrappers around the kernel's networking
 syscalls. Available functions include `socket`, `bind`, `listen`,
-`accept`, `connect`, `send`, `recv`, `sendto`, and `recvfrom`.
+`accept`, `connect`, `send`, `recv`, `sendto`, `recvfrom`, and
+`select`.
 These calls accept the same arguments as their POSIX counterparts and
 translate directly to the underlying `socket`, `bind`, `connect`, and
 `sendto`/`recvfrom` syscalls.
@@ -140,6 +165,17 @@ prints the current `errno` value with an optional prefix.
 ## Process Control
 
 The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+
+A lightweight `popen`/`pclose` pair runs a shell command with a pipe
+connected to the child. Use mode `"r"` to read the command's output or
+`"w"` to send data to its stdin:
+
+```c
+FILE *f = popen("echo hi", "r");
+char buf[16] = {0};
+fread(buf, 1, sizeof(buf) - 1, f);
+pclose(f);
+```
 
 ## Time Formatting
 

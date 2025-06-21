@@ -18,6 +18,8 @@ int fclose(FILE *stream);
 int fseek(FILE *stream, long offset, int whence);
 long ftell(FILE *stream);
 void rewind(FILE *stream);
+int fgetc(FILE *stream);
+int fputc(int c, FILE *stream);
 
 int printf(const char *format, ...);
 int fprintf(FILE *stream, const char *format, ...);
@@ -26,5 +28,8 @@ int snprintf(char *str, size_t size, const char *format, ...);
 /* Basic error helpers */
 char *strerror(int errnum);
 void perror(const char *s);
+
+FILE *popen(const char *command, const char *mode);
+int pclose(FILE *stream);
 
 #endif /* STDIO_H */

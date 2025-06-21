@@ -72,3 +72,48 @@ char *strncpy(char *dest, const char *src, size_t n)
     }
     return dest;
 }
+
+static char *strtok_static;
+
+char *strtok_r(char *str, const char *delim, char **saveptr)
+{
+    char *s;
+
+    if (str)
+        s = str;
+    else if (saveptr && *saveptr)
+        s = *saveptr;
+    else
+        return NULL;
+
+    /* skip leading delimiters */
+    while (*s && strchr(delim, *s))
+        s++;
+
+    if (*s == '\0') {
+        if (saveptr)
+            *saveptr = NULL;
+        return NULL;
+    }
+
+    char *token = s;
+
+    while (*s && !strchr(delim, *s))
+        s++;
+
+    if (*s) {
+        *s = '\0';
+        s++;
+        if (saveptr)
+            *saveptr = s;
+    } else if (saveptr) {
+        *saveptr = NULL;
+    }
+
+    return token;
+}
+
+char *strtok(char *str, const char *delim)
+{
+    return strtok_r(str, delim, &strtok_static);
+}
