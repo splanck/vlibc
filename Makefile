@@ -2,7 +2,7 @@
 
 PREFIX ?= /usr/local
 CC ?= cc
-CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Iinclude
+CFLAGS ?= -O2 -std=c11 -Wall -Wextra -fno-stack-protector -Iinclude
 AR ?= ar
 
 SRC := \
@@ -23,6 +23,7 @@ SRC := \
     src/sleep.c \
     src/time.c \
     src/stat.c \
+    src/pthread.c \
     src/dirent.c
 
 OBJ := $(SRC:.c=.o)

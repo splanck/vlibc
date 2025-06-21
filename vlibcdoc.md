@@ -142,8 +142,27 @@ signal(SIGINT, on_int);
 kill(getpid(), SIGINT);
 ```
 
+
 The design favors straightforward semantics over comprehensive POSIX
 conformance.
+
+## Threading
+
+Basic thread support is implemented on top of the Linux `clone` syscall.
+Only a handful of functions are provided:
+
+```c
+int pthread_create(pthread_t *thread, const void *attr,
+                   void *(*start)(void *), void *arg);
+int pthread_join(pthread_t *thread, void **retval);
+
+int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+int pthread_mutex_unlock(pthread_mutex_t *mutex);
+```
+
+Threads share the process address space and use a simple spinlock-based
+mutex for synchronization.
 
 ## Conclusion
 

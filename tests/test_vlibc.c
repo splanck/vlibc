@@ -4,6 +4,7 @@
 #include "../include/sys/socket.h"
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
+#include "../include/pthread.h"
 #include "../include/dirent.h"
 
 #include <fcntl.h>
@@ -19,6 +20,13 @@
 int printf(const char *fmt, ...);
 
 int tests_run = 0;
+
+static void *thread_fn(void *arg)
+{
+    int *p = arg;
+    *p = 42;
+    return (void *)123;
+}
 
 static const char *test_malloc(void)
 {
@@ -254,6 +262,21 @@ static const char *test_printf_functions(void)
     return 0;
 }
 
+
+static const char *test_pthread(void)
+{
+    pthread_t t;
+    int val = 0;
+    int r = pthread_create(&t, NULL, thread_fn, &val);
+    mu_assert("pthread_create", r == 0);
+    void *ret = NULL;
+    pthread_join(&t, &ret);
+    mu_assert("thread retval", ret == (void *)123);
+    mu_assert("shared value", val == 42);
+  
+    return 0;
+}
+
 static const char *test_sleep_functions(void)
 {
     time_t t1 = time(NULL);
@@ -313,8 +336,6 @@ static const char *test_dirent(void)
     }
     closedir(d);
     mu_assert("entries missing", found == 3);
-    return 0;
-}
 
 static const char *all_tests(void)
 {
@@ -329,6 +350,7 @@ static const char *all_tests(void)
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_string_helpers);
     mu_run_test(test_printf_functions);
+    mu_run_test(test_pthread);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_environment);
     mu_run_test(test_dirent);
