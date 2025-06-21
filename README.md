@@ -113,7 +113,8 @@ int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 `stderr`. These lightweight streams wrap file descriptors 0, 1 and 2 and
 are initialized when `vlibc_init()` is called. They can be used with the
-provided `fread`, `fwrite`, `fprintf`, and `printf` functions.
+provided `fread`, `fwrite`, `fseek`, `ftell`, `rewind`, `fprintf`, and
+`printf` functions.
 
 ## Networking
 

@@ -107,7 +107,9 @@ if (fd >= 0) {
 The stdio module also exposes `stdin`, `stdout`, and `stderr` as global
 pointers. These streams wrap file descriptors 0, 1 and 2 and are
 initialized in `vlibc_init()` so they can be used with the basic FILE
-APIs.
+APIs. Available helpers include `fopen`, `fread`, `fwrite`, `fseek`,
+`ftell`, `rewind`, `fclose`, and simple formatted output via `fprintf`
+and `printf`.
 
 ## String Handling
 
