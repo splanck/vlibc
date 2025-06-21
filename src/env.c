@@ -1,7 +1,6 @@
 #include "env.h"
 #include "memory.h"
 #include "string.h"
-#include <string.h>
 
 /* pointer to current environment */
 char **environ = 0;
@@ -50,9 +49,9 @@ int setenv(const char *name, const char *value, int overwrite)
     char *entry = malloc(nlen + vlen + 2); /* name=value\0 */
     if (!entry)
         return -1;
-    memcpy(entry, name, nlen);
+    vmemcpy(entry, name, nlen);
     entry[nlen] = '=';
-    memcpy(entry + nlen + 1, value, vlen);
+    vmemcpy(entry + nlen + 1, value, vlen);
     entry[nlen + 1 + vlen] = '\0';
 
     if (idx >= 0) {

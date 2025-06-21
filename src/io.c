@@ -3,10 +3,10 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include "syscall.h"
 #include <fcntl.h>
 #include <stdarg.h>
 
-extern long syscall(long number, ...);
 
 int open(const char *path, int flags, ...)
 {
@@ -18,9 +18,9 @@ int open(const char *path, int flags, ...)
         va_end(ap);
     }
 #ifdef SYS_open
-    long ret = syscall(SYS_open, path, flags, mode);
+    long ret = vlibc_syscall(SYS_open, (long)path, flags, mode, 0, 0, 0);
 #else
-    long ret = syscall(SYS_openat, AT_FDCWD, path, flags, mode);
+    long ret = vlibc_syscall(SYS_openat, AT_FDCWD, (long)path, flags, mode, 0, 0);
 #endif
     if (ret < 0) {
         errno = -ret;
@@ -31,7 +31,7 @@ int open(const char *path, int flags, ...)
 
 ssize_t read(int fd, void *buf, size_t count)
 {
-    long ret = syscall(SYS_read, fd, buf, count);
+    long ret = vlibc_syscall(SYS_read, fd, (long)buf, count, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return -1;
@@ -41,7 +41,7 @@ ssize_t read(int fd, void *buf, size_t count)
 
 ssize_t write(int fd, const void *buf, size_t count)
 {
-    long ret = syscall(SYS_write, fd, buf, count);
+    long ret = vlibc_syscall(SYS_write, fd, (long)buf, count, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return -1;
@@ -51,7 +51,7 @@ ssize_t write(int fd, const void *buf, size_t count)
 
 int close(int fd)
 {
-    long ret = syscall(SYS_close, fd);
+    long ret = vlibc_syscall(SYS_close, fd, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return -1;
