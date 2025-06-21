@@ -325,6 +325,18 @@ static const char *test_string_helpers(void)
     mu_assert("strnlen short", strnlen("hello", 3) == 3);
     mu_assert("strnlen full", strnlen("hi", 10) == 2);
 
+    const char *h = "abcabc";
+    const char *s = strstr(h, "cab");
+    mu_assert("strstr", s && s - h == 2);
+
+    const char *r = strrchr("abca", 'a');
+    mu_assert("strrchr", r && r - "abca" == 3);
+
+    char mbuf[4] = {1, 2, 3, 4};
+    void *m = memchr(mbuf, 3, sizeof(mbuf));
+    mu_assert("memchr", m == &mbuf[2]);
+    mu_assert("memchr none", memchr(mbuf, 5, sizeof(mbuf)) == NULL);
+
     return 0;
 }
 

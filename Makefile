@@ -18,6 +18,7 @@ SRC := \
     src/process.c \
     src/system.c \
     src/string.c \
+    src/string_extra.c \
     src/strto.c \
     src/rand.c \
     src/socket.c \
