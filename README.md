@@ -72,6 +72,7 @@ wchar.h     - wide character helpers
 getopt.h     - option parsing
 sys/mman.h   - memory mapping helpers
 sys/socket.h - networking wrappers
+netdb.h      - address resolution helpers
 sys/stat.h   - file status functions
 syscall.h    - raw syscall interface
 time.h       - time related helpers
@@ -203,10 +204,22 @@ Although I/O is unbuffered, `fflush(stream)` succeeds and invokes
 The socket layer exposes thin wrappers around the kernel's networking
 syscalls. Available functions include `socket`, `bind`, `listen`,
 `accept`, `connect`, `send`, `recv`, `sendto`, `recvfrom`, as well as
-the I/O multiplexing helpers `select` and `poll`.
+the I/O multiplexing helpers `select` and `poll`.  Basic address
+resolution is provided through `getaddrinfo`, `freeaddrinfo`, and
+`getnameinfo`.
+
 These calls accept the same arguments as their POSIX counterparts and
 translate directly to the underlying `socket`, `bind`, `connect`, and
-`sendto`/`recvfrom` syscalls.
+`sendto`/`recvfrom` syscalls.  Example:
+
+```c
+struct addrinfo *ai;
+if (getaddrinfo("localhost", "80", NULL, &ai) == 0) {
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    connect(fd, ai->ai_addr, ai->ai_addrlen);
+    freeaddrinfo(ai);
+}
+```
 
 ## Error Reporting
 
