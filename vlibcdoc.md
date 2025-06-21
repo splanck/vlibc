@@ -112,13 +112,37 @@ The goal is to offer just enough functionality for common tasks without the comp
 
 ## Process Control
 
-Process-related functionality resides in the **process** module. Planned features include:
+Process-related functionality resides in the **process** module. It provides
+minimal wrappers for creating and managing processes as well as installing
+signal handlers:
 
-- `vfork`, `vexecve`, and `vwaitpid` wrappers for spawning and tracking processes.
-- Simplified environment handling for child processes.
-- Basic signal support to allow clean termination and child process monitoring.
+```c
+pid_t fork(void);
+int execve(const char *pathname, char *const argv[], char *const envp[]);
+pid_t waitpid(pid_t pid, int *status, int options);
+int kill(pid_t pid, int sig);
+sighandler_t signal(int signum, sighandler_t handler);
+```
 
-The design favors straightforward semantics over comprehensive POSIX conformance.
+### Example
+
+```c
+/* Spawn a child that prints a message and wait for it to finish. */
+pid_t pid = fork();
+if (pid == 0) {
+    char *args[] = {"/bin/echo", "hello", NULL};
+    execve("/bin/echo", args, NULL);
+}
+waitpid(pid, NULL, 0);
+
+/* Install a handler and send the process an interrupt. */
+void on_int(int signo) { (void)signo; }
+signal(SIGINT, on_int);
+kill(getpid(), SIGINT);
+```
+
+The design favors straightforward semantics over comprehensive POSIX
+conformance.
 
 ## Conclusion
 
