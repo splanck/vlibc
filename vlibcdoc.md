@@ -138,14 +138,16 @@ produces the identical sequence of numbers, each in the range `0` to
 ## Process Control
 
 Process-related functionality resides in the **process** module. It provides
-minimal wrappers for creating and managing processes as well as installing
-signal handlers:
+minimal wrappers for creating and managing processes, querying process IDs,
+and installing signal handlers:
 
 ```c
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
+pid_t getpid(void);
+pid_t getppid(void);
 sighandler_t signal(int signum, sighandler_t handler);
 int system(const char *command);
 ```
