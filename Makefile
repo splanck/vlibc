@@ -22,7 +22,8 @@ SRC := \
     src/env.c \
     src/sleep.c \
     src/time.c \
-    src/stat.c
+    src/stat.c \
+    src/dirent.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
