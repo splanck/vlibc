@@ -141,6 +141,13 @@ prints the current `errno` value with an optional prefix.
 
 The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
 
+## Time Formatting
+
+The library includes a minimal `strftime` implementation for producing
+human-readable timestamps. Supported conversion sequences are `%Y`, `%m`,
+`%d`, `%H`, `%M`, and `%S`. All other specifiers are copied verbatim and
+no locale handling is performed.
+
 
 ## Limitations
 

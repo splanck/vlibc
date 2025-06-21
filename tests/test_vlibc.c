@@ -401,6 +401,23 @@ static const char *test_sleep_functions(void)
     return 0;
 }
 
+static const char *test_strftime_basic(void)
+{
+    struct tm tm = {
+        .tm_year = 123,
+        .tm_mon = 4,
+        .tm_mday = 6,
+        .tm_hour = 7,
+        .tm_min = 8,
+        .tm_sec = 9
+    };
+    char buf[32];
+    size_t n = strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+    mu_assert("strftime len", n == strlen("2023-05-06 07:08:09"));
+    mu_assert("strftime str", strcmp(buf, "2023-05-06 07:08:09") == 0);
+    return 0;
+}
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -521,6 +538,7 @@ static const char *all_tests(void)
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_pthread);
     mu_run_test(test_sleep_functions);
+    mu_run_test(test_strftime_basic);
     mu_run_test(test_environment);
     mu_run_test(test_error_reporting);
     mu_run_test(test_pid_functions);
