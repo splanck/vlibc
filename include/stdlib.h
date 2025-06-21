@@ -16,4 +16,8 @@ int system(const char *command);
 long strtol(const char *nptr, char **endptr, int base);
 int atoi(const char *nptr);
 
+/* Pseudo-random number generator */
+int rand(void);
+void srand(unsigned seed);
+
 #endif /* STDLIB_H */

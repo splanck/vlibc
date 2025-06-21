@@ -351,6 +351,15 @@ static const char *test_system_fn(void)
     return 0;
 }
 
+static const char *test_rand_fn(void)
+{
+    srand(1);
+    mu_assert("rand 1", rand() == 16838);
+    mu_assert("rand 2", rand() == 5758);
+    mu_assert("rand 3", rand() == 10113);
+    return 0;
+}
+
 static const char *test_dirent(void)
 {
     DIR *d = opendir("tests");
@@ -386,6 +395,7 @@ static const char *all_tests(void)
     mu_run_test(test_sleep_functions);
     mu_run_test(test_environment);
     mu_run_test(test_system_fn);
+    mu_run_test(test_rand_fn);
     mu_run_test(test_dirent);
 
     return 0;
