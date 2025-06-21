@@ -49,14 +49,33 @@ Programs using vlibc are expected to define a `v_main()` function that receives 
 
 ## Memory Management
 
-The **memory** module implements a tiny allocator suitable for embedded or minimal environments. The design plans include:
+The **memory** module provides a very small heap allocator implemented in
+`memory.c`. It relies on the `sbrk` system call to extend the heap and keeps
+the implementation deliberately simple. Memory once allocated is never returned
+to the system; `free()` acts only as a stub. This approach trades efficiency
+for auditability and is meant for short‑lived utilities or educational code.
 
-- A wrapper for `brk`/`sbrk` to manage a contiguous heap region.
-- Simple `vmalloc` and `vfree` functions with minimal overhead.
-- Optional pooling of small blocks for reduced fragmentation.
-- No support for advanced features like `mmap` by default, but hooks are provided for projects that require it.
+### API
 
-The focus is on predictability and small code size rather than high performance.
+```c
+void *malloc(size_t size);
+void free(void *ptr);
+void *calloc(size_t nmemb, size_t size);
+void *realloc(void *ptr, size_t size);
+```
+
+### Behavior and Caveats
+
+- `malloc` allocates memory linearly using `sbrk` and returns `NULL` on
+  failure.
+- `calloc` calls `malloc` and zeroes the allocated block.
+- `realloc` always allocates a new block and copies up to `size` bytes from the
+  old pointer if one was provided.
+- `free` currently performs no action, so freed memory is not reused.
+
+Because the allocator never recycles memory, applications that repeatedly
+allocate may eventually exhaust the heap. These routines are sufficient for
+small examples but should not be considered production quality.
 
 ## I/O
 
