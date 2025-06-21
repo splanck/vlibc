@@ -5,7 +5,12 @@ CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Iinclude
 AR ?= ar
 
-SRC := $(wildcard src/*.c)
+SRC := \
+    src/init.c \
+    src/io.c \
+    src/memory.c \
+    src/process.c \
+    src/string.c
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
 TEST_SRC := $(wildcard tests/*.c)
