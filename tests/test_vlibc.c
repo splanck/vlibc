@@ -6,6 +6,7 @@
 #include "../include/stdio.h"
 #include "../include/pthread.h"
 #include "../include/sys/select.h"
+#include "../include/poll.h"
 #include "../include/dirent.h"
 #include "../include/vlibc.h"
 
@@ -435,6 +436,23 @@ static const char *test_fgets_fputs(void)
     return 0;
 }
 
+static const char *test_fflush(void)
+{
+    FILE *f = fopen("tmp_flush", "w");
+    mu_assert("fopen flush", f != NULL);
+    mu_assert("write", fwrite("abc", 1, 3, f) == 3);
+    mu_assert("fflush", fflush(f) == 0);
+    fclose(f);
+
+    int fd = open("tmp_flush", O_RDONLY);
+    char buf[4] = {0};
+    ssize_t r = read(fd, buf, 3);
+    close(fd);
+    unlink("tmp_flush");
+    mu_assert("fflush content", r == 3 && strncmp(buf, "abc", 3) == 0);
+    return 0;
+}
+
 
 static const char *test_pthread(void)
 {
@@ -475,6 +493,31 @@ static const char *test_select_pipe(void)
     pthread_join(&t, NULL);
     mu_assert("select ret", r == 1);
     mu_assert("fd set", FD_ISSET(p[0], &rfds));
+
+    char c;
+    mu_assert("read", read(p[0], &c, 1) == 1 && c == 'z');
+
+    close(p[0]);
+    close(p[1]);
+    return 0;
+}
+
+static const char *test_poll_pipe(void)
+{
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+
+    pthread_t t;
+    pthread_create(&t, NULL, delayed_write, &p[1]);
+
+    struct pollfd fds[1];
+    fds[0].fd = p[0];
+    fds[0].events = POLLIN;
+
+    int r = poll(fds, 1, 2000);
+    pthread_join(&t, NULL);
+    mu_assert("poll ret", r == 1);
+    mu_assert("poll event", fds[0].revents & POLLIN);
 
     char c;
     mu_assert("read", read(p[0], &c, 1) == 1 && c == 'z');
@@ -552,8 +595,8 @@ static const char *test_environment(void)
 static const char *test_error_reporting(void)
 {
     errno = ENOENT;
-    char *msg = strerror(errno);
-    mu_assert("strerror", msg && *msg != '\0');
+    char *msg1 = strerror(errno);
+    mu_assert("strerror", msg1 && *msg1 != '\0');
     perror("test");
     vlibc_init();
     const char *msg2 = strerror(ENOENT);
@@ -595,6 +638,23 @@ static const char *test_system_fn(void)
     mu_assert("system true", r == 0);
     r = system("exit 7");
     mu_assert("system exit code", (r >> 8) == 7);
+    return 0;
+}
+
+static const char *test_execvp_fn(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        char *argv[] = {"echo", "vp", NULL};
+        execvp("echo", argv);
+        _exit(127);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("execvp status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
     return 0;
 }
 
@@ -778,12 +838,15 @@ static const char *all_tests(void)
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
     mu_run_test(test_fgets_fputs);
+    mu_run_test(test_fflush);
     mu_run_test(test_pthread);
     mu_run_test(test_select_pipe);
+    mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_environment);
     mu_run_test(test_system_fn);
+    mu_run_test(test_execvp_fn);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_mprotect_anon);

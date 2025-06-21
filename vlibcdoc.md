@@ -125,6 +125,10 @@ APIs. Available helpers include `fopen`, `fread`, `fwrite`, `fseek`,
 `ftell`, `rewind`, `fclose`, `fgetc`, `fputc`, `fgets`, `fputs`,
 `sprintf`, `snprintf`, `vsprintf`, `vsnprintf`, `fprintf`, `vfprintf`,
 `printf`, and `vprintf`.
+`fflush`, and simple formatted output via `fprintf` and `printf`.
+Because the library does not buffer stream data, `fflush` simply
+performs an `fsync` on the given stream when it is non-`NULL` and
+otherwise returns success.
 
 ## String Handling
 
@@ -170,6 +174,7 @@ and installing signal handlers:
 ```c
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
+int execvp(const char *file, char *const argv[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 pid_t getpid(void);
@@ -197,6 +202,8 @@ signal(SIGINT, on_int);
 kill(getpid(), SIGINT);
 ```
 
+`execvp` performs the same operation as `execve` but searches the directories in the `PATH` environment variable when the program name does not contain a slash.
+
 The convenience `system()` call executes a shell command by forking and
 invoking `/bin/sh -c command`. It returns the raw status from `waitpid`
 and is intended only for simple helper tasks.
@@ -219,6 +226,9 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
                const struct sockaddr *dest, socklen_t addrlen);
 ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
                  struct sockaddr *src, socklen_t *addrlen);
+int select(int nfds, fd_set *readfds, fd_set *writefds,
+           fd_set *exceptfds, struct timeval *timeout);
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
 ```
 
 These wrappers directly invoke the underlying `socket`, `bind`,

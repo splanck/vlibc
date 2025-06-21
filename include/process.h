@@ -7,6 +7,7 @@
 
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
+int execvp(const char *file, char *const argv[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 pid_t getpid(void);

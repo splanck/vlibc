@@ -63,6 +63,7 @@ io.h         - unbuffered I/O primitives
 memory.h     - heap allocation
 process.h    - process creation and control
 pthread.h    - minimal threading support
+poll.h       - I/O multiplexing helpers
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
@@ -182,15 +183,21 @@ vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 `stderr`. These lightweight streams wrap file descriptors 0, 1 and 2 and
 are initialized when `vlibc_init()` is called. They can be used with the
 provided `fread`, `fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`,
+
 `fputc`, `fgets`, `fputs`, `sprintf`, `snprintf`, `vsprintf`, `vsnprintf`,
 `fprintf`, `vfprintf`, `printf`, and `vprintf` functions.
+
+`fputc`, `fgets`, `fputs`, `fflush`, `fprintf`, and `printf` functions.
+Although I/O is unbuffered, `fflush(stream)` succeeds and invokes
+`fsync` on the stream's file descriptor when one is supplied.
+
 
 ## Networking
 
 The socket layer exposes thin wrappers around the kernel's networking
 syscalls. Available functions include `socket`, `bind`, `listen`,
-`accept`, `connect`, `send`, `recv`, `sendto`, `recvfrom`, and
-`select`.
+`accept`, `connect`, `send`, `recv`, `sendto`, `recvfrom`, as well as
+the I/O multiplexing helpers `select` and `poll`.
 These calls accept the same arguments as their POSIX counterparts and
 translate directly to the underlying `socket`, `bind`, `connect`, and
 `sendto`/`recvfrom` syscalls.
@@ -209,7 +216,9 @@ prints the current `errno` value with an optional prefix.
 
 ## Process Control
 
-The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `execvp`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+
+`execvp` searches the directories listed in the `PATH` environment variable and then invokes `execve` on the first matching program.
 
 A lightweight `popen`/`pclose` pair runs a shell command with a pipe
 connected to the child. Use mode `"r"` to read the command's output or
