@@ -17,8 +17,10 @@ SRC := \
     src/system.c \
     src/string.c \
     src/strto.c \
+    src/rand.c \
     src/socket.c \
     src/fd.c \
+    src/file.c \
     src/syscall.c \
     src/mmap.c \
     src/env.c \

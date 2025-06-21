@@ -87,6 +87,8 @@ int open(const char *path, int flags, mode_t mode);
 ssize_t read(int fd, void *buf, size_t count);
 ssize_t write(int fd, const void *buf, size_t count);
 int close(int fd);
+int unlink(const char *pathname);
+int rename(const char *oldpath, const char *newpath);
 ```
 
 These functions forward their arguments directly to the kernel using the syscall interface. No buffering or stream abstraction is performed.
@@ -118,6 +120,20 @@ The **string** module provides fundamental operations needed by most C programs:
 - Simple number conversion helpers `atoi` and `strtol`.
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
+
+## Random Numbers
+
+vlibc provides a minimal pseudo-random number generator implemented as a
+linear congruential generator.
+
+```c
+int rand(void);
+void srand(unsigned seed);
+```
+
+Calling `srand()` initializes the internal state. Reusing the same seed
+produces the identical sequence of numbers, each in the range `0` to
+`32767`.
 
 ## Process Control
 

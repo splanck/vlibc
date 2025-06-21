@@ -118,7 +118,7 @@ provided `fread`, `fwrite`, `fprintf`, and `printf` functions.
 
 ## Limitations
 
-- The I/O routines (`open`, `read`, `write`, `close`) are thin wrappers around
+- The I/O routines (`open`, `read`, `write`, `close`, `unlink`, `rename`) are thin wrappers around
   the corresponding system calls. They perform no buffering and provide only
   basic error reporting.
 - Process creation and signal functions rely on Linux `fork`, `execve`,
