@@ -12,6 +12,7 @@ SRC := \
     src/stdio.c \
     src/printf.c \
     src/memory.c \
+    src/memory_ops.c \
     src/process.c \
     src/string.c \
     src/socket.c \

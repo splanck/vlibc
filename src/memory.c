@@ -1,6 +1,6 @@
 #include "memory.h"
 #include <unistd.h>
-#include <string.h>
+#include "string.h"
 #include <stdint.h>
 
 /* Declare sbrk for strict environments */
@@ -64,7 +64,7 @@ void *calloc(size_t nmemb, size_t size)
     size_t total = nmemb * size;
     void *ptr = malloc(total);
     if (ptr)
-        memset(ptr, 0, total);
+        vmemset(ptr, 0, total);
     return ptr;
 }
 
@@ -75,6 +75,6 @@ void *realloc(void *ptr, size_t size)
 
     void *new_ptr = malloc(size);
     if (new_ptr && size > 0)
-        memmove(new_ptr, ptr, size);
+        vmemmove(new_ptr, ptr, size);
     return new_ptr;
 }

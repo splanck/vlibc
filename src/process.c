@@ -4,8 +4,10 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <signal.h>
-#include <string.h>
+#include "string.h"
 #include "syscall.h"
+extern long syscall(long number, ...);
+
 
 pid_t fork(void)
 {
@@ -72,7 +74,7 @@ sighandler_t signal(int signum, sighandler_t handler)
 {
 #ifdef SYS_rt_sigaction
     struct sigaction act, old;
-    memset(&act, 0, sizeof(act));
+    vmemset(&act, 0, sizeof(act));
     act.sa_handler = handler;
     long ret = vlibc_syscall(SYS_rt_sigaction, signum, (long)&act, (long)&old, sizeof(sigset_t), 0, 0);
     if (ret < 0) {
