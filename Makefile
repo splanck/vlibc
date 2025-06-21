@@ -14,6 +14,7 @@ SRC := \
     src/string.c \
     src/socket.c \
     src/mmap.c \
+    src/env.c \
     src/time.c \
     src/stat.c
 
