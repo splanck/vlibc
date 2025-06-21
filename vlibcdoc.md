@@ -160,6 +160,8 @@ pid_t getpid(void);
 pid_t getppid(void);
 sighandler_t signal(int signum, sighandler_t handler);
 int system(const char *command);
+int atexit(void (*fn)(void));
+void exit(int status);
 ```
 
 ### Example
@@ -182,8 +184,7 @@ kill(getpid(), SIGINT);
 The convenience `system()` call executes a shell command by forking and
 invoking `/bin/sh -c command`. It returns the raw status from `waitpid`
 and is intended only for simple helper tasks.
-
-
+`exit()` terminates the process after running any handlers registered with `atexit()`. The handlers execute in reverse registration order. `_exit()` bypasses them.
 The design favors straightforward semantics over comprehensive POSIX
 conformance.
 
