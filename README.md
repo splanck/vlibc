@@ -35,3 +35,14 @@ the full standard library. Instead, vlibc offers a minimal set of
 wrappers and utilities that can be easily inspected, modified, or
 extended. This makes it suitable for specialized applications where the
 complete feature set of other libcs is unnecessary.
+
+## Project Structure
+
+The repository uses a straightforward layout:
+
+- `src/` contains the library's source files.
+- `include/` holds public header files.
+- `tests/` will store test cases and examples.
+
+These directories are empty initially, acting as placeholders for future
+development.
