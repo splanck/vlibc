@@ -5,6 +5,7 @@
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
 #include "../include/pthread.h"
+#include "../include/sys/select.h"
 #include "../include/dirent.h"
 #include "../include/vlibc.h"
 
@@ -363,6 +364,19 @@ static const char *test_fseek_rewind(void)
     return 0;
 }
 
+static const char *test_fgetc_fputc(void)
+{
+    FILE *f = fopen("tmp_char", "w+");
+    mu_assert("fopen char", f != NULL);
+    mu_assert("fputc ret", fputc('X', f) == 'X');
+    rewind(f);
+    int c = fgetc(f);
+    mu_assert("fgetc val", c == 'X');
+    fclose(f);
+    unlink("tmp_char");
+    return 0;
+}
+
 
 static const char *test_pthread(void)
 {
@@ -375,6 +389,40 @@ static const char *test_pthread(void)
     mu_assert("thread retval", ret == (void *)123);
     mu_assert("shared value", val == 42);
   
+    return 0;
+}
+
+static void *delayed_write(void *arg)
+{
+    int fd = *(int *)arg;
+    usleep(100000);
+    write(fd, "z", 1);
+    return NULL;
+}
+
+static const char *test_select_pipe(void)
+{
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+
+    pthread_t t;
+    pthread_create(&t, NULL, delayed_write, &p[1]);
+
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(p[0], &rfds);
+    struct timeval tv = {2, 0};
+
+    int r = select(p[0] + 1, &rfds, NULL, NULL, &tv);
+    pthread_join(&t, NULL);
+    mu_assert("select ret", r == 1);
+    mu_assert("fd set", FD_ISSET(p[0], &rfds));
+
+    char c;
+    mu_assert("read", read(p[0], &c, 1) == 1 && c == 'z');
+
+    close(p[0]);
+    close(p[1]);
     return 0;
 }
 
@@ -440,6 +488,40 @@ static const char *test_environment(void)
     unsetenv("FOO");
     mu_assert("unsetenv", getenv("FOO") == NULL);
 
+    return 0;
+}
+
+static const char *test_error_reporting(void)
+{
+    vlibc_init();
+    const char *msg = strerror(ENOENT);
+    mu_assert("strerror", strcmp(msg, "No such file or directory") == 0);
+
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+    int old = dup(2);
+    mu_assert("dup", old >= 0);
+    dup2(p[1], 2);
+    close(p[1]);
+    errno = ENOENT;
+    perror("test");
+    dup2(old, 2);
+    close(old);
+    char buf[64] = {0};
+    ssize_t n = read(p[0], buf, sizeof(buf) - 1);
+    close(p[0]);
+    mu_assert("perror read", n > 0);
+    const char *exp = "test: No such file or directory\n";
+    mu_assert("perror output", (size_t)n == strlen(exp) && memcmp(buf, exp, n) == 0);
+
+    return 0;
+}
+
+static const char *test_pid_functions(void)
+{
+    pid_t self = getpid();
+    mu_assert("getpid positive", self > 0);
+    mu_assert("getppid positive", getppid() > 0);
     return 0;
 }
 
@@ -536,7 +618,9 @@ static const char *all_tests(void)
     mu_run_test(test_string_helpers);
     mu_run_test(test_printf_functions);
     mu_run_test(test_fseek_rewind);
+    mu_run_test(test_fgetc_fputc);
     mu_run_test(test_pthread);
+    mu_run_test(test_select_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_environment);

@@ -32,6 +32,7 @@ SRC := \
     src/pthread.c \
     src/dirent.c \
     src/ctype.c \
+    src/select.c \
     src/qsort.c
 
 OBJ := $(SRC:.c=.o)
