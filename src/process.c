@@ -57,6 +57,26 @@ int kill(pid_t pid, int sig)
     return (int)ret;
 }
 
+pid_t getpid(void)
+{
+    long ret = vlibc_syscall(SYS_getpid, 0, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (pid_t)ret;
+}
+
+pid_t getppid(void)
+{
+    long ret = vlibc_syscall(SYS_getppid, 0, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (pid_t)ret;
+}
+
 
 void _exit(int status)
 {

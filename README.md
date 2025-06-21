@@ -103,6 +103,9 @@ vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 are initialized when `vlibc_init()` is called. They can be used with the
 provided `fread`, `fwrite`, `fprintf`, and `printf` functions.
 
+## Process Control
+
+The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
 
 ## Limitations
 
