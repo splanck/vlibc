@@ -7,6 +7,8 @@
 
 #include <fcntl.h>
 #include "../include/string.h"
+#include "../include/stdlib.h"
+#include "../include/env.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -250,6 +252,31 @@ static const char *test_printf_functions(void)
     return 0;
 }
 
+static const char *test_environment(void)
+{
+    env_init(NULL);
+    mu_assert("empty env", getenv("FOO") == NULL);
+
+    int r = setenv("FOO", "BAR", 0);
+    mu_assert("setenv new", r == 0);
+    char *v = getenv("FOO");
+    mu_assert("getenv new", v && strcmp(v, "BAR") == 0);
+
+    r = setenv("FOO", "BAZ", 0);
+    v = getenv("FOO");
+    mu_assert("no overwrite", v && strcmp(v, "BAR") == 0);
+
+    r = setenv("FOO", "BAZ", 1);
+    mu_assert("overwrite", r == 0);
+    v = getenv("FOO");
+    mu_assert("getenv overwrite", v && strcmp(v, "BAZ") == 0);
+
+    unsetenv("FOO");
+    mu_assert("unsetenv", getenv("FOO") == NULL);
+
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
@@ -263,6 +290,7 @@ static const char *all_tests(void)
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_string_helpers);
     mu_run_test(test_printf_functions);
+    mu_run_test(test_environment);
 
     return 0;
 }
