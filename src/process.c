@@ -4,7 +4,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <signal.h>
-#include <string.h>
+#include "string.h"
 
 extern long syscall(long number, ...);
 
@@ -73,7 +73,7 @@ sighandler_t signal(int signum, sighandler_t handler)
 {
 #ifdef SYS_rt_sigaction
     struct sigaction act, old;
-    memset(&act, 0, sizeof(act));
+    vmemset(&act, 0, sizeof(act));
     act.sa_handler = handler;
     long ret = syscall(SYS_rt_sigaction, signum, &act, &old, sizeof(sigset_t));
     if (ret < 0) {

@@ -5,8 +5,12 @@
 #include "../include/sys/stat.h"
 
 #include <fcntl.h>
-#include <string.h>
+#include "../include/string.h"
 #include <unistd.h>
+#include <stdio.h>
+
+/* use host printf for test output */
+int printf(const char *fmt, ...);
 
 int tests_run = 0;
 
@@ -14,8 +18,26 @@ static const char *test_malloc(void)
 {
     void *p = malloc(16);
     mu_assert("malloc returned NULL", p != NULL);
-    memset(p, 0xAA, 16);
+    vmemset(p, 0xAA, 16);
     free(p);
+    return 0;
+}
+
+static const char *test_memory_ops(void)
+{
+    char buf[8];
+    vmemset(buf, 'x', sizeof(buf));
+    for (size_t i = 0; i < sizeof(buf); i++)
+        mu_assert("vmemset failed", buf[i] == 'x');
+
+    char src[8] = "abcdefg";
+    vmemcpy(buf, src, 8);
+    mu_assert("vmemcpy failed", vmemcmp(buf, src, 8) == 0);
+
+    vmemmove(buf + 1, buf, 7);
+    mu_assert("vmemmove failed", buf[1] == 'a' && buf[2] == 'b');
+
+    mu_assert("vmemcmp diff", vmemcmp("abc", "abd", 3) < 0);
     return 0;
 }
 
@@ -82,6 +104,7 @@ static const char *test_stat_wrappers(void)
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
+    mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_socket);
     mu_run_test(test_stat_wrappers);
