@@ -20,6 +20,7 @@ SRC := \
     src/syscall.c \
     src/mmap.c \
     src/env.c \
+    src/sleep.c \
     src/time.c \
     src/stat.c
 

@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include "../include/time.h"
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
@@ -252,6 +253,26 @@ static const char *test_printf_functions(void)
     return 0;
 }
 
+static const char *test_sleep_functions(void)
+{
+    time_t t1 = time(NULL);
+    unsigned r = sleep(1);
+    time_t t2 = time(NULL);
+    mu_assert("sleep returned", r == 0);
+    mu_assert("sleep delay", t2 - t1 >= 1 && t2 - t1 <= 3);
+
+    t1 = time(NULL);
+    mu_assert("usleep failed", usleep(500000) == 0);
+    mu_assert("usleep failed2", usleep(500000) == 0);
+    t2 = time(NULL);
+    mu_assert("usleep delay", t2 - t1 >= 1 && t2 - t1 <= 3);
+
+    struct timespec ts = {1, 0};
+    t1 = time(NULL);
+    mu_assert("nanosleep failed", nanosleep(&ts, NULL) == 0);
+    t2 = time(NULL);
+    mu_assert("nanosleep delay", t2 - t1 >= 1 && t2 - t1 <= 3);
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -290,6 +311,7 @@ static const char *all_tests(void)
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_string_helpers);
     mu_run_test(test_printf_functions);
+    mu_run_test(test_sleep_functions);
     mu_run_test(test_environment);
 
     return 0;
