@@ -64,7 +64,7 @@ pthread.h    - minimal threading support
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
-sys/mman.h   - memory mapping helpers
+sys/mman.h   - memory mapping helpers (mmap, munmap, mprotect)
 sys/socket.h - networking wrappers
 sys/stat.h   - file status functions
 syscall.h    - raw syscall interface

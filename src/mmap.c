@@ -23,3 +23,13 @@ int munmap(void *addr, size_t length)
     }
     return (int)ret;
 }
+
+int mprotect(void *addr, size_t length, int prot)
+{
+    long ret = vlibc_syscall(SYS_mprotect, (long)addr, length, prot, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+}
