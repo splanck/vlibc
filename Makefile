@@ -19,6 +19,7 @@ SRC := \
     src/strto.c \
     src/socket.c \
     src/fd.c \
+    src/file.c \
     src/syscall.c \
     src/mmap.c \
     src/env.c \
