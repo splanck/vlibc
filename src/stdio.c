@@ -99,3 +99,25 @@ void rewind(FILE *stream)
     lseek(stream->fd, 0, SEEK_SET);
 }
 
+int fgetc(FILE *stream)
+{
+    if (!stream)
+        return -1;
+    unsigned char ch;
+    ssize_t r = read(stream->fd, &ch, 1);
+    if (r != 1)
+        return -1;
+    return ch;
+}
+
+int fputc(int c, FILE *stream)
+{
+    if (!stream)
+        return -1;
+    unsigned char ch = (unsigned char)c;
+    ssize_t w = write(stream->fd, &ch, 1);
+    if (w != 1)
+        return -1;
+    return ch;
+}
+
