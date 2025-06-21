@@ -72,6 +72,7 @@ wchar.h     - wide character helpers
 getopt.h     - option parsing
 sys/mman.h   - memory mapping helpers
 sys/socket.h - networking wrappers
+sys/file.h   - file permission helpers
 netdb.h      - address resolution helpers
 sys/stat.h   - file status functions
 syscall.h    - raw syscall interface
@@ -232,6 +233,16 @@ void perror(const char *s);
 
 `strerror()` returns a string for a known error code, while `perror()`
 prints the current `errno` value with an optional prefix.
+
+## File Permissions
+
+The file module exposes simple wrappers to adjust permissions and ownership.
+
+```c
+umask(022);
+chmod("data.txt", 0644);
+chown("data.txt", 1000, 1000);
+```
 
 ## Process Control
 

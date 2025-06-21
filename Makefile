@@ -24,6 +24,7 @@ SRC := \
     src/netdb.c \
     src/fd.c \
     src/file.c \
+    src/file_perm.c \
     src/dir.c \
     src/syscall.c \
     src/mmap.c \
