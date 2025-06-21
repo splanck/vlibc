@@ -12,6 +12,7 @@
 #include "../include/string.h"
 #include "../include/stdlib.h"
 #include "../include/env.h"
+#include "../include/process.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -343,38 +344,21 @@ static const char *test_environment(void)
     return 0;
 }
 
-static const char *test_error_reporting(void)
-{
-    vlibc_init();
-    const char *msg = strerror(ENOENT);
-    mu_assert("strerror", strcmp(msg, "No such file or directory") == 0);
-
-    int p[2];
-    mu_assert("pipe", pipe(p) == 0);
-    int old = dup(2);
-    mu_assert("dup", old >= 0);
-    dup2(p[1], 2);
-    close(p[1]);
-    errno = ENOENT;
-    perror("test");
-    dup2(old, 2);
-    close(old);
-    char buf[64] = {0};
-    ssize_t n = read(p[0], buf, sizeof(buf) - 1);
-    close(p[0]);
-    mu_assert("perror read", n > 0);
-    const char *exp = "test: No such file or directory\n";
-    mu_assert("perror output", (size_t)n == strlen(exp) && memcmp(buf, exp, n) == 0);
-
-    return 0;
-}
-
 static const char *test_system_fn(void)
 {
     int r = system("true");
     mu_assert("system true", r == 0);
     r = system("exit 7");
     mu_assert("system exit code", (r >> 8) == 7);
+    return 0;
+}
+
+static const char *test_rand_fn(void)
+{
+    srand(1);
+    mu_assert("rand 1", rand() == 16838);
+    mu_assert("rand 2", rand() == 5758);
+    mu_assert("rand 3", rand() == 10113);
     return 0;
 }
 
@@ -396,6 +380,48 @@ static const char *test_dirent(void)
     return 0;
 }
 
+static int int_cmp(const void *a, const void *b)
+{
+    int ia = *(const int *)a;
+    int ib = *(const int *)b;
+    return (ia > ib) - (ia < ib);
+}
+
+static int str_cmp(const void *a, const void *b)
+{
+    const char *sa = *(const char * const *)a;
+    const char *sb = *(const char * const *)b;
+    return strcmp(sa, sb);
+}
+
+static const char *test_qsort_int(void)
+{
+    int arr[] = {4, 2, 7, 1, -1};
+    qsort(arr, 5, sizeof(int), int_cmp);
+    int sorted[] = {-1, 1, 2, 4, 7};
+    for (int i = 0; i < 5; ++i)
+        mu_assert("int sort", arr[i] == sorted[i]);
+
+    int key = 4;
+    int *res = bsearch(&key, arr, 5, sizeof(int), int_cmp);
+    mu_assert("bsearch int", res && *res == 4);
+    return 0;
+}
+
+static const char *test_qsort_strings(void)
+{
+    const char *arr[] = {"pear", "apple", "orange", "banana"};
+    qsort((void *)arr, 4, sizeof(char *), str_cmp);
+    const char *sorted[] = {"apple", "banana", "orange", "pear"};
+    for (int i = 0; i < 4; ++i)
+        mu_assert("string sort", strcmp(arr[i], sorted[i]) == 0);
+
+    const char *key = "orange";
+    char **p = bsearch(&key, arr, 4, sizeof(char *), str_cmp);
+    mu_assert("bsearch str", p && strcmp(*p, "orange") == 0);
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
@@ -413,8 +439,12 @@ static const char *all_tests(void)
     mu_run_test(test_sleep_functions);
     mu_run_test(test_environment);
     mu_run_test(test_error_reporting);
+    mu_run_test(test_pid_functions);
     mu_run_test(test_system_fn);
+    mu_run_test(test_rand_fn);
     mu_run_test(test_dirent);
+    mu_run_test(test_qsort_int);
+    mu_run_test(test_qsort_strings);
 
     return 0;
 }

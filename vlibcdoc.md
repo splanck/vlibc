@@ -88,6 +88,8 @@ int open(const char *path, int flags, mode_t mode);
 ssize_t read(int fd, void *buf, size_t count);
 ssize_t write(int fd, const void *buf, size_t count);
 int close(int fd);
+int unlink(const char *pathname);
+int rename(const char *oldpath, const char *newpath);
 ```
 
 These functions forward their arguments directly to the kernel using the syscall interface. No buffering or stream abstraction is performed.
@@ -120,17 +122,33 @@ The **string** module provides fundamental operations needed by most C programs:
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
+## Random Numbers
+
+vlibc provides a minimal pseudo-random number generator implemented as a
+linear congruential generator.
+
+```c
+int rand(void);
+void srand(unsigned seed);
+```
+
+Calling `srand()` initializes the internal state. Reusing the same seed
+produces the identical sequence of numbers, each in the range `0` to
+`32767`.
+
 ## Process Control
 
 Process-related functionality resides in the **process** module. It provides
-minimal wrappers for creating and managing processes as well as installing
-signal handlers:
+minimal wrappers for creating and managing processes, querying process IDs,
+and installing signal handlers:
 
 ```c
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
+pid_t getpid(void);
+pid_t getppid(void);
 sighandler_t signal(int signum, sighandler_t handler);
 int system(const char *command);
 ```

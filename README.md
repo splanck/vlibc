@@ -96,6 +96,18 @@ char *end;
 long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
 ```
 
+## Sorting Helpers
+
+`qsort()` sorts an array in-place using a user-provided comparison
+function, while `bsearch()` performs binary search on a sorted array.
+
+```c
+int values[] = {4, 2, 7};
+qsort(values, 3, sizeof(int), cmp_int);
+int key = 7;
+int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
+```
+
 ## Standard Streams
 
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
@@ -115,10 +127,14 @@ void perror(const char *s);
 `strerror()` returns a string for a known error code, while `perror()`
 prints the current `errno` value with an optional prefix.
 
+## Process Control
+
+The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+
 
 ## Limitations
 
-- The I/O routines (`open`, `read`, `write`, `close`) are thin wrappers around
+- The I/O routines (`open`, `read`, `write`, `close`, `unlink`, `rename`) are thin wrappers around
   the corresponding system calls. They perform no buffering and provide only
   basic error reporting.
 - Process creation and signal functions rely on Linux `fork`, `execve`,
