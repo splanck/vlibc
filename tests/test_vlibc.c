@@ -234,6 +234,11 @@ static const char *test_string_helpers(void)
     mu_assert("strdup failed", dup && strcmp(dup, "test") == 0);
     free(dup);
 
+    mu_assert("atoi", atoi("42") == 42);
+    char *end;
+    mu_assert("strtol hex", strtol("ff", &end, 16) == 255 && *end == '\0');
+    mu_assert("strtol partial", strtol("12xy", &end, 10) == 12 && strcmp(end, "xy") == 0);
+
     return 0;
 }
 

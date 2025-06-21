@@ -80,12 +80,25 @@ make test
 
 This command builds `tests/run_tests` and runs it automatically.
 
+## String Conversion
+
+vlibc provides simple helpers to convert strings into integers. Use
+`atoi()` for basic decimal parsing or `strtol()` when you need other
+bases or the end pointer.
+
+```c
+int v = atoi("123");            /* v == 123 */
+char *end;
+long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
+```
+
 ## Standard Streams
 
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 `stderr`. These lightweight streams wrap file descriptors 0, 1 and 2 and
 are initialized when `vlibc_init()` is called. They can be used with the
 provided `fread`, `fwrite`, `fprintf`, and `printf` functions.
+
 
 ## Limitations
 
