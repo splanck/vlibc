@@ -316,6 +316,9 @@ static const char *test_string_helpers(void)
     char *end;
     mu_assert("strtol hex", strtol("ff", &end, 16) == 255 && *end == '\0');
     mu_assert("strtol partial", strtol("12xy", &end, 10) == 12 && strcmp(end, "xy") == 0);
+    mu_assert("strtod basic", strtod("2.5", &end) == 2.5 && *end == '\0');
+    mu_assert("strtod exp", strtod("1e2", &end) == 100.0 && *end == '\0');
+    mu_assert("atof", atof("-3.0") == -3.0);
 
     mu_assert("strnlen zero", strnlen("abc", 0) == 0);
     mu_assert("strnlen short", strnlen("hello", 3) == 3);

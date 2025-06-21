@@ -15,6 +15,8 @@ int system(const char *command);
 /* String conversion */
 long strtol(const char *nptr, char **endptr, int base);
 int atoi(const char *nptr);
+double strtod(const char *nptr, char **endptr);
+double atof(const char *nptr);
 
 
 /* Sorting helpers */

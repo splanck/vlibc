@@ -143,7 +143,7 @@ The **string** module provides fundamental operations needed by most C programs:
   delimiter characters. `strtok` stores its parsing state in static
   memory and is not thread-safe. `strtok_r` lets the caller maintain the
   context and is safe for concurrent use.
-- Simple number conversion helpers `atoi` and `strtol`.
+- Simple number conversion helpers `atoi`, `strtol`, `strtod`, and `atof`.
 
 Basic time formatting is available via `strftime`. Only a small subset of
 conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
