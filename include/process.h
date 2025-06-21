@@ -10,6 +10,9 @@ int execve(const char *pathname, char *const argv[], char *const envp[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 
+void _exit(int status);
+void exit(int status);
+
 typedef void (*sighandler_t)(int);
 sighandler_t signal(int signum, sighandler_t handler);
 
