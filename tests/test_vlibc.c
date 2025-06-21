@@ -25,6 +25,31 @@ static const char *test_malloc(void)
     return 0;
 }
 
+static const char *test_malloc_reuse(void)
+{
+    void *a = malloc(32);
+    void *b = malloc(64);
+    void *c = malloc(16);
+
+    mu_assert("alloc a", a != NULL);
+    mu_assert("alloc b", b != NULL);
+    mu_assert("alloc c", c != NULL);
+
+    free(b);
+    free(a);
+
+    void *d = malloc(24);
+    void *e = malloc(8);
+
+    mu_assert("reuse d", d == a);
+    mu_assert("reuse e", e == b);
+
+    free(c);
+    free(d);
+    free(e);
+    return 0;
+}
+
 static const char *test_memory_ops(void)
 {
     char buf[8];
@@ -228,6 +253,7 @@ static const char *test_printf_functions(void)
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
+    mu_run_test(test_malloc_reuse);
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);

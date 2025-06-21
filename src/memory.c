@@ -7,40 +7,44 @@
 extern void *sbrk(intptr_t increment);
 
 /*
- * Extremely small bump allocator. Each allocation stores a size header so
- * the most recently allocated block can be released. Memory is only
- * returned to the system if free() is called on the last allocation.
- * This remains simple and suitable for tiny programs or testing but is
- * not intended for long-running processes.
+ * Very small free list allocator. Each allocation stores a size header and
+ * freed blocks are placed on a singly linked list so they can be reused by
+ * subsequent malloc calls.  Blocks are not coalesced or split which keeps the
+ * implementation simple while still allowing memory to be recycled.
  */
 
-static char *heap_end = NULL;
-
-/* Size header stored before each allocation */
 struct block_header {
     size_t size;
+    struct block_header *next; /* valid only when block is free */
 };
+
+static struct block_header *free_list = NULL;
 
 void *malloc(size_t size)
 {
     if (size == 0)
         return NULL;
 
-    if (!heap_end)
-        heap_end = sbrk(0);
+    /* first-fit search through free list */
+    struct block_header *prev = NULL;
+    struct block_header *b = free_list;
+    while (b) {
+        if (b->size >= size) {
+            if (prev)
+                prev->next = b->next;
+            else
+                free_list = b->next;
+            return (void *)(b + 1);
+        }
+        prev = b;
+        b = b->next;
+    }
 
-    /* allocate space for header + requested size */
-    size_t total = sizeof(struct block_header) + size;
-
-    char *prev = heap_end;
-    if (sbrk(total) == (void *)-1)
+    /* allocate new block from the system */
+    struct block_header *hdr = sbrk(sizeof(struct block_header) + size);
+    if (hdr == (void *)-1)
         return NULL;
-
-    /* store header and move heap pointer */
-    struct block_header *hdr = (struct block_header *)prev;
     hdr->size = size;
-
-    heap_end += total;
     return (void *)(hdr + 1);
 }
 
@@ -50,13 +54,8 @@ void free(void *ptr)
         return;
 
     struct block_header *hdr = (struct block_header *)ptr - 1;
-    size_t total = sizeof(struct block_header) + hdr->size;
-
-    /* only release memory if this is the most recent allocation */
-    if ((char *)ptr + hdr->size == heap_end) {
-        if (sbrk(-((intptr_t)total)) != (void *)-1)
-            heap_end -= total;
-    }
+    hdr->next = free_list;
+    free_list = hdr;
 }
 
 void *calloc(size_t nmemb, size_t size)
@@ -73,8 +72,18 @@ void *realloc(void *ptr, size_t size)
     if (!ptr)
         return malloc(size);
 
+    if (size == 0) {
+        free(ptr);
+        return NULL;
+    }
+
+    struct block_header *old_hdr = (struct block_header *)ptr - 1;
+    size_t copy = old_hdr->size < size ? old_hdr->size : size;
+
     void *new_ptr = malloc(size);
-    if (new_ptr && size > 0)
-        vmemmove(new_ptr, ptr, size);
+    if (!new_ptr)
+        return NULL;
+    vmemcpy(new_ptr, ptr, copy);
+    free(ptr);
     return new_ptr;
 }
