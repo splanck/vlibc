@@ -218,6 +218,9 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
                const struct sockaddr *dest, socklen_t addrlen);
 ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
                  struct sockaddr *src, socklen_t *addrlen);
+int select(int nfds, fd_set *readfds, fd_set *writefds,
+           fd_set *exceptfds, struct timeval *timeout);
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
 ```
 
 These wrappers directly invoke the underlying `socket`, `bind`,
