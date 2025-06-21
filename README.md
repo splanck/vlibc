@@ -77,3 +77,6 @@ cc your_app.c -I/path/to/vlibc/include -L/path/to/vlibc -lvlibc
 - The I/O routines (`open`, `read`, `write`, `close`) are thin wrappers around
   the corresponding system calls. They perform no buffering and provide only
   basic error reporting.
+- Process creation and signal functions rely on Linux `fork`, `execve`,
+  `wait4`/`waitpid`, and `rt_sigaction` syscalls. Porting to other UNIX-like
+  kernels may require adapting these calls.
