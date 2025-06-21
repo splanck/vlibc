@@ -25,6 +25,7 @@ SRC := \
     src/env.c \
     src/sleep.c \
     src/time.c \
+    src/strftime.c \
     src/stat.c \
     src/pthread.c \
     src/dirent.c

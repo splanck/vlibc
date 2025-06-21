@@ -119,6 +119,10 @@ The **string** module provides fundamental operations needed by most C programs:
 - Utility functions for tokenizing and simple formatting.
 - Simple number conversion helpers `atoi` and `strtol`.
 
+Basic time formatting is available via `strftime`. Only a small subset of
+conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
+output always uses the C locale.
+
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
 ## Process Control

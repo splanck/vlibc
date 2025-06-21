@@ -103,6 +103,13 @@ vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 are initialized when `vlibc_init()` is called. They can be used with the
 provided `fread`, `fwrite`, `fprintf`, and `printf` functions.
 
+## Time Formatting
+
+The library includes a minimal `strftime` implementation for producing
+human-readable timestamps. Supported conversion sequences are `%Y`, `%m`,
+`%d`, `%H`, `%M`, and `%S`. All other specifiers are copied verbatim and
+no locale handling is performed.
+
 
 ## Limitations
 
