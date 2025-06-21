@@ -122,8 +122,11 @@ The stdio module also exposes `stdin`, `stdout`, and `stderr` as global
 pointers. These streams wrap file descriptors 0, 1 and 2 and are
 initialized in `vlibc_init()` so they can be used with the basic FILE
 APIs. Available helpers include `fopen`, `fread`, `fwrite`, `fseek`,
-`ftell`, `rewind`, `fclose`, `fgetc`, `fputc`, `fgets`, `fputs`, and
-simple formatted output via `fprintf` and `printf`.
+`ftell`, `rewind`, `fclose`, `fgetc`, `fputc`, `fgets`, `fputs`,
+`fflush`, and simple formatted output via `fprintf` and `printf`.
+Because the library does not buffer stream data, `fflush` simply
+performs an `fsync` on the given stream when it is non-`NULL` and
+otherwise returns success.
 
 ## String Handling
 

@@ -436,6 +436,23 @@ static const char *test_fgets_fputs(void)
     return 0;
 }
 
+static const char *test_fflush(void)
+{
+    FILE *f = fopen("tmp_flush", "w");
+    mu_assert("fopen flush", f != NULL);
+    mu_assert("write", fwrite("abc", 1, 3, f) == 3);
+    mu_assert("fflush", fflush(f) == 0);
+    fclose(f);
+
+    int fd = open("tmp_flush", O_RDONLY);
+    char buf[4] = {0};
+    ssize_t r = read(fd, buf, 3);
+    close(fd);
+    unlink("tmp_flush");
+    mu_assert("fflush content", r == 3 && strncmp(buf, "abc", 3) == 0);
+    return 0;
+}
+
 
 static const char *test_pthread(void)
 {
@@ -821,6 +838,7 @@ static const char *all_tests(void)
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
     mu_run_test(test_fgets_fputs);
+    mu_run_test(test_fflush);
     mu_run_test(test_pthread);
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
