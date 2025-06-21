@@ -5,6 +5,7 @@
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
 #include "../include/pthread.h"
+#include "../include/sys/select.h"
 #include "../include/dirent.h"
 #include "../include/vlibc.h"
 
@@ -391,6 +392,40 @@ static const char *test_pthread(void)
     return 0;
 }
 
+static void *delayed_write(void *arg)
+{
+    int fd = *(int *)arg;
+    usleep(100000);
+    write(fd, "z", 1);
+    return NULL;
+}
+
+static const char *test_select_pipe(void)
+{
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+
+    pthread_t t;
+    pthread_create(&t, NULL, delayed_write, &p[1]);
+
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(p[0], &rfds);
+    struct timeval tv = {2, 0};
+
+    int r = select(p[0] + 1, &rfds, NULL, NULL, &tv);
+    pthread_join(&t, NULL);
+    mu_assert("select ret", r == 1);
+    mu_assert("fd set", FD_ISSET(p[0], &rfds));
+
+    char c;
+    mu_assert("read", read(p[0], &c, 1) == 1 && c == 'z');
+
+    close(p[0]);
+    close(p[1]);
+    return 0;
+}
+
 static const char *test_sleep_functions(void)
 {
     time_t t1 = time(NULL);
@@ -585,6 +620,7 @@ static const char *all_tests(void)
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
     mu_run_test(test_pthread);
+    mu_run_test(test_select_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_environment);
