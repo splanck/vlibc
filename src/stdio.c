@@ -121,3 +121,35 @@ int fputc(int c, FILE *stream)
     return ch;
 }
 
+char *fgets(char *s, int size, FILE *stream)
+{
+    if (!stream || !s || size <= 0)
+        return NULL;
+    int i = 0;
+    while (i < size - 1) {
+        unsigned char ch;
+        ssize_t r = read(stream->fd, &ch, 1);
+        if (r != 1) {
+            if (i == 0)
+                return NULL;
+            break;
+        }
+        s[i++] = (char)ch;
+        if (ch == '\n')
+            break;
+    }
+    s[i] = '\0';
+    return s;
+}
+
+int fputs(const char *s, FILE *stream)
+{
+    if (!stream || !s)
+        return -1;
+    size_t len = strlen(s);
+    ssize_t w = write(stream->fd, s, len);
+    if (w != (ssize_t)len)
+        return -1;
+    return (int)w;
+}
+
