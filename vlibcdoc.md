@@ -119,6 +119,20 @@ The **string** module provides fundamental operations needed by most C programs:
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
+## Random Numbers
+
+vlibc provides a minimal pseudo-random number generator implemented as a
+linear congruential generator.
+
+```c
+int rand(void);
+void srand(unsigned seed);
+```
+
+Calling `srand()` initializes the internal state. Reusing the same seed
+produces the identical sequence of numbers, each in the range `0` to
+`32767`.
+
 ## Process Control
 
 Process-related functionality resides in the **process** module. It provides

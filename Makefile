@@ -17,6 +17,7 @@ SRC := \
     src/system.c \
     src/string.c \
     src/strto.c \
+    src/rand.c \
     src/socket.c \
     src/fd.c \
     src/syscall.c \
