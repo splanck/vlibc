@@ -12,7 +12,8 @@ SRC := \
     src/memory.c \
     src/process.c \
     src/string.c \
-    src/mmap.c
+    src/mmap.c \
+    src/time.c
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
 TEST_SRC := $(wildcard tests/*.c)
