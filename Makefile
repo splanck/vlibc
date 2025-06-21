@@ -38,7 +38,8 @@ SRC := \
     src/select.c \
     src/qsort.c \
     src/getopt.c \
-    src/wchar.c
+    src/wchar.c \
+    src/math.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
