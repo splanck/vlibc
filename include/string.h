@@ -8,3 +8,5 @@ char *vstrcpy(char *dest, const char *src);
 int vstrncmp(const char *s1, const char *s2, size_t n);
 
 #endif /* STRING_H */
+
+#include_next <string.h>

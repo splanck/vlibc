@@ -1,6 +1,7 @@
 #include "minunit.h"
 #include "../include/memory.h"
 #include "../include/io.h"
+#include "../include/sys/socket.h"
 
 #include <fcntl.h>
 #include <string.h>
@@ -38,10 +39,20 @@ static const char *test_io(void)
     return 0;
 }
 
+static const char *test_socket(void)
+{
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    mu_assert("socket creation failed", fd >= 0);
+    if (fd >= 0)
+        close(fd);
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
     mu_run_test(test_io);
+    mu_run_test(test_socket);
     return 0;
 }
 

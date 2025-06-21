@@ -12,8 +12,10 @@ SRC := \
     src/memory.c \
     src/process.c \
     src/string.c \
+    src/socket.c \
     src/mmap.c \
     src/time.c
+
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
 TEST_SRC := $(wildcard tests/*.c)
@@ -38,6 +40,8 @@ install: $(LIB)
 	install -m 644 $(LIB) $(DESTDIR)$(PREFIX)/lib
 	install -d $(DESTDIR)$(PREFIX)/include
 	install -m 644 include/*.h $(DESTDIR)$(PREFIX)/include
+	install -d $(DESTDIR)$(PREFIX)/include/sys
+	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys
 
 clean:
 	rm -f $(OBJ) $(LIB) $(TEST_BIN)
