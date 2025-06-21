@@ -2,6 +2,7 @@
 #include "../include/memory.h"
 #include "../include/io.h"
 #include "../include/sys/socket.h"
+#include "../include/sys/stat.h"
 
 #include <fcntl.h>
 #include <string.h>
@@ -48,11 +49,42 @@ static const char *test_socket(void)
     return 0;
 }
 
+static const char *test_stat_wrappers(void)
+{
+    const char *fname = "tmp_stat_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open failed", fd >= 0);
+    const char *msg = "hello";
+    ssize_t w = write(fd, msg, strlen(msg));
+    mu_assert("write failed", w == (ssize_t)strlen(msg));
+    close(fd);
+
+    struct stat st;
+    int r = stat(fname, &st);
+    mu_assert("stat failed", r == 0);
+    mu_assert("size mismatch", st.st_size == (off_t)strlen(msg));
+
+    fd = open(fname, O_RDONLY);
+    mu_assert("open2 failed", fd >= 0);
+    r = fstat(fd, &st);
+    mu_assert("fstat failed", r == 0);
+    mu_assert("size mismatch", st.st_size == (off_t)strlen(msg));
+    close(fd);
+
+    r = lstat(fname, &st);
+    mu_assert("lstat failed", r == 0);
+    mu_assert("size mismatch", st.st_size == (off_t)strlen(msg));
+
+    unlink(fname);
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
     mu_run_test(test_io);
     mu_run_test(test_socket);
+    mu_run_test(test_stat_wrappers);
     return 0;
 }
 

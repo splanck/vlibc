@@ -14,7 +14,8 @@ SRC := \
     src/string.c \
     src/socket.c \
     src/mmap.c \
-    src/time.c
+    src/time.c \
+    src/stat.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
