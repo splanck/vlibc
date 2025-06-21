@@ -44,6 +44,10 @@ The repository uses a straightforward layout:
 - `include/` holds public header files.
 - `tests/` contains unit tests.
 
+Common memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) are available
+as wrappers around the internal `v*` implementations so existing code can use
+the familiar names.
+
 ## Building the Library
 
 The project uses a simple `make`-based build system. To compile the

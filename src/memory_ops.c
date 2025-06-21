@@ -46,3 +46,23 @@ int vmemcmp(const void *s1, const void *s2, size_t n)
     }
     return 0;
 }
+
+void *memset(void *s, int c, size_t n)
+{
+    return vmemset(s, c, n);
+}
+
+void *memcpy(void *dest, const void *src, size_t n)
+{
+    return vmemcpy(dest, src, n);
+}
+
+void *memmove(void *dest, const void *src, size_t n)
+{
+    return vmemmove(dest, src, n);
+}
+
+int memcmp(const void *s1, const void *s2, size_t n)
+{
+    return vmemcmp(s1, s2, n);
+}

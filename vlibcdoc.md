@@ -111,6 +111,8 @@ APIs.
 The **string** module provides fundamental operations needed by most C programs:
 
 - `vstrlen`, `vstrcpy`, and `vstrncmp` equivalents.
+- Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
+  the internal `v` implementations.
 - Minimal locale or encoding support; all strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
 - Simple number conversion helpers `atoi` and `strtol`.
