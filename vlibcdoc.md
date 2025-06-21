@@ -79,6 +79,20 @@ allocate many objects may still eventually exhaust the heap. These routines are
 sufficient for
 small examples but should not be considered production quality.
 
+## Memory Mapping
+
+The `sys/mman.h` header exposes wrappers for interacting with the kernel's
+memory mapping facilities. Available functions are:
+
+```c
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+int munmap(void *addr, size_t length);
+int mprotect(void *addr, size_t length, int prot);
+```
+
+`mmap` creates new mappings, `munmap` releases them and `mprotect` changes
+their access protections.
+
 ## Input/Output
 
 vlibc includes simple wrappers for the fundamental POSIX file APIs:

@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include "../include/time.h"
+#include "../include/sys/mman.h"
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
@@ -618,6 +619,25 @@ static const char *test_rand_fn(void)
     return 0;
 }
 
+static const char *test_mprotect_anon(void)
+{
+    size_t len = 4096;
+    void *p = mmap(NULL, len, PROT_READ | PROT_WRITE,
+                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    mu_assert("mmap", p != (void *)-1);
+
+    ((char *)p)[0] = 'a';
+
+    int r = mprotect(p, len, PROT_READ);
+    mu_assert("mprotect read", r == 0);
+
+    r = mprotect(p, len, PROT_READ | PROT_WRITE);
+    mu_assert("mprotect rw", r == 0);
+
+    munmap(p, len);
+    return 0;
+}
+
 static const char *test_atexit_handler(void)
 {
     mu_assert("pipe", pipe(exit_pipe) == 0);
@@ -634,6 +654,7 @@ static const char *test_atexit_handler(void)
     close(exit_pipe[0]);
     waitpid(pid, NULL, 0);
     mu_assert("handler ran", r == 1 && buf == 'x');
+
     return 0;
 }
 
@@ -765,6 +786,7 @@ static const char *all_tests(void)
     mu_run_test(test_system_fn);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
+    mu_run_test(test_mprotect_anon);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
