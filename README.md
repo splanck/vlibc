@@ -48,6 +48,30 @@ Common memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) are available
 as wrappers around the internal `v*` implementations so existing code can use
 the familiar names.
 
+## Provided Headers
+
+vlibc installs a small set of public headers for application use:
+
+```
+ctype.h      - character classification helpers
+dirent.h     - directory iteration
+env.h        - environment variable access
+errno.h      - standard error codes
+io.h         - unbuffered I/O primitives
+memory.h     - heap allocation
+process.h    - process creation and control
+pthread.h    - minimal threading support
+stdio.h      - simple stream I/O
+stdlib.h     - basic utilities
+string.h     - string manipulation
+sys/mman.h   - memory mapping helpers
+sys/socket.h - networking wrappers
+sys/stat.h   - file status functions
+syscall.h    - raw syscall interface
+time.h       - time related helpers
+vlibc.h      - library initialization
+```
+
 ## Building the Library
 
 The project uses a simple `make`-based build system. To compile the
