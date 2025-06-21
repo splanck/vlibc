@@ -314,6 +314,10 @@ static const char *test_string_helpers(void)
     mu_assert("strtol hex", strtol("ff", &end, 16) == 255 && *end == '\0');
     mu_assert("strtol partial", strtol("12xy", &end, 10) == 12 && strcmp(end, "xy") == 0);
 
+    mu_assert("strnlen zero", strnlen("abc", 0) == 0);
+    mu_assert("strnlen short", strnlen("hello", 3) == 3);
+    mu_assert("strnlen full", strnlen("hi", 10) == 2);
+
     return 0;
 }
 

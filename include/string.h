@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 size_t vstrlen(const char *s);
+size_t strnlen(const char *s, size_t maxlen);
 char *vstrcpy(char *dest, const char *src);
 int vstrncmp(const char *s1, const char *s2, size_t n);
 int strcmp(const char *s1, const char *s2);

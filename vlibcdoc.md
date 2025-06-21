@@ -115,7 +115,7 @@ simple formatted output via `fprintf` and `printf`.
 
 The **string** module provides fundamental operations needed by most C programs:
 
-- `vstrlen`, `vstrcpy`, and `vstrncmp` equivalents.
+- `vstrlen`, `vstrcpy`, `vstrncmp`, and `strnlen` equivalents.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
 - Minimal locale or encoding support; all strings are treated as byte sequences.
