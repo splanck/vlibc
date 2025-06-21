@@ -8,10 +8,14 @@ AR ?= ar
 SRC := \
     src/init.c \
     src/io.c \
+    src/stdio.c \
     src/memory.c \
     src/process.c \
     src/string.c \
-    src/socket.c
+    src/socket.c \
+    src/mmap.c \
+    src/time.c
+
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
 TEST_SRC := $(wildcard tests/*.c)
