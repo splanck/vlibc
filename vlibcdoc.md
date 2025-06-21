@@ -26,6 +26,7 @@ lives in `src/`, public headers in `include/`, and tests will be placed in
 - **io**: Simple wrappers around read/write system calls for file descriptors.
 - **string**: Common string operations such as length checks and copying.
 - **process**: Functions for spawning and waiting on child processes.
+- **math**: Elementary math routines like `sin` and `sqrt`.
 
 ## API Design
 

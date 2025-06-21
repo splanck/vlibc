@@ -61,6 +61,7 @@ env.h        - environment variable access
 errno.h      - standard error codes
 io.h         - unbuffered I/O primitives
 memory.h     - heap allocation
+math.h       - basic math routines
 process.h    - process creation and control
 pthread.h    - minimal threading support
 poll.h       - I/O multiplexing helpers
