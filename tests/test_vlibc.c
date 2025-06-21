@@ -6,6 +6,7 @@
 #include "../include/stdio.h"
 #include "../include/pthread.h"
 #include "../include/dirent.h"
+#include "../include/vlibc.h"
 
 #include <fcntl.h>
 #include "../include/string.h"
@@ -343,14 +344,6 @@ static const char *test_environment(void)
     return 0;
 }
 
-static const char *test_pid_functions(void)
-{
-    pid_t self = getpid();
-    mu_assert("getpid positive", self > 0);
-    mu_assert("getppid positive", getppid() > 0);
-    return 0;
-}
-
 static const char *test_system_fn(void)
 {
     int r = system("true");
@@ -445,6 +438,7 @@ static const char *all_tests(void)
     mu_run_test(test_pthread);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_environment);
+    mu_run_test(test_error_reporting);
     mu_run_test(test_pid_functions);
     mu_run_test(test_system_fn);
     mu_run_test(test_rand_fn);

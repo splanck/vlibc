@@ -20,4 +20,8 @@ int printf(const char *format, ...);
 int fprintf(FILE *stream, const char *format, ...);
 int snprintf(char *str, size_t size, const char *format, ...);
 
+/* Basic error helpers */
+char *strerror(int errnum);
+void perror(const char *s);
+
 #endif /* STDIO_H */

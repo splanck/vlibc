@@ -115,9 +115,22 @@ vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 are initialized when `vlibc_init()` is called. They can be used with the
 provided `fread`, `fwrite`, `fprintf`, and `printf` functions.
 
+## Error Reporting
+
+Two helpers make it easier to display error messages:
+
+```c
+const char *strerror(int errnum);
+void perror(const char *s);
+```
+
+`strerror()` returns a string for a known error code, while `perror()`
+prints the current `errno` value with an optional prefix.
+
 ## Process Control
 
 The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+
 
 ## Limitations
 
@@ -129,5 +142,6 @@ The process module forwards common process-management calls directly to the kern
   kernels may require adapting these calls.
 - The `system()` helper simply spawns `/bin/sh -c` in a child process.
   It does not handle complex quoting or return detailed status codes.
+- `perror` and `strerror` cover only common error codes.
 - Basic thread support is implemented using the `clone` syscall. Only
   `pthread_create`, `pthread_join`, and simple mutexes are provided.

@@ -7,6 +7,7 @@ AR ?= ar
 
 SRC := \
     src/errno.c \
+    src/error.c \
     src/init.c \
     src/io.c \
     src/stdio.c \
