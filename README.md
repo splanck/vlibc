@@ -71,3 +71,9 @@ compiling:
 ```sh
 cc your_app.c -I/path/to/vlibc/include -L/path/to/vlibc -lvlibc
 ```
+
+## Limitations
+
+- The I/O routines (`open`, `read`, `write`, `close`) are thin wrappers around
+  the corresponding system calls. They perform no buffering and provide only
+  basic error reporting.

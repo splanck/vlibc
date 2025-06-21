@@ -6,7 +6,7 @@ This document outlines the architecture, planned modules, and API design for **v
 
 1. [Initialization](#initialization)
 2. [Memory Management](#memory-management)
-3. [I/O](#io)
+3. [Input/Output](#inputoutput)
 4. [String Handling](#string-handling)
 5. [Process Control](#process-control)
 
@@ -77,15 +77,28 @@ Because the allocator never recycles memory, applications that repeatedly
 allocate may eventually exhaust the heap. These routines are sufficient for
 small examples but should not be considered production quality.
 
-## I/O
+## Input/Output
 
-The **io** module exposes a limited set of I/O primitives:
+vlibc includes simple wrappers for the fundamental POSIX file APIs:
 
-- `vread` and `vwrite` for interacting with file descriptors.
-- Thin wrappers around `open`, `close`, and `lseek` for basic file management.
-- Helper functions for writing strings or buffers to standard output and standard error.
+```c
+int open(const char *path, int flags, mode_t mode);
+ssize_t read(int fd, void *buf, size_t count);
+ssize_t write(int fd, const void *buf, size_t count);
+int close(int fd);
+```
 
-These functions map directly to system calls and avoid buffering or heavy state management.
+These functions forward their arguments directly to the kernel using the syscall interface. No buffering or stream abstraction is performed.
+
+### Example
+
+```c
+int fd = open("log.txt", O_WRONLY | O_CREAT, 0644);
+if (fd >= 0) {
+    write(fd, "hello\n", 6);
+    close(fd);
+}
+```
 
 ## String Handling
 
