@@ -64,6 +64,61 @@ static const char *test_io(void)
     return 0;
 }
 
+static const char *test_lseek_dup(void)
+{
+    const char *fname = "tmp_dup_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open failed", fd >= 0);
+
+    const char *msg = "hello";
+    ssize_t w = write(fd, msg, strlen(msg));
+    mu_assert("write failed", w == (ssize_t)strlen(msg));
+
+    off_t off = lseek(fd, 0, SEEK_CUR);
+    mu_assert("lseek cur", off == (off_t)strlen(msg));
+
+    off = lseek(fd, 0, SEEK_SET);
+    mu_assert("lseek set", off == 0);
+
+    int fd2 = dup(fd);
+    mu_assert("dup failed", fd2 >= 0);
+
+    char buf[8] = {0};
+    ssize_t r = read(fd2, buf, sizeof(buf) - 1);
+    mu_assert("dup read", r == (ssize_t)strlen(msg));
+    mu_assert("dup content", strcmp(buf, msg) == 0);
+
+    const char *msg2 = "world";
+    lseek(fd, 0, SEEK_SET);
+    w = write(fd2, msg2, strlen(msg2));
+    mu_assert("write via dup", w == (ssize_t)strlen(msg2));
+
+    lseek(fd, 0, SEEK_SET);
+    char buf2[16] = {0};
+    r = read(fd, buf2, sizeof(buf2) - 1);
+    mu_assert("read after dup", r == (ssize_t)strlen(msg2));
+    mu_assert("content after dup", strncmp(buf2, msg2, strlen(msg2)) == 0);
+
+    int fd3 = dup2(fd2, fd);
+    mu_assert("dup2 failed", fd3 == fd);
+
+    lseek(fd3, 0, SEEK_SET);
+    const char *msg3 = "abc";
+    w = write(fd3, msg3, strlen(msg3));
+    mu_assert("write via dup2", w == (ssize_t)strlen(msg3));
+
+    lseek(fd2, 0, SEEK_SET);
+    char buf3[4] = {0};
+    r = read(fd2, buf3, 3);
+    mu_assert("read after dup2", r == 3);
+    mu_assert("content after dup2", strncmp(buf3, msg3, 3) == 0);
+
+    close(fd2);
+    close(fd3);
+    unlink(fname);
+    return 0;
+}
+
 static const char *test_socket(void)
 {
     int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -142,6 +197,9 @@ static const char *test_string_helpers(void)
     mu_assert("strdup failed", dup && strcmp(dup, "test") == 0);
     free(dup);
 
+    return 0;
+}
+
 static const char *test_printf_functions(void)
 {
     char buf[32];
@@ -172,6 +230,7 @@ static const char *all_tests(void)
     mu_run_test(test_malloc);
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
+    mu_run_test(test_lseek_dup);
     mu_run_test(test_socket);
     mu_run_test(test_errno_open);
     mu_run_test(test_errno_stat);
