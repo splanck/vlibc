@@ -21,6 +21,7 @@ SRC := \
     src/strto.c \
     src/rand.c \
     src/socket.c \
+    src/netdb.c \
     src/fd.c \
     src/file.c \
     src/dir.c \

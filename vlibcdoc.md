@@ -232,11 +232,26 @@ ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
 int select(int nfds, fd_set *readfds, fd_set *writefds,
            fd_set *exceptfds, struct timeval *timeout);
 int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+int getaddrinfo(const char *node, const char *service,
+                const struct addrinfo *hints, struct addrinfo **res);
+void freeaddrinfo(struct addrinfo *res);
+int getnameinfo(const struct sockaddr *sa, socklen_t salen,
+                char *host, socklen_t hostlen,
+                char *serv, socklen_t servlen, int flags);
 ```
 
 These wrappers directly invoke the underlying `socket`, `bind`,
 `connect`, `sendto`, and `recvfrom` syscalls without additional
-buffering or complex address handling.
+buffering or complex address handling.  Address lookups can be
+performed with `getaddrinfo` and `getnameinfo`:
+
+```c
+struct addrinfo *ai;
+if (getaddrinfo("127.0.0.1", "8080", NULL, &ai) == 0) {
+    connect(fd, ai->ai_addr, ai->ai_addrlen);
+    freeaddrinfo(ai);
+}
+```
 
 ## Error Reporting
 
