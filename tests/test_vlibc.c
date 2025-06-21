@@ -582,6 +582,30 @@ static const char *test_strftime_basic(void)
     return 0;
 }
 
+static const char *test_time_conversions(void)
+{
+    time_t t = 1700000000;
+    struct tm *gm = gmtime(&t);
+    mu_assert("gm year", gm->tm_year == 123);
+    mu_assert("gm mon", gm->tm_mon == 10);
+    mu_assert("gm mday", gm->tm_mday == 14);
+    mu_assert("gm hour", gm->tm_hour == 22);
+    mu_assert("gm min", gm->tm_min == 13);
+    mu_assert("gm sec", gm->tm_sec == 20);
+    mu_assert("gm wday", gm->tm_wday == 2);
+
+    struct tm *loc = localtime(&t);
+    mu_assert("localtime", loc->tm_yday == gm->tm_yday && loc->tm_mon == gm->tm_mon);
+
+    struct tm tmp = *gm;
+    time_t r = mktime(&tmp);
+    mu_assert("mktime", r == 1700000000);
+
+    char *s = ctime(&t);
+    mu_assert("ctime", strcmp(s, "Tue Nov 14 22:13:20 2023\n") == 0);
+    return 0;
+}
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -860,6 +884,7 @@ static const char *all_tests(void)
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
+    mu_run_test(test_time_conversions);
     mu_run_test(test_environment);
     mu_run_test(test_system_fn);
     mu_run_test(test_execvp_fn);

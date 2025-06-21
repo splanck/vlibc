@@ -40,4 +40,10 @@ int nanosleep(const struct timespec *req, struct timespec *rem);
 
 size_t strftime(char *s, size_t max, const char *format, const struct tm *tm);
 
+/* basic time conversion helpers */
+struct tm *gmtime(const time_t *timep);
+struct tm *localtime(const time_t *timep);
+time_t mktime(struct tm *tm);
+char *ctime(const time_t *timep);
+
 #endif /* TIME_H */

@@ -249,6 +249,11 @@ human-readable timestamps. Supported conversion sequences are `%Y`, `%m`, `%d`,
 `setlocale` can switch between the built-in `"C"` and `"POSIX"` locales.
 `localeconv` returns formatting information for these locales only.
 
+Basic conversion helpers `gmtime`, `localtime`, `mktime`, and `ctime` are
+provided for transforming between `time_t` values and `struct tm` or
+human-readable strings. `localtime` does not apply any timezone logic and
+behaves identically to `gmtime`.
+
 
 ## Limitations
 

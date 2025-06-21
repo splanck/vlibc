@@ -154,6 +154,11 @@ Basic time formatting is available via `strftime`. Only a small subset of
  conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
  output uses the current locale (only `"C"`/`"POSIX"` are available).
 
+The library also includes simple conversion routines `gmtime`, `localtime`,
+`mktime`, and `ctime`. They convert between `time_t` and `struct tm` or
+produce a readable string. `localtime` ignores the system timezone so the
+result is identical to `gmtime`.
+
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
 ## Random Numbers
