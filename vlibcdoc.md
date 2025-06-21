@@ -87,6 +87,8 @@ int open(const char *path, int flags, mode_t mode);
 ssize_t read(int fd, void *buf, size_t count);
 ssize_t write(int fd, const void *buf, size_t count);
 int close(int fd);
+int unlink(const char *pathname);
+int rename(const char *oldpath, const char *newpath);
 ```
 
 These functions forward their arguments directly to the kernel using the syscall interface. No buffering or stream abstraction is performed.
