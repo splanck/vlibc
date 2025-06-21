@@ -46,3 +46,28 @@ The repository uses a straightforward layout:
 
 These directories are empty initially, acting as placeholders for future
 development.
+
+## Building the Library
+
+The project uses a simple `make`-based build system. To compile the
+static library, run:
+
+```sh
+make
+```
+
+This produces `libvlibc.a` in the repository root. You can optionally
+install the headers and library with:
+
+```sh
+make install PREFIX=/usr/local
+```
+
+`PREFIX` controls the installation path and defaults to `/usr/local`.
+
+To link against vlibc in your application, add the following flags when
+compiling:
+
+```sh
+cc your_app.c -I/path/to/vlibc/include -L/path/to/vlibc -lvlibc
+```
