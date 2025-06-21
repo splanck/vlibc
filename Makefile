@@ -2,7 +2,7 @@
 
 PREFIX ?= /usr/local
 CC ?= cc
-CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Iinclude
+CFLAGS ?= -O2 -std=c11 -Wall -Wextra -fno-stack-protector -Iinclude
 AR ?= ar
 
 SRC := \
@@ -20,7 +20,8 @@ SRC := \
     src/mmap.c \
     src/env.c \
     src/time.c \
-    src/stat.c
+    src/stat.c \
+    src/pthread.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
