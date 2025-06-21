@@ -308,6 +308,35 @@ static const char *test_string_helpers(void)
     return 0;
 }
 
+static const char *test_strtok_basic(void)
+{
+    char buf[] = "a,b,c";
+    char *tok = strtok(buf, ",");
+    mu_assert("tok1", tok && strcmp(tok, "a") == 0);
+    tok = strtok(NULL, ",");
+    mu_assert("tok2", tok && strcmp(tok, "b") == 0);
+    tok = strtok(NULL, ",");
+    mu_assert("tok3", tok && strcmp(tok, "c") == 0);
+    tok = strtok(NULL, ",");
+    mu_assert("tok end", tok == NULL);
+    return 0;
+}
+
+static const char *test_strtok_r_basic(void)
+{
+    char buf[] = "1 2 3";
+    char *save = NULL;
+    char *tok = strtok_r(buf, " ", &save);
+    mu_assert("tok_r1", tok && strcmp(tok, "1") == 0);
+    tok = strtok_r(NULL, " ", &save);
+    mu_assert("tok_r2", tok && strcmp(tok, "2") == 0);
+    tok = strtok_r(NULL, " ", &save);
+    mu_assert("tok_r3", tok && strcmp(tok, "3") == 0);
+    tok = strtok_r(NULL, " ", &save);
+    mu_assert("tok_r end", tok == NULL);
+    return 0;
+}
+
 static const char *test_printf_functions(void)
 {
     char buf[32];
@@ -581,6 +610,8 @@ static const char *all_tests(void)
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_string_helpers);
+    mu_run_test(test_strtok_basic);
+    mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
