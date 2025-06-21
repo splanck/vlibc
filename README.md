@@ -124,6 +124,8 @@ char *end;
 long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
 ```
 
+Use `strcat()` or `strncat()` to append one string to another.
+
 ## String Tokenization
 
 `strtok()` splits a string into tokens separated by any characters in the
