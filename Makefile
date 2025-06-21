@@ -41,6 +41,7 @@ SRC := \
     src/select.c \
     src/qsort.c \
     src/getopt.c \
+    src/getopt_long.c \
     src/locale.c \
     src/wchar.c \
     src/math.c

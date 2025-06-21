@@ -185,6 +185,10 @@ while ((c = getopt(argc, argv, "fa:")) != -1) {
 }
 ```
 
+`getopt_long()` provides basic GNU-style long option handling. It accepts an
+array of `struct option` entries describing the long names and whether they
+take arguments.
+
 ## Standard Streams
 
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
