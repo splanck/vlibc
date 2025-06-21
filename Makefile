@@ -2,7 +2,7 @@
 
 PREFIX ?= /usr/local
 CC ?= cc
-CFLAGS ?= -O2 -std=c11 -Wall -Wextra -fno-stack-protector -Iinclude
+CFLAGS ?= -O2 -std=c11 -Wall -Wextra -fno-stack-protector -fno-builtin -Iinclude
 AR ?= ar
 
 SRC := \

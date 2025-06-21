@@ -77,6 +77,18 @@ static const char *test_memory_ops(void)
     mu_assert("vmemmove failed", buf[1] == 'a' && buf[2] == 'b');
 
     mu_assert("vmemcmp diff", vmemcmp("abc", "abd", 3) < 0);
+
+    memset(buf, 'y', sizeof(buf));
+    for (size_t i = 0; i < sizeof(buf); i++)
+        mu_assert("memset failed", buf[i] == 'y');
+
+    memcpy(buf, src, 8);
+    mu_assert("memcpy failed", memcmp(buf, src, 8) == 0);
+
+    memmove(buf + 2, buf, 6);
+    mu_assert("memmove std failed", buf[2] == 'a' && buf[3] == 'b');
+
+    mu_assert("memcmp diff std", memcmp("abc", "abd", 3) < 0);
     return 0;
 }
 
@@ -297,6 +309,9 @@ static const char *test_sleep_functions(void)
     t2 = time(NULL);
     mu_assert("nanosleep delay", t2 - t1 >= 1 && t2 - t1 <= 3);
 
+    return 0;
+}
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -337,6 +352,8 @@ static const char *test_dirent(void)
     closedir(d);
     mu_assert("entries missing", found == 3);
 
+    return 0;
+}
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
