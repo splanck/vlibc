@@ -8,6 +8,9 @@
 #include "syscall.h"
 extern long syscall(long number, ...);
 
+/* from atexit.c */
+extern void __run_atexit(void);
+
 
 pid_t fork(void)
 {
@@ -87,6 +90,7 @@ void _exit(int status)
 void exit(int status)
 {
     /* No stdio buffering yet, so nothing to flush. */
+    __run_atexit();
     _exit(status);
 }
 

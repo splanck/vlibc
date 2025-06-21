@@ -16,12 +16,20 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/wait.h>
 #include "../include/time.h"
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
 
 int tests_run = 0;
+
+static int exit_pipe[2];
+
+static void atexit_handler(void)
+{
+    write(exit_pipe[1], "x", 1);
+}
 
 static uint16_t bswap16(uint16_t v)
 {
@@ -443,6 +451,24 @@ static const char *test_environment(void)
     return 0;
 }
 
+static const char *test_error_reporting(void)
+{
+    errno = ENOENT;
+    char *msg = strerror(errno);
+    mu_assert("strerror", msg && *msg != '\0');
+    perror("test");
+    return 0;
+}
+
+static const char *test_pid_functions(void)
+{
+    pid_t pid = getpid();
+    pid_t ppid = getppid();
+    mu_assert("getpid", pid > 0);
+    mu_assert("getppid", ppid >= 0);
+    return 0;
+}
+
 static const char *test_system_fn(void)
 {
     int r = system("true");
@@ -458,6 +484,25 @@ static const char *test_rand_fn(void)
     mu_assert("rand 1", rand() == 16838);
     mu_assert("rand 2", rand() == 5758);
     mu_assert("rand 3", rand() == 10113);
+    return 0;
+}
+
+static const char *test_atexit_handler(void)
+{
+    mu_assert("pipe", pipe(exit_pipe) == 0);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        close(exit_pipe[0]);
+        atexit(atexit_handler);
+        exit(0);
+    }
+    close(exit_pipe[1]);
+    char buf;
+    ssize_t r = read(exit_pipe[0], &buf, 1);
+    close(exit_pipe[0]);
+    waitpid(pid, NULL, 0);
+    mu_assert("handler ran", r == 1 && buf == 'x');
     return 0;
 }
 
@@ -544,6 +589,7 @@ static const char *all_tests(void)
     mu_run_test(test_pid_functions);
     mu_run_test(test_system_fn);
     mu_run_test(test_rand_fn);
+    mu_run_test(test_atexit_handler);
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
