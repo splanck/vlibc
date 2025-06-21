@@ -1,4 +1,5 @@
 #include "string.h"
+#include "memory.h"
 
 size_t vstrlen(const char *s)
 {
@@ -29,4 +30,45 @@ int vstrncmp(const char *s1, const char *s2, size_t n)
             break;
     }
     return 0;
+}
+
+int strcmp(const char *s1, const char *s2)
+{
+    return vstrncmp(s1, s2, (size_t)-1);
+}
+
+char *strchr(const char *s, int c)
+{
+    unsigned char ch = (unsigned char)c;
+    while (*s) {
+        if ((unsigned char)*s == ch)
+            return (char *)s;
+        s++;
+    }
+    if (ch == '\0')
+        return (char *)s;
+    return NULL;
+}
+
+char *strdup(const char *s)
+{
+    size_t len = vstrlen(s);
+    char *dup = malloc(len + 1);
+    if (!dup)
+        return NULL;
+    vstrcpy(dup, s);
+    return dup;
+}
+
+char *strncpy(char *dest, const char *src, size_t n)
+{
+    char *d = dest;
+    while (n && *src) {
+        *d++ = *src++;
+        --n;
+    }
+    while (n--) {
+        *d++ = '\0';
+    }
+    return dest;
 }

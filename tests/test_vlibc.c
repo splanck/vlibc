@@ -79,12 +79,38 @@ static const char *test_stat_wrappers(void)
     return 0;
 }
 
+static const char *test_string_helpers(void)
+{
+    mu_assert("strcmp equal", strcmp("abc", "abc") == 0);
+    mu_assert("strcmp lt", strcmp("abc", "abd") < 0);
+    mu_assert("strcmp gt", strcmp("abd", "abc") > 0);
+
+    const char *p = strchr("hello", 'e');
+    mu_assert("strchr failed", p && p - "hello" == 1);
+
+    char tmp[5];
+    for (int i = 0; i < 5; ++i) tmp[i] = 'X';
+    strncpy(tmp, "abc", 2);
+    mu_assert("strncpy partial", tmp[0] == 'a' && tmp[1] == 'b' && tmp[2] == 'X');
+
+    char buf[5];
+    strncpy(buf, "hi", sizeof(buf));
+    mu_assert("strncpy pad", buf[2] == '\0' && buf[3] == '\0');
+
+    char *dup = strdup("test");
+    mu_assert("strdup failed", dup && strcmp(dup, "test") == 0);
+    free(dup);
+
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
     mu_run_test(test_io);
     mu_run_test(test_socket);
     mu_run_test(test_stat_wrappers);
+    mu_run_test(test_string_helpers);
     return 0;
 }
 
