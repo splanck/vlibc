@@ -81,6 +81,28 @@ char *strncpy(char *dest, const char *src, size_t n)
     return dest;
 }
 
+char *strcat(char *dest, const char *src)
+{
+    char *d = dest;
+    while (*d)
+        d++;
+    while (*src)
+        *d++ = *src++;
+    *d = '\0';
+    return dest;
+}
+
+char *strncat(char *dest, const char *src, size_t n)
+{
+    char *d = dest;
+    while (*d)
+        d++;
+    while (n-- && *src)
+        *d++ = *src++;
+    *d = '\0';
+    return dest;
+}
+
 static char *strtok_static;
 
 char *strtok_r(char *str, const char *delim, char **saveptr)

@@ -11,6 +11,8 @@ int strcmp(const char *s1, const char *s2);
 char *strchr(const char *s, int c);
 char *strdup(const char *s);
 char *strncpy(char *dest, const char *src, size_t n);
+char *strcat(char *dest, const char *src);
+char *strncat(char *dest, const char *src, size_t n);
 void *vmemcpy(void *dest, const void *src, size_t n);
 void *vmemmove(void *dest, const void *src, size_t n);
 void *vmemset(void *s, int c, size_t n);
