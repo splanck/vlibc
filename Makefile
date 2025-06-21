@@ -10,6 +10,7 @@ SRC := \
     src/init.c \
     src/io.c \
     src/stdio.c \
+    src/printf.c \
     src/memory.c \
     src/process.c \
     src/string.c \
