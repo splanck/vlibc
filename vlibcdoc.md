@@ -155,6 +155,7 @@ and installing signal handlers:
 ```c
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
+int execvp(const char *file, char *const argv[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 pid_t getpid(void);
@@ -181,6 +182,8 @@ void on_int(int signo) { (void)signo; }
 signal(SIGINT, on_int);
 kill(getpid(), SIGINT);
 ```
+
+`execvp` performs the same operation as `execve` but searches the directories in the `PATH` environment variable when the program name does not contain a slash.
 
 The convenience `system()` call executes a shell command by forking and
 invoking `/bin/sh -c command`. It returns the raw status from `waitpid`

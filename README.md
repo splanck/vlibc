@@ -183,7 +183,9 @@ prints the current `errno` value with an optional prefix.
 
 ## Process Control
 
-The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `execvp`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+
+`execvp` searches the directories listed in the `PATH` environment variable and then invokes `execve` on the first matching program.
 
 A lightweight `popen`/`pclose` pair runs a shell command with a pipe
 connected to the child. Use mode `"r"` to read the command's output or

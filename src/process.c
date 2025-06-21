@@ -6,6 +6,8 @@
 #include <signal.h>
 #include "string.h"
 #include "syscall.h"
+#include "env.h"
+#include "memory.h"
 extern long syscall(long number, ...);
 
 /* from atexit.c */
@@ -34,6 +36,54 @@ int execve(const char *pathname, char *const argv[], char *const envp[])
         return -1;
     }
     return (int)ret;
+}
+
+int execvp(const char *file, char *const argv[])
+{
+    if (!file || !argv)
+        return -1;
+
+    if (strchr(file, '/'))
+        return execve(file, argv, environ);
+
+    const char *path = getenv("PATH");
+    if (!path)
+        return execve(file, argv, environ);
+
+    size_t flen = strlen(file);
+    const char *p = path;
+    int last_errno = ENOENT;
+
+    while (1) {
+        const char *end = strchr(p, ':');
+        size_t len = end ? (size_t)(end - p) : strlen(p);
+
+        size_t tlen = len ? len : 1; /* allow empty meaning current dir */
+        char *buf = malloc(tlen + 1 + flen + 1);
+        if (!buf)
+            return -1;
+
+        if (len) {
+            memcpy(buf, p, len);
+            buf[len] = '/';
+            memcpy(buf + len + 1, file, flen);
+            buf[len + 1 + flen] = '\0';
+        } else {
+            memcpy(buf, file, flen);
+            buf[flen] = '\0';
+        }
+
+        execve(buf, argv, environ);
+        last_errno = errno;
+        free(buf);
+
+        if (!end)
+            break;
+        p = end + 1;
+    }
+
+    errno = last_errno;
+    return -1;
 }
 
 pid_t waitpid(pid_t pid, int *status, int options)

@@ -550,12 +550,12 @@ static const char *test_environment(void)
 static const char *test_error_reporting(void)
 {
     errno = ENOENT;
-    char *msg = strerror(errno);
-    mu_assert("strerror", msg && *msg != '\0');
+    char *msg1 = strerror(errno);
+    mu_assert("strerror", msg1 && *msg1 != '\0');
     perror("test");
     vlibc_init();
-    const char *msg = strerror(ENOENT);
-    mu_assert("strerror", strcmp(msg, "No such file or directory") == 0);
+    const char *msg2 = strerror(ENOENT);
+    mu_assert("strerror", strcmp(msg2, "No such file or directory") == 0);
 
     int p[2];
     mu_assert("pipe", pipe(p) == 0);
@@ -593,6 +593,23 @@ static const char *test_system_fn(void)
     mu_assert("system true", r == 0);
     r = system("exit 7");
     mu_assert("system exit code", (r >> 8) == 7);
+    return 0;
+}
+
+static const char *test_execvp_fn(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        char *argv[] = {"echo", "vp", NULL};
+        execvp("echo", argv);
+        _exit(127);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("execvp status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
     return 0;
 }
 
@@ -721,6 +738,7 @@ static const char *all_tests(void)
     mu_run_test(test_strftime_basic);
     mu_run_test(test_environment);
     mu_run_test(test_system_fn);
+    mu_run_test(test_execvp_fn);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_atexit_handler);
