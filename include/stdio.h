@@ -29,4 +29,7 @@ int snprintf(char *str, size_t size, const char *format, ...);
 char *strerror(int errnum);
 void perror(const char *s);
 
+FILE *popen(const char *command, const char *mode);
+int pclose(FILE *stream);
+
 #endif /* STDIO_H */
