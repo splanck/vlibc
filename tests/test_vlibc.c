@@ -414,6 +414,21 @@ static const char *test_fgetc_fputc(void)
     return 0;
 }
 
+static const char *test_fgets_fputs(void)
+{
+    FILE *f = fopen("tmp_line", "w+");
+    mu_assert("fopen line", f != NULL);
+    mu_assert("fputs ret", fputs("hello\n", f) >= 0);
+    rewind(f);
+    char buf[16] = {0};
+    char *r = fgets(buf, sizeof(buf), f);
+    mu_assert("fgets not null", r != NULL);
+    mu_assert("fgets content", strcmp(buf, "hello\n") == 0);
+    fclose(f);
+    unlink("tmp_line");
+    return 0;
+}
+
 
 static const char *test_pthread(void)
 {
@@ -695,6 +710,7 @@ static const char *all_tests(void)
     mu_run_test(test_printf_functions);
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
+    mu_run_test(test_fgets_fputs);
     mu_run_test(test_pthread);
     mu_run_test(test_select_pipe);
     mu_run_test(test_sleep_functions);
