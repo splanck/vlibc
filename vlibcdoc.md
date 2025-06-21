@@ -101,6 +101,11 @@ if (fd >= 0) {
 }
 ```
 
+The stdio module also exposes `stdin`, `stdout`, and `stderr` as global
+pointers. These streams wrap file descriptors 0, 1 and 2 and are
+initialized in `vlibc_init()` so they can be used with the basic FILE
+APIs.
+
 ## String Handling
 
 The **string** module provides fundamental operations needed by most C programs:
