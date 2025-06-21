@@ -21,7 +21,8 @@ SRC := \
     src/mmap.c \
     src/env.c \
     src/time.c \
-    src/stat.c
+    src/stat.c \
+    src/dirent.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a

@@ -4,6 +4,7 @@
 #include "../include/sys/socket.h"
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
+#include "../include/dirent.h"
 
 #include <fcntl.h>
 #include "../include/string.h"
@@ -277,6 +278,23 @@ static const char *test_environment(void)
     return 0;
 }
 
+static const char *test_dirent(void)
+{
+    DIR *d = opendir("tests");
+    mu_assert("opendir failed", d != NULL);
+    int found = 0;
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        if (strcmp(e->d_name, "test_vlibc.c") == 0)
+            found |= 1;
+        if (strcmp(e->d_name, "minunit.h") == 0)
+            found |= 2;
+    }
+    closedir(d);
+    mu_assert("entries missing", found == 3);
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
@@ -291,6 +309,7 @@ static const char *all_tests(void)
     mu_run_test(test_string_helpers);
     mu_run_test(test_printf_functions);
     mu_run_test(test_environment);
+    mu_run_test(test_dirent);
 
     return 0;
 }
