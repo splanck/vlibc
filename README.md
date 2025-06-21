@@ -66,7 +66,8 @@ pthread.h    - minimal threading support
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
-sys/mman.h   - memory mapping helpers (mmap, munmap, mprotect)
+getopt.h     - option parsing
+sys/mman.h   - memory mapping helpers
 sys/socket.h - networking wrappers
 sys/stat.h   - file status functions
 syscall.h    - raw syscall interface
@@ -149,6 +150,30 @@ int values[] = {4, 2, 7};
 qsort(values, 3, sizeof(int), cmp_int);
 int key = 7;
 int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
+```
+
+## Option Parsing
+
+`getopt()` iterates over command-line options. A character followed by `:` in the
+option string expects an argument. Parsing stops at the first non-option or `--`.
+
+```c
+int flag = 0;
+char *arg = NULL;
+int c;
+while ((c = getopt(argc, argv, "fa:")) != -1) {
+    switch (c) {
+    case 'f':
+        flag = 1;
+        break;
+    case 'a':
+        arg = optarg;
+        break;
+    default:
+        /* unknown option */
+        break;
+    }
+}
 ```
 
 ## Standard Streams

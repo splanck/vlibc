@@ -14,6 +14,7 @@
 #include "../include/stdlib.h"
 #include "../include/env.h"
 #include "../include/process.h"
+#include "../include/getopt.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -555,8 +556,8 @@ static const char *test_error_reporting(void)
     mu_assert("strerror", msg && *msg != '\0');
     perror("test");
     vlibc_init();
-    const char *msg = strerror(ENOENT);
-    mu_assert("strerror", strcmp(msg, "No such file or directory") == 0);
+    const char *msg2 = strerror(ENOENT);
+    mu_assert("strerror", strcmp(msg2, "No such file or directory") == 0);
 
     int p[2];
     mu_assert("pipe", pipe(p) == 0);
@@ -717,6 +718,47 @@ static const char *test_qsort_strings(void)
     return 0;
 }
 
+static const char *test_getopt_basic(void)
+{
+    char *argv[] = {"prog", "-f", "-a", "val", "rest", NULL};
+    int argc = 5;
+    int flag = 0;
+    char *arg = NULL;
+    optind = 1;
+    opterr = 0;
+    int c;
+    while ((c = getopt(argc, argv, "fa:")) != -1) {
+        switch (c) {
+        case 'f':
+            flag = 1;
+            break;
+        case 'a':
+            arg = optarg;
+            break;
+        default:
+            return "unexpected opt";
+        }
+    }
+    mu_assert("flag", flag == 1);
+    mu_assert("arg", arg && strcmp(arg, "val") == 0);
+    mu_assert("optind", optind == 4);
+    mu_assert("rest", strcmp(argv[optind], "rest") == 0);
+    return 0;
+}
+
+static const char *test_getopt_missing(void)
+{
+    char *argv[] = {"prog", "-a", NULL};
+    int argc = 2;
+    optind = 1;
+    opterr = 0;
+    int r = getopt(argc, argv, "a:");
+    mu_assert("missing ret", r == '?');
+    mu_assert("optopt", optopt == 'a');
+    mu_assert("index", optind == 2);
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
@@ -749,6 +791,8 @@ static const char *all_tests(void)
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
+    mu_run_test(test_getopt_basic);
+    mu_run_test(test_getopt_missing);
 
     return 0;
 }
