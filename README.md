@@ -116,12 +116,14 @@ This command builds `tests/run_tests` and runs it automatically.
 
 vlibc provides simple helpers to convert strings into integers. Use
 `atoi()` for basic decimal parsing or `strtol()` when you need other
-bases or the end pointer.
+bases or the end pointer. Floating-point numbers can be parsed with
+`strtod()` or the convenience wrapper `atof()`.
 
 ```c
 int v = atoi("123");            /* v == 123 */
 char *end;
 long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
+double f = strtod("3.14", NULL); /* f == 3.14 */
 ```
 
 ## String Tokenization

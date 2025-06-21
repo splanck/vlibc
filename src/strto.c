@@ -67,3 +67,95 @@ int atoi(const char *nptr)
     return (int)strtol(nptr, NULL, 10);
 }
 
+static double pow10_int(int exp)
+{
+    double p = 1.0;
+    if (exp >= 0) {
+        for (int i = 0; i < exp; ++i)
+            p *= 10.0;
+    } else {
+        for (int i = 0; i < -exp; ++i)
+            p /= 10.0;
+    }
+    return p;
+}
+
+double strtod(const char *nptr, char **endptr)
+{
+    const char *s = nptr;
+    while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r' ||
+           *s == '\f' || *s == '\v')
+        s++;
+
+    int neg = 0;
+    if (*s == '+' || *s == '-') {
+        if (*s == '-')
+            neg = 1;
+        s++;
+    }
+
+    double val = 0.0;
+    int seen = 0;
+    while (*s >= '0' && *s <= '9') {
+        val = val * 10.0 + (double)(*s - '0');
+        s++;
+        seen = 1;
+    }
+
+    if (*s == '.') {
+        s++;
+        double frac = 0.0;
+        double place = 1.0;
+        while (*s >= '0' && *s <= '9') {
+            frac = frac * 10.0 + (double)(*s - '0');
+            place *= 10.0;
+            s++;
+            seen = 1;
+        }
+        val += frac / place;
+    }
+
+    const char *exp_start = s;
+    int exp = 0;
+    int expneg = 0;
+    if (*s == 'e' || *s == 'E') {
+        s++;
+        if (*s == '+' || *s == '-') {
+            if (*s == '-')
+                expneg = 1;
+            s++;
+        }
+        const char *digits = s;
+        while (*s >= '0' && *s <= '9') {
+            exp = exp * 10 + (*s - '0');
+            s++;
+        }
+        if (s == digits) {
+            s = exp_start; /* no digits after 'e'; backtrack */
+            exp = 0;
+        } else {
+            if (expneg)
+                exp = -exp;
+        }
+    }
+
+    if (endptr)
+        *endptr = (char *)(seen ? s : nptr);
+
+    if (!seen)
+        return 0.0;
+
+    if (exp)
+        val *= pow10_int(exp);
+
+    if (neg)
+        val = -val;
+
+    return val;
+}
+
+double atof(const char *nptr)
+{
+    return strtod(nptr, NULL);
+}
+
