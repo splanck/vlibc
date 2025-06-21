@@ -96,6 +96,18 @@ char *end;
 long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
 ```
 
+## Sorting Helpers
+
+`qsort()` sorts an array in-place using a user-provided comparison
+function, while `bsearch()` performs binary search on a sorted array.
+
+```c
+int values[] = {4, 2, 7};
+qsort(values, 3, sizeof(int), cmp_int);
+int key = 7;
+int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
+```
+
 ## Standard Streams
 
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
@@ -112,6 +124,22 @@ These calls accept the same arguments as their POSIX counterparts and
 translate directly to the underlying `socket`, `bind`, `connect`, and
 `sendto`/`recvfrom` syscalls.
 
+## Error Reporting
+
+Two helpers make it easier to display error messages:
+
+```c
+const char *strerror(int errnum);
+void perror(const char *s);
+```
+
+`strerror()` returns a string for a known error code, while `perror()`
+prints the current `errno` value with an optional prefix.
+
+## Process Control
+
+The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+
 
 ## Limitations
 
@@ -123,5 +151,6 @@ translate directly to the underlying `socket`, `bind`, `connect`, and
   kernels may require adapting these calls.
 - The `system()` helper simply spawns `/bin/sh -c` in a child process.
   It does not handle complex quoting or return detailed status codes.
+- `perror` and `strerror` cover only common error codes.
 - Basic thread support is implemented using the `clone` syscall. Only
   `pthread_create`, `pthread_join`, and simple mutexes are provided.

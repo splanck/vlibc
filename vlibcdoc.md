@@ -9,6 +9,7 @@ This document outlines the architecture, planned modules, and API design for **v
 3. [Input/Output](#inputoutput)
 4. [String Handling](#string-handling)
 5. [Process Control](#process-control)
+6. [Error Reporting](#error-reporting)
 
 ## Architecture
 
@@ -121,17 +122,33 @@ The **string** module provides fundamental operations needed by most C programs:
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
+## Random Numbers
+
+vlibc provides a minimal pseudo-random number generator implemented as a
+linear congruential generator.
+
+```c
+int rand(void);
+void srand(unsigned seed);
+```
+
+Calling `srand()` initializes the internal state. Reusing the same seed
+produces the identical sequence of numbers, each in the range `0` to
+`32767`.
+
 ## Process Control
 
 Process-related functionality resides in the **process** module. It provides
-minimal wrappers for creating and managing processes as well as installing
-signal handlers:
+minimal wrappers for creating and managing processes, querying process IDs,
+and installing signal handlers:
 
 ```c
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
+pid_t getpid(void);
+pid_t getppid(void);
 sighandler_t signal(int signum, sighandler_t handler);
 int system(const char *command);
 ```
@@ -181,6 +198,19 @@ ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
 These wrappers directly invoke the underlying `socket`, `bind`,
 `connect`, `sendto`, and `recvfrom` syscalls without additional
 buffering or complex address handling.
+
+## Error Reporting
+
+vlibc provides minimal helpers to report errors:
+
+```c
+const char *strerror(int errnum);
+void perror(const char *s);
+```
+
+`strerror()` returns a string describing `errnum` or "Unknown error" for
+codes it does not recognize. `perror()` writes a message to `stderr`
+combining the optional prefix with the text for the current `errno`.
 
 ## Threading
 

@@ -7,6 +7,7 @@ AR ?= ar
 
 SRC := \
     src/errno.c \
+    src/error.c \
     src/init.c \
     src/io.c \
     src/stdio.c \
@@ -17,6 +18,7 @@ SRC := \
     src/system.c \
     src/string.c \
     src/strto.c \
+    src/rand.c \
     src/socket.c \
     src/fd.c \
     src/file.c \
@@ -27,7 +29,8 @@ SRC := \
     src/time.c \
     src/stat.c \
     src/pthread.c \
-    src/dirent.c
+    src/dirent.c \
+    src/qsort.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
