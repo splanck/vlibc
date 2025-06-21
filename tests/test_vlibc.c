@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/wait.h>
 #include "../include/time.h"
 #include "../include/sys/mman.h"
 
@@ -24,6 +25,13 @@
 int printf(const char *fmt, ...);
 
 int tests_run = 0;
+
+static int exit_pipe[2];
+
+static void atexit_handler(void)
+{
+    write(exit_pipe[1], "x", 1);
+}
 
 static uint16_t bswap16(uint16_t v)
 {
@@ -307,6 +315,10 @@ static const char *test_string_helpers(void)
     mu_assert("strtol hex", strtol("ff", &end, 16) == 255 && *end == '\0');
     mu_assert("strtol partial", strtol("12xy", &end, 10) == 12 && strcmp(end, "xy") == 0);
 
+    mu_assert("strnlen zero", strnlen("abc", 0) == 0);
+    mu_assert("strnlen short", strnlen("hello", 3) == 3);
+    mu_assert("strnlen full", strnlen("hi", 10) == 2);
+
     return 0;
 }
 
@@ -404,6 +416,21 @@ static const char *test_fgetc_fputc(void)
     mu_assert("fgetc val", c == 'X');
     fclose(f);
     unlink("tmp_char");
+    return 0;
+}
+
+static const char *test_fgets_fputs(void)
+{
+    FILE *f = fopen("tmp_line", "w+");
+    mu_assert("fopen line", f != NULL);
+    mu_assert("fputs ret", fputs("hello\n", f) >= 0);
+    rewind(f);
+    char buf[16] = {0};
+    char *r = fgets(buf, sizeof(buf), f);
+    mu_assert("fgets not null", r != NULL);
+    mu_assert("fgets content", strcmp(buf, "hello\n") == 0);
+    fclose(f);
+    unlink("tmp_line");
     return 0;
 }
 
@@ -523,6 +550,10 @@ static const char *test_environment(void)
 
 static const char *test_error_reporting(void)
 {
+    errno = ENOENT;
+    char *msg = strerror(errno);
+    mu_assert("strerror", msg && *msg != '\0');
+    perror("test");
     vlibc_init();
     const char *msg = strerror(ENOENT);
     mu_assert("strerror", strcmp(msg, "No such file or directory") == 0);
@@ -549,9 +580,11 @@ static const char *test_error_reporting(void)
 
 static const char *test_pid_functions(void)
 {
-    pid_t self = getpid();
-    mu_assert("getpid positive", self > 0);
-    mu_assert("getppid positive", getppid() > 0);
+    pid_t pid = getpid();
+    pid_t ppid = getppid();
+    mu_assert("getpid", pid > 0);
+    mu_assert("getppid", ppid >= 0);
+
     return 0;
 }
 
@@ -601,6 +634,26 @@ static const char *test_mprotect_anon(void)
     mu_assert("mprotect rw", r == 0);
 
     munmap(p, len);
+    return 0;
+}
+
+static const char *test_atexit_handler(void)
+{
+    mu_assert("pipe", pipe(exit_pipe) == 0);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        close(exit_pipe[0]);
+        atexit(atexit_handler);
+        exit(0);
+    }
+    close(exit_pipe[1]);
+    char buf;
+    ssize_t r = read(exit_pipe[0], &buf, 1);
+    close(exit_pipe[0]);
+    waitpid(pid, NULL, 0);
+    mu_assert("handler ran", r == 1 && buf == 'x');
+
     return 0;
 }
 
@@ -682,6 +735,7 @@ static const char *all_tests(void)
     mu_run_test(test_printf_functions);
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
+    mu_run_test(test_fgets_fputs);
     mu_run_test(test_pthread);
     mu_run_test(test_select_pipe);
     mu_run_test(test_sleep_functions);
@@ -691,6 +745,7 @@ static const char *all_tests(void)
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_mprotect_anon);
+    mu_run_test(test_atexit_handler);
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);

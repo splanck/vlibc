@@ -27,4 +27,7 @@ void *bsearch(const void *key, const void *base, size_t nmemb, size_t size,
 int rand(void);
 void srand(unsigned seed);
 
+/* Register a function to run at normal process exit */
+int atexit(void (*fn)(void));
+
 #endif /* STDLIB_H */

@@ -47,6 +47,8 @@ The repository uses a straightforward layout:
 Common memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) are available
 as wrappers around the internal `v*` implementations so existing code can use
 the familiar names.
+Basic string helpers like `strcmp`, `strchr`, `strncpy`, `strdup`, and
+`strnlen` are also provided.
 
 ## Provided Headers
 
@@ -120,6 +122,23 @@ char *end;
 long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
 ```
 
+## String Tokenization
+
+`strtok()` splits a string into tokens separated by any characters in the
+delimiter set. The function keeps its state in static storage, so it is not
+thread-safe or reentrant. Call `strtok(NULL, delim)` to continue scanning the
+same string. When concurrency is needed, prefer `strtok_r` which lets the
+caller manage the context.
+
+```c
+char buf[] = "a b c";
+char *tok = strtok(buf, " ");
+while (tok) {
+    printf("%s\n", tok);
+    tok = strtok(NULL, " ");
+}
+```
+
 ## Sorting Helpers
 
 `qsort()` sorts an array in-place using a user-provided comparison
@@ -138,7 +157,7 @@ vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 `stderr`. These lightweight streams wrap file descriptors 0, 1 and 2 and
 are initialized when `vlibc_init()` is called. They can be used with the
 provided `fread`, `fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`,
-`fputc`, `fprintf`, and `printf` functions.
+`fputc`, `fgets`, `fputs`, `fprintf`, and `printf` functions.
 
 ## Networking
 

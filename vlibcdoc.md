@@ -122,21 +122,22 @@ The stdio module also exposes `stdin`, `stdout`, and `stderr` as global
 pointers. These streams wrap file descriptors 0, 1 and 2 and are
 initialized in `vlibc_init()` so they can be used with the basic FILE
 APIs. Available helpers include `fopen`, `fread`, `fwrite`, `fseek`,
-`ftell`, `rewind`, `fclose`, and simple formatted output via `fprintf`
-and `printf`.
+`ftell`, `rewind`, `fclose`, `fgetc`, `fputc`, `fgets`, `fputs`, and
+simple formatted output via `fprintf` and `printf`.
 
 ## String Handling
 
 The **string** module provides fundamental operations needed by most C programs:
 
-- `vstrlen`, `vstrcpy`, and `vstrncmp` equivalents.
+- `vstrlen`, `vstrcpy`, `vstrncmp`, and `strnlen` equivalents.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
 - Minimal locale or encoding support; all strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
-  delimiter characters. `strtok` uses internal static storage while
-  `strtok_r` lets the caller maintain context.
+  delimiter characters. `strtok` stores its parsing state in static
+  memory and is not thread-safe. `strtok_r` lets the caller maintain the
+  context and is safe for concurrent use.
 - Simple number conversion helpers `atoi` and `strtol`.
 
 Basic time formatting is available via `strftime`. Only a small subset of
@@ -174,6 +175,8 @@ pid_t getpid(void);
 pid_t getppid(void);
 sighandler_t signal(int signum, sighandler_t handler);
 int system(const char *command);
+int atexit(void (*fn)(void));
+void exit(int status);
 ```
 
 ### Example
@@ -196,8 +199,7 @@ kill(getpid(), SIGINT);
 The convenience `system()` call executes a shell command by forking and
 invoking `/bin/sh -c command`. It returns the raw status from `waitpid`
 and is intended only for simple helper tasks.
-
-
+`exit()` terminates the process after running any handlers registered with `atexit()`. The handlers execute in reverse registration order. `_exit()` bypasses them.
 The design favors straightforward semantics over comprehensive POSIX
 conformance.
 
