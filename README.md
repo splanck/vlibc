@@ -183,9 +183,14 @@ vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
 `stderr`. These lightweight streams wrap file descriptors 0, 1 and 2 and
 are initialized when `vlibc_init()` is called. They can be used with the
 provided `fread`, `fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`,
+
+`fputc`, `fgets`, `fputs`, `sprintf`, `snprintf`, `vsprintf`, `vsnprintf`,
+`fprintf`, `vfprintf`, `printf`, and `vprintf` functions.
+
 `fputc`, `fgets`, `fputs`, `fflush`, `fprintf`, and `printf` functions.
 Although I/O is unbuffered, `fflush(stream)` succeeds and invokes
 `fsync` on the stream's file descriptor when one is supplied.
+
 
 ## Networking
 

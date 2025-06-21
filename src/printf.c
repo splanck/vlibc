@@ -31,7 +31,7 @@ static int int_to_str(int value, char *buf, size_t size)
     return (int)pos;
 }
 
-static int vsnprintf_simple(char *str, size_t size, const char *fmt, va_list ap)
+static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
 {
     size_t pos = 0;
     for (const char *p = fmt; *p; ++p) {
@@ -88,11 +88,30 @@ static int vsnprintf_simple(char *str, size_t size, const char *fmt, va_list ap)
     return (int)pos;
 }
 
+int vsnprintf(char *str, size_t size, const char *format, va_list ap)
+{
+    return vsnprintf_impl(str, size, format, ap);
+}
+
 int snprintf(char *str, size_t size, const char *format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    int r = vsnprintf_simple(str, size, format, ap);
+    int r = vsnprintf(str, size, format, ap);
+    va_end(ap);
+    return r;
+}
+
+int vsprintf(char *str, const char *format, va_list ap)
+{
+    return vsnprintf(str, (size_t)-1, format, ap);
+}
+
+int sprintf(char *str, const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    int r = vsprintf(str, format, ap);
     va_end(ap);
     return r;
 }
@@ -100,17 +119,27 @@ int snprintf(char *str, size_t size, const char *format, ...)
 static int vfdprintf(int fd, const char *format, va_list ap)
 {
     char buf[1024];
-    int len = vsnprintf_simple(buf, sizeof(buf), format, ap);
+    int len = vsnprintf(buf, sizeof(buf), format, ap);
     if (len > 0 && fd >= 0)
         write(fd, buf, (size_t)len);
     return len;
+}
+
+int vfprintf(FILE *stream, const char *format, va_list ap)
+{
+    return vfdprintf(stream ? stream->fd : -1, format, ap);
+}
+
+int vprintf(const char *format, va_list ap)
+{
+    return vfdprintf(1, format, ap);
 }
 
 int fprintf(FILE *stream, const char *format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    int r = vfdprintf(stream ? stream->fd : -1, format, ap);
+    int r = vfprintf(stream, format, ap);
     va_end(ap);
     return r;
 }
@@ -119,7 +148,7 @@ int printf(const char *format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    int r = vfdprintf(1, format, ap);
+    int r = vprintf(format, ap);
     va_end(ap);
     return r;
 }
