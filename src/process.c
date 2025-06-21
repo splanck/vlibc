@@ -35,6 +35,19 @@ int kill(pid_t pid, int sig)
     return (int)syscall(SYS_kill, pid, sig);
 }
 
+
+void _exit(int status)
+{
+    syscall(SYS_exit, status);
+    for (;;) {}
+}
+
+void exit(int status)
+{
+    /* No stdio buffering yet, so nothing to flush. */
+    _exit(status);
+}
+
 sighandler_t signal(int signum, sighandler_t handler)
 {
 #ifdef SYS_rt_sigaction
