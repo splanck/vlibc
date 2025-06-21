@@ -5,6 +5,10 @@
 #include <fcntl.h>
 #include <string.h>
 
+FILE *stdin = NULL;
+FILE *stdout = NULL;
+FILE *stderr = NULL;
+
 FILE *fopen(const char *path, const char *mode)
 {
     int flags = -1;

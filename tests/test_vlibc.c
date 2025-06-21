@@ -297,6 +297,9 @@ static const char *test_sleep_functions(void)
     t2 = time(NULL);
     mu_assert("nanosleep delay", t2 - t1 >= 1 && t2 - t1 <= 3);
 
+    return 0;
+}
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -336,6 +339,9 @@ static const char *test_dirent(void)
     }
     closedir(d);
     mu_assert("entries missing", found == 3);
+
+    return 0;
+}
 
 static const char *all_tests(void)
 {
