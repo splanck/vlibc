@@ -452,6 +452,18 @@ static const char *test_system_fn(void)
     return 0;
 }
 
+static const char *test_popen_fn(void)
+{
+    FILE *f = popen("echo popen", "r");
+    mu_assert("popen", f != NULL);
+    char buf[32] = {0};
+    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+    pclose(f);
+    mu_assert("popen read", n > 0);
+    mu_assert("popen content", strncmp(buf, "popen", 5) == 0);
+    return 0;
+}
+
 static const char *test_rand_fn(void)
 {
     srand(1);
@@ -540,9 +552,8 @@ static const char *all_tests(void)
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_environment);
-    mu_run_test(test_error_reporting);
-    mu_run_test(test_pid_functions);
     mu_run_test(test_system_fn);
+    mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);

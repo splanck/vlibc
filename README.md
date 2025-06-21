@@ -141,6 +141,17 @@ prints the current `errno` value with an optional prefix.
 
 The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
 
+A lightweight `popen`/`pclose` pair runs a shell command with a pipe
+connected to the child. Use mode `"r"` to read the command's output or
+`"w"` to send data to its stdin:
+
+```c
+FILE *f = popen("echo hi", "r");
+char buf[16] = {0};
+fread(buf, 1, sizeof(buf) - 1, f);
+pclose(f);
+```
+
 ## Time Formatting
 
 The library includes a minimal `strftime` implementation for producing
