@@ -68,6 +68,7 @@ poll.h       - I/O multiplexing helpers
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
+wchar.h     - wide character helpers
 getopt.h     - option parsing
 sys/mman.h   - memory mapping helpers
 sys/socket.h - networking wrappers

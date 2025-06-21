@@ -141,6 +141,8 @@ The **string** module provides fundamental operations needed by most C programs:
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
 - Minimal locale or encoding support; all strings are treated as byte sequences.
+- Basic wide-character helpers `mbtowc`, `wctomb`, and `wcslen` operate on ASCII
+  characters only.
 - Utility functions for tokenizing and simple formatting.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
   delimiter characters. `strtok` stores its parsing state in static
