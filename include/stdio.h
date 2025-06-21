@@ -7,6 +7,10 @@ typedef struct {
     int fd;
 } FILE;
 
+extern FILE *stdin;
+extern FILE *stdout;
+extern FILE *stderr;
+
 FILE *fopen(const char *path, const char *mode);
 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);

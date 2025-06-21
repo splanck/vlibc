@@ -12,4 +12,8 @@ int unsetenv(const char *name);
 /* Execute a shell command */
 int system(const char *command);
 
+/* String conversion */
+long strtol(const char *nptr, char **endptr, int base);
+int atoi(const char *nptr);
+
 #endif /* STDLIB_H */

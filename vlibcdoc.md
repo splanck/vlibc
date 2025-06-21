@@ -101,13 +101,21 @@ if (fd >= 0) {
 }
 ```
 
+The stdio module also exposes `stdin`, `stdout`, and `stderr` as global
+pointers. These streams wrap file descriptors 0, 1 and 2 and are
+initialized in `vlibc_init()` so they can be used with the basic FILE
+APIs.
+
 ## String Handling
 
 The **string** module provides fundamental operations needed by most C programs:
 
 - `vstrlen`, `vstrcpy`, and `vstrncmp` equivalents.
+- Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
+  the internal `v` implementations.
 - Minimal locale or encoding support; all strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
+- Simple number conversion helpers `atoi` and `strtol`.
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 

@@ -77,6 +77,18 @@ static const char *test_memory_ops(void)
     mu_assert("vmemmove failed", buf[1] == 'a' && buf[2] == 'b');
 
     mu_assert("vmemcmp diff", vmemcmp("abc", "abd", 3) < 0);
+
+    memset(buf, 'y', sizeof(buf));
+    for (size_t i = 0; i < sizeof(buf); i++)
+        mu_assert("memset failed", buf[i] == 'y');
+
+    memcpy(buf, src, 8);
+    mu_assert("memcpy failed", memcmp(buf, src, 8) == 0);
+
+    memmove(buf + 2, buf, 6);
+    mu_assert("memmove std failed", buf[2] == 'a' && buf[3] == 'b');
+
+    mu_assert("memcmp diff std", memcmp("abc", "abd", 3) < 0);
     return 0;
 }
 
@@ -233,6 +245,11 @@ static const char *test_string_helpers(void)
     char *dup = strdup("test");
     mu_assert("strdup failed", dup && strcmp(dup, "test") == 0);
     free(dup);
+
+    mu_assert("atoi", atoi("42") == 42);
+    char *end;
+    mu_assert("strtol hex", strtol("ff", &end, 16) == 255 && *end == '\0');
+    mu_assert("strtol partial", strtol("12xy", &end, 10) == 12 && strcmp(end, "xy") == 0);
 
     return 0;
 }

@@ -44,6 +44,10 @@ The repository uses a straightforward layout:
 - `include/` holds public header files.
 - `tests/` contains unit tests.
 
+Common memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) are available
+as wrappers around the internal `v*` implementations so existing code can use
+the familiar names.
+
 ## Building the Library
 
 The project uses a simple `make`-based build system. To compile the
@@ -79,6 +83,26 @@ make test
 ```
 
 This command builds `tests/run_tests` and runs it automatically.
+
+## String Conversion
+
+vlibc provides simple helpers to convert strings into integers. Use
+`atoi()` for basic decimal parsing or `strtol()` when you need other
+bases or the end pointer.
+
+```c
+int v = atoi("123");            /* v == 123 */
+char *end;
+long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
+```
+
+## Standard Streams
+
+vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
+`stderr`. These lightweight streams wrap file descriptors 0, 1 and 2 and
+are initialized when `vlibc_init()` is called. They can be used with the
+provided `fread`, `fwrite`, `fprintf`, and `printf` functions.
+
 
 ## Limitations
 
