@@ -47,6 +47,8 @@ The repository uses a straightforward layout:
 Common memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) are available
 as wrappers around the internal `v*` implementations so existing code can use
 the familiar names.
+Basic string helpers like `strcmp`, `strchr`, `strncpy`, `strdup`, and
+`strnlen` are also provided.
 
 ## Provided Headers
 

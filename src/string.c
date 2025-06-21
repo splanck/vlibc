@@ -9,6 +9,14 @@ size_t vstrlen(const char *s)
     return (size_t)(p - s);
 }
 
+size_t strnlen(const char *s, size_t maxlen)
+{
+    const char *p = s;
+    while (maxlen-- && *p)
+        p++;
+    return (size_t)(p - s);
+}
+
 char *vstrcpy(char *dest, const char *src)
 {
     char *d = dest;
