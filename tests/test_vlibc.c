@@ -3,11 +3,13 @@
 #include "../include/io.h"
 #include "../include/sys/socket.h"
 #include "../include/sys/stat.h"
+#include "../include/stdio.h"
 
 #include <fcntl.h>
 #include "../include/string.h"
 #include <unistd.h>
 #include <stdio.h>
+#include <errno.h>
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
@@ -71,6 +73,23 @@ static const char *test_socket(void)
     return 0;
 }
 
+static const char *test_errno_open(void)
+{
+    int fd = open("/this/file/does/not/exist", O_RDONLY);
+    mu_assert("open should fail", fd == -1);
+    mu_assert("errno should be ENOENT", errno == ENOENT);
+    return 0;
+}
+
+static const char *test_errno_stat(void)
+{
+    struct stat st;
+    int r = stat("/this/file/does/not/exist", &st);
+    mu_assert("stat should fail", r == -1);
+    mu_assert("errno should be ENOENT", errno == ENOENT);
+    return 0;
+}
+
 static const char *test_stat_wrappers(void)
 {
     const char *fname = "tmp_stat_file";
@@ -101,13 +120,40 @@ static const char *test_stat_wrappers(void)
     return 0;
 }
 
+static const char *test_printf_functions(void)
+{
+    char buf[32];
+    int n = snprintf(buf, sizeof(buf), "v=%d %s", 42, "ok");
+    mu_assert("snprintf len", n == (int)strlen("v=42 ok"));
+    mu_assert("snprintf buf", strcmp(buf, "v=42 ok") == 0);
+
+    FILE *f = fopen("tmp_pf", "w");
+    mu_assert("fopen failed", f != NULL);
+    fprintf(f, "num=%d", 7);
+    fclose(f);
+
+    int fd = open("tmp_pf", O_RDONLY);
+    char rbuf[16] = {0};
+    ssize_t r = read(fd, rbuf, sizeof(rbuf) - 1);
+    close(fd);
+    unlink("tmp_pf");
+    mu_assert("fprintf read", r > 0);
+    mu_assert("fprintf content", strncmp(rbuf, "num=7", 5) == 0);
+
+    printf("printf check %u\n", 123u);
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_socket);
+    mu_run_test(test_errno_open);
+    mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
+    mu_run_test(test_printf_functions);
     return 0;
 }
 

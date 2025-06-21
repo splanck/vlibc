@@ -5,15 +5,16 @@
 #include <unistd.h>
 #include <signal.h>
 #include "string.h"
-
+#include "syscall.h"
 extern long syscall(long number, ...);
+
 
 pid_t fork(void)
 {
 #ifdef SYS_fork
-    long ret = syscall(SYS_fork);
+    long ret = vlibc_syscall(SYS_fork, 0, 0, 0, 0, 0, 0);
 #else
-    long ret = syscall(SYS_clone, SIGCHLD, 0);
+    long ret = vlibc_syscall(SYS_clone, SIGCHLD, 0, 0, 0, 0, 0);
 #endif
     if (ret < 0) {
         errno = -ret;
@@ -24,7 +25,7 @@ pid_t fork(void)
 
 int execve(const char *pathname, char *const argv[], char *const envp[])
 {
-    long ret = syscall(SYS_execve, pathname, argv, envp);
+    long ret = vlibc_syscall(SYS_execve, (long)pathname, (long)argv, (long)envp, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return -1;
@@ -35,9 +36,9 @@ int execve(const char *pathname, char *const argv[], char *const envp[])
 pid_t waitpid(pid_t pid, int *status, int options)
 {
 #ifdef SYS_waitpid
-    long ret = syscall(SYS_waitpid, pid, status, options);
+    long ret = vlibc_syscall(SYS_waitpid, pid, (long)status, options, 0, 0, 0);
 #else
-    long ret = syscall(SYS_wait4, pid, status, options, NULL);
+    long ret = vlibc_syscall(SYS_wait4, pid, (long)status, options, 0, 0, 0);
 #endif
     if (ret < 0) {
         errno = -ret;
@@ -48,7 +49,7 @@ pid_t waitpid(pid_t pid, int *status, int options)
 
 int kill(pid_t pid, int sig)
 {
-    long ret = syscall(SYS_kill, pid, sig);
+    long ret = vlibc_syscall(SYS_kill, pid, sig, 0, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return -1;
@@ -59,7 +60,7 @@ int kill(pid_t pid, int sig)
 
 void _exit(int status)
 {
-    syscall(SYS_exit, status);
+    vlibc_syscall(SYS_exit, status, 0, 0, 0, 0, 0);
     for (;;) {}
 }
 
@@ -75,14 +76,14 @@ sighandler_t signal(int signum, sighandler_t handler)
     struct sigaction act, old;
     vmemset(&act, 0, sizeof(act));
     act.sa_handler = handler;
-    long ret = syscall(SYS_rt_sigaction, signum, &act, &old, sizeof(sigset_t));
+    long ret = vlibc_syscall(SYS_rt_sigaction, signum, (long)&act, (long)&old, sizeof(sigset_t), 0, 0);
     if (ret < 0) {
         errno = -ret;
         return SIG_ERR;
     }
     return old.sa_handler;
 #else
-    long ret = syscall(SYS_signal, signum, handler);
+    long ret = vlibc_syscall(SYS_signal, signum, (long)handler, 0, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return SIG_ERR;

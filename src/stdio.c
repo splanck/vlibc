@@ -1,6 +1,7 @@
 #include "stdio.h"
 #include "io.h"
 #include "memory.h"
+#include "errno.h"
 #include <fcntl.h>
 #include <string.h>
 
@@ -30,6 +31,7 @@ FILE *fopen(const char *path, const char *mode)
     FILE *f = malloc(sizeof(FILE));
     if (!f) {
         close(fd);
+        errno = ENOMEM;
         return NULL;
     }
     f->fd = fd;
