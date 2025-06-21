@@ -92,6 +92,14 @@ char *end;
 long x = strtol("ff", &end, 16); /* x == 255 and *end == '\0' */
 ```
 
+## Standard Streams
+
+vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
+`stderr`. These lightweight streams wrap file descriptors 0, 1 and 2 and
+are initialized when `vlibc_init()` is called. They can be used with the
+provided `fread`, `fwrite`, `fprintf`, and `printf` functions.
+
+
 ## Limitations
 
 - The I/O routines (`open`, `read`, `write`, `close`) are thin wrappers around

@@ -305,7 +305,6 @@ static const char *test_sleep_functions(void)
     return 0;
 }
 
-
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -348,7 +347,6 @@ static const char *test_dirent(void)
 
     return 0;
 }
-
 
 static const char *all_tests(void)
 {
