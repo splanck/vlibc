@@ -1,15 +1,25 @@
 #include "sys/mman.h"
+#include "errno.h"
 #include <sys/syscall.h>
 #include <unistd.h>
-
-extern long syscall(long number, ...);
+#include "syscall.h"
 
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
-    return (void *)syscall(SYS_mmap, addr, length, prot, flags, fd, offset);
+    long ret = vlibc_syscall(SYS_mmap, (long)addr, length, prot, flags, fd, offset);
+    if (ret < 0) {
+        errno = -ret;
+        return (void *)-1;
+    }
+    return (void *)ret;
 }
 
 int munmap(void *addr, size_t length)
 {
-    return (int)syscall(SYS_munmap, addr, length);
+    long ret = vlibc_syscall(SYS_munmap, (long)addr, length, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
 }

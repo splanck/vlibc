@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <errno.h>
 
 int tests_run = 0;
 
@@ -49,6 +51,23 @@ static const char *test_socket(void)
     return 0;
 }
 
+static const char *test_errno_open(void)
+{
+    int fd = open("/this/file/does/not/exist", O_RDONLY);
+    mu_assert("open should fail", fd == -1);
+    mu_assert("errno should be ENOENT", errno == ENOENT);
+    return 0;
+}
+
+static const char *test_errno_stat(void)
+{
+    struct stat st;
+    int r = stat("/this/file/does/not/exist", &st);
+    mu_assert("stat should fail", r == -1);
+    mu_assert("errno should be ENOENT", errno == ENOENT);
+    return 0;
+}
+
 static const char *test_stat_wrappers(void)
 {
     const char *fname = "tmp_stat_file";
@@ -84,6 +103,8 @@ static const char *all_tests(void)
     mu_run_test(test_malloc);
     mu_run_test(test_io);
     mu_run_test(test_socket);
+    mu_run_test(test_errno_open);
+    mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
     return 0;
 }
