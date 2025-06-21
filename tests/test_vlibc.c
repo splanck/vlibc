@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include "../include/string.h"
 #include "../include/stdlib.h"
+#include "../include/wchar.h"
 #include "../include/env.h"
 #include "../include/process.h"
 #include "../include/getopt.h"
@@ -324,6 +325,17 @@ static const char *test_string_helpers(void)
     mu_assert("strnlen short", strnlen("hello", 3) == 3);
     mu_assert("strnlen full", strnlen("hi", 10) == 2);
 
+    return 0;
+}
+
+static const char *test_widechar_basic(void)
+{
+    wchar_t wc = 0;
+    mu_assert("mbtowc ascii", mbtowc(&wc, "A", 1) == 1 && wc == L'A');
+    char buf[2] = {0};
+    mu_assert("wctomb ascii", wctomb(buf, wc) == 1 && buf[0] == 'A');
+    mu_assert("wcslen", wcslen(L"abc") == 3);
+    mu_assert("mbtowc reset", mbtowc(NULL, NULL, 0) == 0);
     return 0;
 }
 
@@ -835,6 +847,7 @@ static const char *all_tests(void)
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_string_helpers);
+    mu_run_test(test_widechar_basic);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);

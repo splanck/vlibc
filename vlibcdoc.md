@@ -26,6 +26,7 @@ lives in `src/`, public headers in `include/`, and tests will be placed in
 - **io**: Simple wrappers around read/write system calls for file descriptors.
 - **string**: Common string operations such as length checks and copying.
 - **process**: Functions for spawning and waiting on child processes.
+- **math**: Elementary math routines like `sin` and `sqrt`.
 
 ## API Design
 
@@ -139,7 +140,7 @@ The **string** module provides fundamental operations needed by most C programs:
 - `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat` and `strncat` equivalents.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
- - Basic locale handling is limited to the built-in `"C"` and `"POSIX"` locales.
+- Basic locale handling is limited to the built-in `"C"` and `"POSIX"` locales.
    `setlocale` switches between them and `localeconv` exposes formatting data.
    All strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
