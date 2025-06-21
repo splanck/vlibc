@@ -42,10 +42,7 @@ The repository uses a straightforward layout:
 
 - `src/` contains the library's source files.
 - `include/` holds public header files.
-- `tests/` will store test cases and examples.
-
-These directories are empty initially, acting as placeholders for future
-development.
+- `tests/` contains unit tests.
 
 ## Building the Library
 
@@ -71,6 +68,17 @@ compiling:
 ```sh
 cc your_app.c -I/path/to/vlibc/include -L/path/to/vlibc -lvlibc
 ```
+
+## Running Tests
+
+Unit tests live in `tests/` and use a tiny test harness. The suite aims to
+exercise the library's core functions. Build and execute the tests with:
+
+```sh
+make test
+```
+
+This command builds `tests/run_tests` and runs it automatically.
 
 ## Limitations
 
