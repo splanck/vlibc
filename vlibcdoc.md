@@ -14,6 +14,10 @@ This document outlines the architecture, planned modules, and API design for **v
 
 vlibc aims to implement a minimal subset of the standard C library. The project is structured around small, easily auditable modules. Each module exposes a minimal API and relies on direct system calls whenever possible. The code is written in a straightforward C style without complex build systems.
 
+The overall repository layout is described in the README. In short, source code
+lives in `src/`, public headers in `include/`, and tests will be placed in
+`tests/`.
+
 ### Planned Modules
 
 - **startup**: Program entry, stack setup, and initialization routines.
