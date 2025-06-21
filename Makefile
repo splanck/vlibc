@@ -16,12 +16,15 @@ SRC := \
     src/process.c \
     src/string.c \
     src/socket.c \
+    src/fd.c \
     src/syscall.c \
     src/mmap.c \
     src/env.c \
+    src/sleep.c \
     src/time.c \
     src/stat.c \
-    src/pthread.c
+    src/pthread.c \
+    src/dirent.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
