@@ -38,6 +38,7 @@ SRC := \
     src/select.c \
     src/qsort.c \
     src/getopt.c \
+    src/locale.c \
     src/wchar.c \
     src/math.c
 

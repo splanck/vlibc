@@ -140,9 +140,9 @@ The **string** module provides fundamental operations needed by most C programs:
 - `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat` and `strncat` equivalents.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
-- Minimal locale or encoding support; all strings are treated as byte sequences.
-- Basic wide-character helpers `mbtowc`, `wctomb`, and `wcslen` operate on ASCII
-  characters only.
+- Basic locale handling is limited to the built-in `"C"` and `"POSIX"` locales.
+   `setlocale` switches between them and `localeconv` exposes formatting data.
+   All strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
   delimiter characters. `strtok` stores its parsing state in static
@@ -151,8 +151,8 @@ The **string** module provides fundamental operations needed by most C programs:
 - Simple number conversion helpers `atoi`, `strtol`, `strtod`, and `atof`.
 
 Basic time formatting is available via `strftime`. Only a small subset of
-conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
-output always uses the C locale.
+ conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
+ output uses the current locale (only `"C"`/`"POSIX"` are available).
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 

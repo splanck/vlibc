@@ -240,9 +240,14 @@ pclose(f);
 ## Time Formatting
 
 The library includes a minimal `strftime` implementation for producing
-human-readable timestamps. Supported conversion sequences are `%Y`, `%m`,
-`%d`, `%H`, `%M`, and `%S`. All other specifiers are copied verbatim and
-no locale handling is performed.
+human-readable timestamps. Supported conversion sequences are `%Y`, `%m`, `%d`,
+`%H`, `%M`, and `%S`. Locale handling is extremely limited and only the default
+`"C"` and `"POSIX"` locales can be selected.
+
+## Locale Support
+
+`setlocale` can switch between the built-in `"C"` and `"POSIX"` locales.
+`localeconv` returns formatting information for these locales only.
 
 
 ## Limitations
@@ -258,3 +263,4 @@ no locale handling is performed.
 - `perror` and `strerror` cover only common error codes.
 - Basic thread support is implemented using the `clone` syscall. Only
   `pthread_create`, `pthread_join`, and simple mutexes are provided.
+- Locale data is minimal: only the `"C"` and `"POSIX"` locales are supported.
