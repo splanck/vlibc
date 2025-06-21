@@ -1,4 +1,5 @@
 #include "io.h"
+#include "errno.h"
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -17,23 +18,43 @@ int open(const char *path, int flags, ...)
         va_end(ap);
     }
 #ifdef SYS_open
-    return (int)syscall(SYS_open, path, flags, mode);
+    long ret = syscall(SYS_open, path, flags, mode);
 #else
-    return (int)syscall(SYS_openat, AT_FDCWD, path, flags, mode);
+    long ret = syscall(SYS_openat, AT_FDCWD, path, flags, mode);
 #endif
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
 }
 
 ssize_t read(int fd, void *buf, size_t count)
 {
-    return (ssize_t)syscall(SYS_read, fd, buf, count);
+    long ret = syscall(SYS_read, fd, buf, count);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
 }
 
 ssize_t write(int fd, const void *buf, size_t count)
 {
-    return (ssize_t)syscall(SYS_write, fd, buf, count);
+    long ret = syscall(SYS_write, fd, buf, count);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
 }
 
 int close(int fd)
 {
-    return (int)syscall(SYS_close, fd);
+    long ret = syscall(SYS_close, fd);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
 }

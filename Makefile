@@ -6,6 +6,7 @@ CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Iinclude
 AR ?= ar
 
 SRC := \
+    src/errno.c \
     src/init.c \
     src/io.c \
     src/stdio.c \
