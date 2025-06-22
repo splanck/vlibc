@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include <errno.h>
+#include_next <errno.h>
 
 long vlibc_syscall(long number, ...)
 {

@@ -1,5 +1,5 @@
 #include <stdarg.h>
-#include <errno.h>
+#include_next <errno.h>
 #include "syscall.h"
 
 long vlibc_syscall(long number, ...)
