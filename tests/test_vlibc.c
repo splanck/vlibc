@@ -490,7 +490,7 @@ static const char *test_pthread(void)
     int r = pthread_create(&t, NULL, thread_fn, &val);
     mu_assert("pthread_create", r == 0);
     void *ret = NULL;
-    pthread_join(&t, &ret);
+    pthread_join(t, &ret);
     mu_assert("thread retval", ret == (void *)123);
     mu_assert("shared value", val == 42);
   
@@ -503,10 +503,10 @@ static const char *test_pthread_detach(void)
     int val = 0;
     int r = pthread_create(&t, NULL, thread_fn, &val);
     mu_assert("pthread_create", r == 0);
-    pthread_detach(&t);
-    waitpid(t.tid, NULL, 0);
+    pthread_detach(t);
+    usleep(100000);
     mu_assert("shared value", val == 42);
-    mu_assert("join fails", pthread_join(&t, NULL) == -1);
+    mu_assert("join fails", pthread_join(t, NULL) == -1);
 
     return 0;
 }
@@ -533,7 +533,7 @@ static const char *test_select_pipe(void)
     struct timeval tv = {2, 0};
 
     int r = select(p[0] + 1, &rfds, NULL, NULL, &tv);
-    pthread_join(&t, NULL);
+    pthread_join(t, NULL);
     mu_assert("select ret", r == 1);
     mu_assert("fd set", FD_ISSET(p[0], &rfds));
 
@@ -558,7 +558,7 @@ static const char *test_poll_pipe(void)
     fds[0].events = POLLIN;
 
     int r = poll(fds, 1, 2000);
-    pthread_join(&t, NULL);
+    pthread_join(t, NULL);
     mu_assert("poll ret", r == 1);
     mu_assert("poll event", fds[0].revents & POLLIN);
 
