@@ -1044,6 +1044,27 @@ static const char *test_getcwd_chdir(void)
     return 0;
 }
 
+static const char *test_realpath_basic(void)
+{
+    char cwd[256];
+    mu_assert("cwd", getcwd(cwd, sizeof(cwd)) != NULL);
+
+    char buf[256];
+    mu_assert("realpath dot", realpath(".", buf) != NULL);
+    mu_assert("dot eq", strcmp(buf, cwd) == 0);
+
+    mu_assert("realpath parent", realpath("tests/..", buf) != NULL);
+    mu_assert("parent eq", strcmp(buf, cwd) == 0);
+
+    char expect[256];
+    strcpy(expect, cwd);
+    strcat(expect, "/tests");
+    mu_assert("realpath nested", realpath("tests/../tests", buf) != NULL);
+    mu_assert("nested eq", strcmp(buf, expect) == 0);
+
+    return 0;
+}
+
 static const char *test_dirent(void)
 {
     DIR *d = opendir("tests");
@@ -1252,6 +1273,7 @@ static const char *all_tests(void)
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_getcwd_chdir);
+    mu_run_test(test_realpath_basic);
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);

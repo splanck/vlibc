@@ -11,6 +11,7 @@ int unsetenv(const char *name);
 
 /* Current working directory */
 char *getcwd(char *buf, size_t size);
+char *realpath(const char *path, char *resolved_path);
 
 /* Execute a shell command */
 int system(const char *command);
