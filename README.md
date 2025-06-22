@@ -315,6 +315,26 @@ usleep(200000);           /* 200 ms */
 unsigned left = sleep(1); /* may be non-zero if interrupted */
 ```
 
+## Non-local Jumps
+
+The [include/setjmp.h](include/setjmp.h) header exposes minimal helpers for
+performing non-local jumps:
+
+```c
+int setjmp(jmp_buf env);
+void longjmp(jmp_buf env, int val);
+```
+
+`setjmp` stores the current register state in `env` and returns `0`. A later
+call to `longjmp` restores those registers and resumes execution as if
+`setjmp` returned `val` (or `1` when `val` is `0`).
+
+This implementation only targets x86_64 where `jmp_buf` holds the
+callee-saved registers. The process's signal mask is **not** preserved, so
+jumping across signal handlers may leave blocked signals in an undefined
+state. Code that relies on portable or POSIX-compliant semantics should use a
+full-featured libc.
+
 
 ## Limitations
 
