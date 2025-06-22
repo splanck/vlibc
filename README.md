@@ -291,6 +291,30 @@ provided for transforming between `time_t` values and `struct tm` or
 human-readable strings. `localtime` does not apply any timezone logic and
 behaves identically to `gmtime`.
 
+## Sleep Functions
+
+Delay helpers are available in [include/time.h](include/time.h):
+
+```c
+unsigned sleep(unsigned seconds);
+int usleep(useconds_t usec);
+int nanosleep(const struct timespec *req, struct timespec *rem);
+```
+
+`nanosleep` pauses execution for the time specified in `req` and returns
+`0` on success or `-1` on error, storing any remaining time in `rem` when
+interrupted. `usleep` converts a microsecond delay to a `timespec` and has
+the same return convention. `sleep` waits whole seconds and returns `0`
+when the full interval elapsed or the number of seconds left if a signal
+interrupts the call.
+
+```c
+struct timespec ts = {0, 500000000}; /* half a second */
+nanosleep(&ts, NULL);
+usleep(200000);           /* 200 ms */
+unsigned left = sleep(1); /* may be non-zero if interrupted */
+```
+
 
 ## Limitations
 
