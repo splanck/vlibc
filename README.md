@@ -211,7 +211,9 @@ are initialized when `vlibc_init()` is called. They can be used with the
 provided `fread`, `fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`,
 
 `fputc`, `fgets`, `fputs`, `sprintf`, `snprintf`, `vsprintf`, `vsnprintf`,
-`fprintf`, `vfprintf`, `printf`, and `vprintf` functions.
+`fprintf`, `vfprintf`, `printf`, and `vprintf` functions. The `printf`
+implementations understand `%d`, `%u`, `%x`, `%X`, `%c`, and `%p` along with
+basic width and precision specifiers.
 
 `fputc`, `fgets`, `fputs`, `fflush`, `fprintf`, and `printf` functions.
 Although I/O is unbuffered, `fflush(stream)` succeeds and invokes

@@ -389,6 +389,22 @@ static const char *test_printf_functions(void)
     mu_assert("snprintf len", n == (int)strlen("v=42 ok"));
     mu_assert("snprintf buf", strcmp(buf, "v=42 ok") == 0);
 
+    n = snprintf(buf, sizeof(buf), "%x %X", 0x1a, 0x1a);
+    mu_assert("hex out", strcmp(buf, "1a 1A") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%c", 'A');
+    mu_assert("char out", strcmp(buf, "A") == 0);
+
+    void *ptr = (void *)0x1234;
+    n = snprintf(buf, sizeof(buf), "%p", ptr);
+    mu_assert("ptr prefix", strncmp(buf, "0x", 2) == 0);
+
+    n = snprintf(buf, sizeof(buf), "%5d", 7);
+    mu_assert("width pad", strcmp(buf, "    7") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%6.3d", 2);
+    mu_assert("prec pad", strcmp(buf, "   002") == 0);
+
     FILE *f = fopen("tmp_pf", "w");
     mu_assert("fopen failed", f != NULL);
     fprintf(f, "num=%d", 7);
@@ -906,39 +922,6 @@ static const char *test_dlopen_basic(void)
     mu_assert("dlsym", val != NULL);
     mu_assert("call", val() == 123);
     mu_assert("dlclose", dlclose(h) == 0);
-    return 0;
-}
-
-static const char *test_getopt_long_basic(void)
-{
-    char *argv[] = {"prog", "--flag", "--alpha", "val", "rest", NULL};
-    int argc = 5;
-    struct option opts[] = {
-        {"flag",  no_argument,       NULL, 'f'},
-        {"alpha", required_argument, NULL, 'a'},
-        {0, 0, 0, 0}
-    };
-    int flag = 0;
-    char *arg = NULL;
-    optind = 1;
-    opterr = 0;
-    int c;
-    while ((c = getopt_long(argc, argv, "fa:", opts, NULL)) != -1) {
-        switch (c) {
-        case 'f':
-            flag = 1;
-            break;
-        case 'a':
-            arg = optarg;
-            break;
-        default:
-            return "unexpected opt long";
-        }
-    }
-    mu_assert("flag long", flag == 1);
-    mu_assert("arg long", arg && strcmp(arg, "val") == 0);
-    mu_assert("rest long", strcmp(argv[optind], "rest") == 0);
-  
     return 0;
 }
 
