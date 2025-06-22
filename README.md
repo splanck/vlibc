@@ -51,13 +51,13 @@ For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
 ## Running Tests
 
-Execute the unit test suite by running:
+Example tests live in the `tests/` directory. Run them with:
 
 ```sh
 make test
 ```
 
-This builds the test binary and runs all tests.
+This builds the test binary and exercises many of the library functions.
 
 ## License
 
