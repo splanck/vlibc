@@ -16,19 +16,24 @@ SRC := \
     src/memory_ops.c \
     src/atexit.c \
     src/process.c \
+    src/abort.c \
     src/system.c \
     src/string.c \
+    src/string_extra.c \
     src/strto.c \
     src/rand.c \
     src/socket.c \
+    src/netdb.c \
     src/fd.c \
     src/file.c \
+    src/file_perm.c \
     src/dir.c \
     src/syscall.c \
     src/mmap.c \
     src/env.c \
     src/sleep.c \
     src/time.c \
+    src/time_conv.c \
     src/strftime.c \
     src/stat.c \
     src/pthread.c \
@@ -38,8 +43,11 @@ SRC := \
     src/select.c \
     src/qsort.c \
     src/getopt.c \
-    src/math.c \
-    src/dlfcn.c
+    src/dlfcn.c \
+    src/getopt_long.c \
+    src/locale.c \
+    src/wchar.c \
+    src/math.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a

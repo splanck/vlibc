@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include "../include/string.h"
 #include "../include/stdlib.h"
+#include "../include/wchar.h"
 #include "../include/env.h"
 #include "../include/process.h"
 #include "../include/getopt.h"
@@ -21,6 +22,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include "../include/time.h"
 #include "../include/sys/mman.h"
 
@@ -325,6 +327,29 @@ static const char *test_string_helpers(void)
     mu_assert("strnlen short", strnlen("hello", 3) == 3);
     mu_assert("strnlen full", strnlen("hi", 10) == 2);
 
+    const char *h = "abcabc";
+    const char *s = strstr(h, "cab");
+    mu_assert("strstr", s && s - h == 2);
+
+    const char *r = strrchr("abca", 'a');
+    mu_assert("strrchr", r && r - "abca" == 3);
+
+    char mbuf[4] = {1, 2, 3, 4};
+    void *m = memchr(mbuf, 3, sizeof(mbuf));
+    mu_assert("memchr", m == &mbuf[2]);
+    mu_assert("memchr none", memchr(mbuf, 5, sizeof(mbuf)) == NULL);
+
+    return 0;
+}
+
+static const char *test_widechar_basic(void)
+{
+    wchar_t wc = 0;
+    mu_assert("mbtowc ascii", mbtowc(&wc, "A", 1) == 1 && wc == L'A');
+    char buf[2] = {0};
+    mu_assert("wctomb ascii", wctomb(buf, wc) == 1 && buf[0] == 'A');
+    mu_assert("wcslen", wcslen(L"abc") == 3);
+    mu_assert("mbtowc reset", mbtowc(NULL, NULL, 0) == 0);
     return 0;
 }
 
@@ -571,6 +596,30 @@ static const char *test_strftime_basic(void)
     return 0;
 }
 
+static const char *test_time_conversions(void)
+{
+    time_t t = 1700000000;
+    struct tm *gm = gmtime(&t);
+    mu_assert("gm year", gm->tm_year == 123);
+    mu_assert("gm mon", gm->tm_mon == 10);
+    mu_assert("gm mday", gm->tm_mday == 14);
+    mu_assert("gm hour", gm->tm_hour == 22);
+    mu_assert("gm min", gm->tm_min == 13);
+    mu_assert("gm sec", gm->tm_sec == 20);
+    mu_assert("gm wday", gm->tm_wday == 2);
+
+    struct tm *loc = localtime(&t);
+    mu_assert("localtime", loc->tm_yday == gm->tm_yday && loc->tm_mon == gm->tm_mon);
+
+    struct tm tmp = *gm;
+    time_t r = mktime(&tmp);
+    mu_assert("mktime", r == 1700000000);
+
+    char *s = ctime(&t);
+    mu_assert("ctime", strcmp(s, "Tue Nov 14 22:13:20 2023\n") == 0);
+    return 0;
+}
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -680,6 +729,18 @@ static const char *test_rand_fn(void)
     mu_assert("rand 1", rand() == 16838);
     mu_assert("rand 2", rand() == 5758);
     mu_assert("rand 3", rand() == 10113);
+    return 0;
+}
+
+static const char *test_abort_fn(void)
+{
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0)
+        abort();
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("abort", WIFSIGNALED(status) && WTERMSIG(status) == SIGABRT);
     return 0;
 }
 
@@ -834,6 +895,89 @@ static const char *test_dlopen_basic(void)
     return 0;
 }
 
+static const char *test_getopt_long_basic(void)
+{
+    char *argv[] = {"prog", "--flag", "--alpha", "val", "rest", NULL};
+    int argc = 5;
+    struct option opts[] = {
+        {"flag",  no_argument,       NULL, 'f'},
+        {"alpha", required_argument, NULL, 'a'},
+        {0, 0, 0, 0}
+    };
+    int flag = 0;
+    char *arg = NULL;
+    optind = 1;
+    opterr = 0;
+    int c;
+    while ((c = getopt_long(argc, argv, "fa:", opts, NULL)) != -1) {
+        switch (c) {
+        case 'f':
+            flag = 1;
+            break;
+        case 'a':
+            arg = optarg;
+            break;
+        default:
+            return "unexpected opt long";
+        }
+    }
+    mu_assert("flag long", flag == 1);
+    mu_assert("arg long", arg && strcmp(arg, "val") == 0);
+    mu_assert("rest long", strcmp(argv[optind], "rest") == 0);
+  
+    return 0;
+}
+
+static const char *test_getopt_long_missing(void)
+{
+    char *argv[] = {"prog", "--bar", NULL};
+    int argc = 2;
+    struct option longopts[] = {
+        {"bar", required_argument, NULL, 'b'},
+        {0, 0, 0, 0}
+    };
+    optind = 1;
+    opterr = 0;
+    int r = getopt_long(argc, argv, "b:", longopts, NULL);
+    mu_assert("missing ret", r == '?');
+    mu_assert("optopt", optopt == 'b');
+    mu_assert("index", optind == 2);
+    return 0;
+}
+
+static const char *test_getopt_long_basic(void)
+{
+    char *argv[] = {"prog", "--foo", "--bar=val", "rest", NULL};
+    int argc = 4;
+    int foo = 0;
+    char *bar = NULL;
+    struct option longopts[] = {
+        {"foo", no_argument, &foo, 1},
+        {"bar", required_argument, NULL, 'b'},
+        {0, 0, 0, 0}
+    };
+    optind = 1;
+    opterr = 0;
+    int c;
+    while ((c = getopt_long(argc, argv, "b:", longopts, NULL)) != -1) {
+        switch (c) {
+        case 0:
+            break;
+        case 'b':
+            bar = optarg;
+            break;
+        default:
+            return "unexpected long opt";
+        }
+    }
+    mu_assert("foo", foo == 1);
+    mu_assert("bar", bar && strcmp(bar, "val") == 0);
+    mu_assert("optind", optind == 3);
+    mu_assert("rest", strcmp(argv[optind], "rest") == 0);
+
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
@@ -847,6 +991,7 @@ static const char *all_tests(void)
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_string_helpers);
+    mu_run_test(test_widechar_basic);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);
@@ -859,11 +1004,13 @@ static const char *all_tests(void)
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
+    mu_run_test(test_time_conversions);
     mu_run_test(test_environment);
     mu_run_test(test_system_fn);
     mu_run_test(test_execvp_fn);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
+    mu_run_test(test_abort_fn);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_dirent);
@@ -872,6 +1019,8 @@ static const char *all_tests(void)
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
     mu_run_test(test_dlopen_basic);
+    mu_run_test(test_getopt_long_missing);
+    mu_run_test(test_getopt_long_basic);
 
     return 0;
 }

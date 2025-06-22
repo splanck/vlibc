@@ -69,9 +69,12 @@ dlfcn.h      - runtime loading of shared libraries
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
+wchar.h     - wide character helpers
 getopt.h     - option parsing
 sys/mman.h   - memory mapping helpers
 sys/socket.h - networking wrappers
+sys/file.h   - file permission helpers
+netdb.h      - address resolution helpers
 sys/stat.h   - file status functions
 syscall.h    - raw syscall interface
 time.h       - time related helpers
@@ -129,6 +132,8 @@ double f = strtod("3.14", NULL); /* f == 3.14 */
 ```
 
 Use `strcat()` or `strncat()` to append one string to another.
+Search helpers `strstr()`, `strrchr()`, and `memchr()` locate substrings or
+individual bytes within a buffer.
 
 ## String Tokenization
 
@@ -183,6 +188,20 @@ while ((c = getopt(argc, argv, "fa:")) != -1) {
 }
 ```
 
+`getopt_long()` behaves similarly but accepts an array of `struct option` to
+describe GNU-style long options:
+
+```c
+static const struct option longopts[] = {
+    {"flag",  no_argument,       NULL, 'f'},
+    {"alpha", required_argument, NULL, 'a'},
+    {0, 0, 0, 0}
+};
+while ((c = getopt_long(argc, argv, "fa:", longopts, NULL)) != -1) {
+    ...
+}
+```
+
 ## Standard Streams
 
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
@@ -203,10 +222,22 @@ Although I/O is unbuffered, `fflush(stream)` succeeds and invokes
 The socket layer exposes thin wrappers around the kernel's networking
 syscalls. Available functions include `socket`, `bind`, `listen`,
 `accept`, `connect`, `send`, `recv`, `sendto`, `recvfrom`, as well as
-the I/O multiplexing helpers `select` and `poll`.
+the I/O multiplexing helpers `select` and `poll`.  Basic address
+resolution is provided through `getaddrinfo`, `freeaddrinfo`, and
+`getnameinfo`.
+
 These calls accept the same arguments as their POSIX counterparts and
 translate directly to the underlying `socket`, `bind`, `connect`, and
-`sendto`/`recvfrom` syscalls.
+`sendto`/`recvfrom` syscalls.  Example:
+
+```c
+struct addrinfo *ai;
+if (getaddrinfo("localhost", "80", NULL, &ai) == 0) {
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    connect(fd, ai->ai_addr, ai->ai_addrlen);
+    freeaddrinfo(ai);
+}
+```
 
 ## Dynamic Loading
 
@@ -233,12 +264,24 @@ void perror(const char *s);
 `strerror()` returns a string for a known error code, while `perror()`
 prints the current `errno` value with an optional prefix.
 
+## File Permissions
+
+The file module exposes simple wrappers to adjust permissions and ownership.
+
+```c
+umask(022);
+chmod("data.txt", 0644);
+chown("data.txt", 1000, 1000);
+```
+
 ## Process Control
 
-The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `execvp`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `execvp`, `waitpid`, `kill`, `getpid`, `getppid`, `signal`, and `abort`. A simple `system()` convenience function is also included.
 
-`execvp` searches the directories listed in the `PATH` environment variable and then invokes `execve` on the first matching program.
+`execvp` searches the directories listed in the `PATH` environment variable and
+then invokes `execve` on the first matching program.
 
+A call to `abort()` sends `SIGABRT` to the process and terminates it immediately.
 A lightweight `popen`/`pclose` pair runs a shell command with a pipe
 connected to the child. Use mode `"r"` to read the command's output or
 `"w"` to send data to its stdin:
@@ -253,9 +296,19 @@ pclose(f);
 ## Time Formatting
 
 The library includes a minimal `strftime` implementation for producing
-human-readable timestamps. Supported conversion sequences are `%Y`, `%m`,
-`%d`, `%H`, `%M`, and `%S`. All other specifiers are copied verbatim and
-no locale handling is performed.
+human-readable timestamps. Supported conversion sequences are `%Y`, `%m`, `%d`,
+`%H`, `%M`, and `%S`. Locale handling is extremely limited and only the default
+`"C"` and `"POSIX"` locales can be selected.
+
+## Locale Support
+
+`setlocale` can switch between the built-in `"C"` and `"POSIX"` locales.
+`localeconv` returns formatting information for these locales only.
+
+Basic conversion helpers `gmtime`, `localtime`, `mktime`, and `ctime` are
+provided for transforming between `time_t` values and `struct tm` or
+human-readable strings. `localtime` does not apply any timezone logic and
+behaves identically to `gmtime`.
 
 
 ## Limitations
@@ -270,4 +323,7 @@ no locale handling is performed.
   It does not handle complex quoting or return detailed status codes.
 - `perror` and `strerror` cover only common error codes.
 - Basic thread support is implemented using the `clone` syscall. Only
-  `pthread_create`, `pthread_join`, and simple mutexes are provided.
+  `pthread_create`, `pthread_join`, and simple mutexes
+  (`pthread_mutex_init`, `pthread_mutex_destroy`,
+  `pthread_mutex_lock`, `pthread_mutex_unlock`) are provided.
+- Locale data is minimal: only the `"C"` and `"POSIX"` locales are supported.

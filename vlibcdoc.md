@@ -140,9 +140,12 @@ otherwise returns success.
 The **string** module provides fundamental operations needed by most C programs:
 
 - `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat` and `strncat` equivalents.
+- Search helpers `strstr`, `strrchr`, and `memchr` for locating substrings or bytes.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
-- Minimal locale or encoding support; all strings are treated as byte sequences.
+- Basic locale handling is limited to the built-in `"C"` and `"POSIX"` locales.
+   `setlocale` switches between them and `localeconv` exposes formatting data.
+   All strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
   delimiter characters. `strtok` stores its parsing state in static
@@ -151,10 +154,22 @@ The **string** module provides fundamental operations needed by most C programs:
 - Simple number conversion helpers `atoi`, `strtol`, `strtod`, and `atof`.
 
 Basic time formatting is available via `strftime`. Only a small subset of
-conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
-output always uses the C locale.
+ conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
+ output uses the current locale (only `"C"`/`"POSIX"` are available).
+
+The library also includes simple conversion routines `gmtime`, `localtime`,
+`mktime`, and `ctime`. They convert between `time_t` and `struct tm` or
+produce a readable string. `localtime` ignores the system timezone so the
+result is identical to `gmtime`.
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
+
+## Option Parsing
+
+Command-line arguments can be processed with `getopt` or `getopt_long`. The
+former handles short options while the latter accepts an array of `struct
+option` describing long names. `getopt_long` returns the option's value field
+or sets a flag when supplied in the table.
 
 ## Random Numbers
 
@@ -169,6 +184,14 @@ void srand(unsigned seed);
 Calling `srand()` initializes the internal state. Reusing the same seed
 produces the identical sequence of numbers, each in the range `0` to
 `32767`.
+
+## Option Parsing
+
+Command line processing mirrors the familiar `getopt` interface. The
+extended `getopt_long()` handles GNU-style long options described by an
+array of `struct option` entries. Both functions update `optind`, set
+`optarg` when an option takes an argument and return `?` for unknown
+options.
 
 ## Process Control
 
@@ -187,6 +210,7 @@ pid_t getppid(void);
 sighandler_t signal(int signum, sighandler_t handler);
 int system(const char *command);
 int atexit(void (*fn)(void));
+void abort(void);
 void exit(int status);
 ```
 
@@ -212,6 +236,8 @@ kill(getpid(), SIGINT);
 The convenience `system()` call executes a shell command by forking and
 invoking `/bin/sh -c command`. It returns the raw status from `waitpid`
 and is intended only for simple helper tasks.
+`abort()` sends `SIGABRT` to the current process and does not invoke
+`atexit` handlers.
 `exit()` terminates the process after running any handlers registered with `atexit()`. The handlers execute in reverse registration order. `_exit()` bypasses them.
 The design favors straightforward semantics over comprehensive POSIX
 conformance.
@@ -234,11 +260,26 @@ ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
 int select(int nfds, fd_set *readfds, fd_set *writefds,
            fd_set *exceptfds, struct timeval *timeout);
 int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+int getaddrinfo(const char *node, const char *service,
+                const struct addrinfo *hints, struct addrinfo **res);
+void freeaddrinfo(struct addrinfo *res);
+int getnameinfo(const struct sockaddr *sa, socklen_t salen,
+                char *host, socklen_t hostlen,
+                char *serv, socklen_t servlen, int flags);
 ```
 
 These wrappers directly invoke the underlying `socket`, `bind`,
 `connect`, `sendto`, and `recvfrom` syscalls without additional
-buffering or complex address handling.
+buffering or complex address handling.  Address lookups can be
+performed with `getaddrinfo` and `getnameinfo`:
+
+```c
+struct addrinfo *ai;
+if (getaddrinfo("127.0.0.1", "8080", NULL, &ai) == 0) {
+    connect(fd, ai->ai_addr, ai->ai_addrlen);
+    freeaddrinfo(ai);
+}
+```
 
 ## Error Reporting
 
@@ -264,6 +305,7 @@ int pthread_create(pthread_t *thread, const void *attr,
 int pthread_join(pthread_t *thread, void **retval);
 
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
+int pthread_mutex_destroy(pthread_mutex_t *mutex);
 int pthread_mutex_lock(pthread_mutex_t *mutex);
 int pthread_mutex_unlock(pthread_mutex_t *mutex);
 ```
