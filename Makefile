@@ -5,6 +5,16 @@ CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -fno-stack-protector -fno-builtin -Iinclude
 AR ?= ar
 
+TARGET_OS ?= $(OS)
+ifeq ($(TARGET_OS),)
+TARGET_OS := $(shell uname -s)
+endif
+
+SYS_SRC := src/syscall.c
+ifeq ($(TARGET_OS),Windows_NT)
+SYS_SRC := src/arch/win32/syscall.c
+endif
+
 SRC := \
     src/errno.c \
     src/error.c \
@@ -28,7 +38,7 @@ SRC := \
     src/file.c \
     src/file_perm.c \
     src/dir.c \
-    src/syscall.c \
+    $(SYS_SRC) \
     src/mmap.c \
     src/env.c \
     src/sleep.c \
