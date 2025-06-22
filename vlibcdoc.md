@@ -103,7 +103,8 @@ live in `src/`, public headers in `include/`, and tests reside in `tests/`.
 
 ### Planned Modules
 - **startup**: Program entry, stack setup and initialization routines.
-- **memory**: Basic heap management using `brk`/`sbrk` or a small allocator.
+- **memory**: Basic heap management using `brk`/`sbrk` with a fallback to
+  `mmap`/`munmap` when those calls are unavailable.
 - **io**: Simple wrappers around read/write system calls for file descriptors.
 - **string**: Common string operations such as length checks and copying.
 - **process**: Functions for spawning and waiting on child processes.
@@ -169,10 +170,13 @@ wchar.h      - wide character helpers
 ## Memory Management
 
 The **memory** module provides a very small heap allocator implemented in
-`memory.c`. It relies on the `sbrk` system call to extend the heap and keeps
-the implementation deliberately simple. Each allocation stores a small header
-so the most recent block can be released on `free()`. Memory for older blocks
-is still not recycled, keeping the code easy to audit at the cost of efficiency.
+`memory.c`. When available it uses the `sbrk` system call to extend the heap.
+On systems without `sbrk` the allocator falls back to `mmap`/`munmap` for
+obtaining memory from the kernel. The implementation deliberately keeps things
+simple. Each allocation stores a small header so the most recent block can be
+released on `free()`. Memory for older blocks is not recycled when using
+`sbrk`, keeping the code easy to audit at the cost of efficiency. When built
+with the `mmap` backend each `free` call unmaps the region entirely.
 
 ### API
 
@@ -185,12 +189,14 @@ void *realloc(void *ptr, size_t size);
 
 ### Behavior and Caveats
 
-- `malloc` allocates memory linearly using `sbrk` and returns `NULL` on
-  failure.
+- When compiled with `HAVE_SBRK`, `malloc` allocates memory linearly using
+  `sbrk` and returns `NULL` on failure. `free` only releases memory if called on
+  the most recently allocated block.
+- When `sbrk` is unavailable `malloc` obtains pages with `mmap` and `free`
+  unmaps them with `munmap`.
 - `calloc` calls `malloc` and zeroes the allocated block.
 - `realloc` always allocates a new block and copies up to `size` bytes from the
   old pointer if one was provided.
-- `free` releases memory only if called on the most recently allocated block.
 
 Because memory is only reclaimed for the most recent block, applications that
 allocate many objects may still eventually exhaust the heap. These routines are

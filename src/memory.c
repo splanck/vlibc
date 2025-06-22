@@ -1,18 +1,18 @@
 #include "memory.h"
-#include <unistd.h>
 #include "string.h"
 #include <stdint.h>
 
+#ifdef HAVE_SBRK
+#include <unistd.h>
 /* Declare sbrk for strict environments */
 extern void *sbrk(intptr_t increment);
 
 /*
  * Very small free list allocator. Each allocation stores a size header and
  * freed blocks are placed on a singly linked list so they can be reused by
- * subsequent malloc calls.  Blocks are not coalesced or split which keeps the
+ * subsequent malloc calls. Blocks are not coalesced or split which keeps the
  * implementation simple while still allowing memory to be recycled.
  */
-
 struct block_header {
     size_t size;
     struct block_header *next; /* valid only when block is free */
@@ -58,6 +58,39 @@ void free(void *ptr)
     free_list = hdr;
 }
 
+#else /* HAVE_SBRK */
+#include <sys/mman.h>
+
+struct mmap_header {
+    size_t size;
+};
+
+void *malloc(size_t size)
+{
+    if (size == 0)
+        return NULL;
+
+    size_t total = sizeof(struct mmap_header) + size;
+    struct mmap_header *hdr = mmap(NULL, total, PROT_READ | PROT_WRITE,
+                                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (hdr == MAP_FAILED)
+        return NULL;
+
+    hdr->size = size;
+    return (void *)(hdr + 1);
+}
+
+void free(void *ptr)
+{
+    if (!ptr)
+        return;
+
+    struct mmap_header *hdr = (struct mmap_header *)ptr - 1;
+    munmap(hdr, hdr->size + sizeof(struct mmap_header));
+}
+
+#endif /* HAVE_SBRK */
+
 void *calloc(size_t nmemb, size_t size)
 {
     size_t total = nmemb * size;
@@ -77,7 +110,11 @@ void *realloc(void *ptr, size_t size)
         return NULL;
     }
 
+#ifdef HAVE_SBRK
     struct block_header *old_hdr = (struct block_header *)ptr - 1;
+#else
+    struct mmap_header *old_hdr = (struct mmap_header *)ptr - 1;
+#endif
     size_t copy = old_hdr->size < size ? old_hdr->size : size;
 
     void *new_ptr = malloc(size);
