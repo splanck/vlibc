@@ -488,8 +488,8 @@ int main(int argc, char **argv, char **envp) {
 
 Thin wrappers around the kernel's file APIs live in `io.h`. Functions
 like `open`, `read`, `write`, `close`, `unlink`, `rename`, `symlink`,
-`mkdir`, `rmdir`, and `chdir` simply pass their arguments to the
-corresponding syscalls.
+`mkdir`, `rmdir`, `chdir`, and the file size controls `truncate` and
+`ftruncate` simply pass their arguments to the corresponding syscalls.
 
 ```c
 int fd = open("log.txt", O_WRONLY | O_CREAT, 0644);

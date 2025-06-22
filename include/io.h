@@ -13,6 +13,8 @@ int dup2(int oldfd, int newfd);
 int dup3(int oldfd, int newfd, int flags);
 int pipe(int pipefd[2]);
 int pipe2(int pipefd[2], int flags);
+int ftruncate(int fd, off_t length);
+int truncate(const char *path, off_t length);
 int unlink(const char *pathname);
 int rename(const char *oldpath, const char *newpath);
 int symlink(const char *target, const char *linkpath);
