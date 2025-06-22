@@ -762,7 +762,7 @@ static const char *test_mprotect_anon(void)
 {
     size_t len = 4096;
     void *p = mmap(NULL, len, PROT_READ | PROT_WRITE,
-                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                   MAP_PRIVATE | MAP_ANON, -1, 0);
     mu_assert("mmap", p != (void *)-1);
 
     ((char *)p)[0] = 'a';

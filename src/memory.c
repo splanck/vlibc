@@ -72,7 +72,7 @@ void *malloc(size_t size)
 
     size_t total = sizeof(struct mmap_header) + size;
     struct mmap_header *hdr = mmap(NULL, total, PROT_READ | PROT_WRITE,
-                                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                                   MAP_PRIVATE | MAP_ANON, -1, 0);
     if (hdr == MAP_FAILED)
         return NULL;
 

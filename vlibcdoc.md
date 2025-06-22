@@ -52,7 +52,7 @@ Public License v3.0.
 
 ### Target Platforms
 - Linux (x86_64, aarch64, armv7) is currently the primary platform.
-- *BSD variants are planned and patches are welcome.
+ - *BSD variants are partially supported and patches are welcome.
 - Other POSIX systems should work with minimal porting effort.
 - Lightweight containers or small research kernels implementing POSIX system
   calls.
@@ -633,7 +633,7 @@ state.
  - The I/O routines perform no buffering and provide only basic error
    reporting.
  - Process creation currently relies on Linux-specific syscalls.
- - BSD support is in progress and some subsystems may not compile yet.
+ - BSD support is experimental and some subsystems may not compile yet.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
    codes.
  - `perror` and `strerror` cover only common errors.

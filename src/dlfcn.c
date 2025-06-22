@@ -20,7 +20,9 @@ struct dl_handle {
 
 static char dl_err[128];
 
-static void apply_relocs(struct dl_handle *h, Elf64_Rela *rela, size_t relasz)
+static void set_error(const char *msg);
+
+static int apply_relocs(struct dl_handle *h, Elf64_Rela *rela, size_t relasz)
 {
 #ifdef __x86_64__
     size_t n = relasz / sizeof(Elf64_Rela);
@@ -42,14 +44,17 @@ static void apply_relocs(struct dl_handle *h, Elf64_Rela *rela, size_t relasz)
             }
             break;
         default:
-            break;
+            set_error("bad relocation");
+            return -1;
         }
     }
+    return 0;
 #else
     (void)h;
     (void)rela;
     (void)relasz;
     set_error("unsupported architecture");
+    return -1;
 #endif
 }
 
@@ -214,8 +219,14 @@ void *dlopen(const char *filename, int flag)
         }
         if (h->nsyms == 0 && h->symtab && h->strtab && syment)
             h->nsyms = ((char *)h->strtab - (char *)h->symtab) / syment;
-        if (rela && relasz)
-            apply_relocs(h, rela, relasz);
+        if (rela && relasz) {
+            if (apply_relocs(h, rela, relasz) != 0) {
+                munmap(map, map_size);
+                free(h);
+                close(fd);
+                return NULL;
+            }
+        }
     }
 
     close(fd);

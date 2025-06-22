@@ -17,8 +17,9 @@ programs. Key features include:
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD
-support is planned, but a few features may still rely on platform-specific
-interfaces.
+variants are now partially supported and the memory mapping routines fall back
+to `MAP_ANON` when `MAP_ANONYMOUS` is unavailable. A few features may still
+rely on platform-specific interfaces.
 
 Build the static library with:
 
@@ -67,9 +68,9 @@ For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 ## Platform Support
 
 The library currently targets Linux but aims to run on other POSIX systems as
-well. BSD compatibility is on the roadmap. Some modules still rely on
-platform-specific system calls, so non-Linux builds may require additional
-work.
+well. BSD compatibility has been tested on FreeBSD, though some modules still
+rely on Linux-only system calls. Non-Linux builds may therefore require
+additional work.
 
 ## Running Tests
 
