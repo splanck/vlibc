@@ -27,5 +27,25 @@ Install the headers and library system-wide with:
 make install PREFIX=/usr/local
 ```
 
+## Quick Start
+
+After building the library you can compile programs against `libvlibc.a`.
+Below is a minimal hello world example:
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    printf("hello, world\n");
+    return 0;
+}
+```
+
+Compile it with the vlibc headers and library:
+
+```sh
+cc -Iinclude hello.c libvlibc.a -o hello
+```
+
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
