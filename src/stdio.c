@@ -159,12 +159,15 @@ int fflush(FILE *stream)
 {
     if (!stream)
         return 0;
-#ifdef SYS_fsync
+#if defined(__linux__) && defined(SYS_fsync)
     long ret = vlibc_syscall(SYS_fsync, stream->fd, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return -1;
     }
+#else
+    if (fsync(stream->fd) < 0)
+        return -1;
 #endif
     return 0;
 }
