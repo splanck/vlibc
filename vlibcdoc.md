@@ -3,12 +3,108 @@
 This document outlines the architecture, planned modules, and API design for **vlibc**. The goal is to provide a clear overview for contributors and users who wish to understand how the library is organized. For usage examples see the [README](README.md).
 
 ## Table of Contents
-1. [Memory Management](#memory-management)
-2. [String Handling](#string-handling)
-3. [Process Control](#process-control)
-4. [Error Reporting](#error-reporting)
-5. [Threading](#threading)
-6. [Dynamic Loading](#dynamic-loading)
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Provided Headers](#provided-headers)
+4. [Memory Management](#memory-management)
+5. [String Handling](#string-handling)
+6. [Process Control](#process-control)
+7. [Error Reporting](#error-reporting)
+8. [Threading](#threading)
+9. [Dynamic Loading](#dynamic-loading)
+
+## Overview
+
+vlibc is a minimal libc replacement targeted at UNIX-like systems. It provides a
+small subset of the standard C library with an emphasis on simplicity and
+predictability. The project is distributed under the terms of the GNU General
+Public License v3.0.
+
+### Goals
+- Keep the code base small and auditable.
+- Supply only the essential C runtime facilities.
+- Offer consistent behavior for statically linked or embedded programs.
+
+### Target Platforms
+- Linux (x86_64, aarch64, armv7).
+- Other POSIX systems with minimal porting effort.
+- Lightweight containers or small research kernels implementing POSIX system
+  calls.
+
+### Guiding Principles
+- Minimalism: implement just enough functionality for common use.
+- Readability over clever micro-optimizations.
+- Prefer direct system calls and avoid heavy runtime features.
+- Encourage static linking to reduce external dependencies.
+
+### Motivation and Use Cases
+vlibc was created for developers who need a tiny C runtime for experiments,
+educational operating systems, or compact container images. It serves as a
+foundation for projects that require libc functionality but do not want the
+complexity of larger implementations.
+
+### Differences from Existing Solutions
+While glibc and musl provide comprehensive POSIX support, vlibc focuses on a
+much smaller API surface. It is **not** a drop-in replacement for the full
+standard library. Instead, vlibc offers a minimal set of wrappers and utilities
+that can be easily inspected or extended.
+
+### Building the Library
+
+```sh
+make
+```
+
+This produces `libvlibc.a` in the repository root. Install the headers and
+library with:
+
+```sh
+make install PREFIX=/usr/local
+```
+
+### Running Tests
+
+```sh
+make test
+```
+
+This builds `tests/run_tests` and executes the suite.
+
+## Architecture
+
+vlibc is structured around small, easily auditable modules. Each module exposes a
+minimal API and relies on direct system calls whenever possible. Source files
+live in `src/`, public headers in `include/`, and tests reside in `tests/`.
+
+### Planned Modules
+- **startup**: Program entry, stack setup and initialization routines.
+- **memory**: Basic heap management using `brk`/`sbrk` or a small allocator.
+- **io**: Simple wrappers around read/write system calls for file descriptors.
+- **string**: Common string operations such as length checks and copying.
+- **process**: Functions for spawning and waiting on child processes.
+- **math**: Elementary math routines like `sin` and `sqrt`.
+
+### API Design
+vlibc strives for a consistent API surface inspired by the C standard library.
+Functions are prefixed with `v` (e.g., `vmalloc`) to differentiate them from
+their libc counterparts. Where appropriate, functions mirror POSIX signatures so
+users can easily migrate existing code.
+
+### Naming Conventions
+- `v` prefix for all exported functions.
+- Lowercase with underscores for function names and variables.
+- Keep parameter lists short and intuitive.
+
+### Initialization
+Initialization code lives in the **startup** module and performs:
+
+1. Setting up the runtime stack and registers.
+2. Parsing arguments and environment variables.
+3. Calling `v_main()` as the program entry point.
+4. Providing a minimal exit routine to flush data and terminate.
+
+Programs using vlibc define `v_main(argc, argv, envp)` to keep the startup
+routine simple and avoid complex features like C++ static constructors.
 
 ## Provided Headers
 
