@@ -83,7 +83,7 @@ $(PLUGIN_SO): tests/plugin.c
 	$(CC) -shared -fPIC tests/plugin.c -o $(PLUGIN_SO)
 
 $(TEST_BIN): $(TEST_SRC) $(LIB) $(PLUGIN_SO)
-	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -o $@
+	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -lpthread -o $@
 
 test: $(TEST_BIN)
 	./$(TEST_BIN)
