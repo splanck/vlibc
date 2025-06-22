@@ -8,15 +8,21 @@ typedef unsigned useconds_t;
 #define __useconds_t_defined
 #endif
 
+#ifndef _STRUCT_TIMESPEC
+#define _STRUCT_TIMESPEC 1
 struct timespec {
     time_t tv_sec;
     long tv_nsec;
 };
+#endif
 
+#ifndef __timeval_defined
+#define __timeval_defined 1
 struct timeval {
     time_t tv_sec;
     long tv_usec;
 };
+#endif
 
 struct tm {
     int tm_sec;   /* seconds [0,60] */
