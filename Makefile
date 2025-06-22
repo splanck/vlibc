@@ -67,10 +67,13 @@ SRC := \
     src/system.c \
     src/string.c \
     src/string_extra.c \
+    src/strerror_r.c \
     src/strto.c \
     src/rand.c \
     src/socket.c \
     src/netdb.c \
+    src/inet_pton.c \
+    src/inet_ntop.c \
     src/fd.c \
     src/file.c \
     src/file_perm.c \

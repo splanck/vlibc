@@ -1,4 +1,5 @@
 #include "string.h"
+#include "ctype.h"
 
 void *memchr(const void *s, int c, size_t n)
 {
@@ -37,4 +38,23 @@ char *strstr(const char *haystack, const char *needle)
         haystack++;
     }
     return NULL;
+}
+
+int strncasecmp(const char *s1, const char *s2, size_t n)
+{
+    while (n--) {
+        unsigned char c1 = (unsigned char)*s1++;
+        unsigned char c2 = (unsigned char)*s2++;
+        int diff = tolower(c1) - tolower(c2);
+        if (diff)
+            return diff;
+        if (c1 == '\0')
+            break;
+    }
+    return 0;
+}
+
+int strcasecmp(const char *s1, const char *s2)
+{
+    return strncasecmp(s1, s2, (size_t)-1);
 }

@@ -3,6 +3,7 @@
 #include "../include/io.h"
 #include "../include/sys/socket.h"
 #include <netinet/in.h>
+#include "../include/arpa/inet.h"
 #include <stdint.h>
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
@@ -62,6 +63,19 @@ static void *thread_fn(void *arg)
     int *p = arg;
     *p = 42;
     return (void *)123;
+}
+
+static void *strerror_r_worker(void *arg)
+{
+    int err = *(int *)arg;
+    char buf[64];
+    if (strerror_r(err, buf, sizeof(buf)) != 0)
+        return (void *)1;
+    if (err == ENOENT)
+        return (void *)(strcmp(buf, "No such file or directory") != 0);
+    char expect[32];
+    snprintf(expect, sizeof(expect), "Unknown error %d", err);
+    return (void *)(strcmp(buf, expect) != 0);
 }
 
 static const char *test_malloc(void)
@@ -273,6 +287,20 @@ static const char *test_udp_send_recv(void)
     return 0;
 }
 
+static const char *test_inet_pton_ntop(void)
+{
+    struct in_addr addr;
+    int r = inet_pton(AF_INET, "127.2.3.4", &addr);
+    mu_assert("inet_pton", r == 1);
+    char buf[INET_ADDRSTRLEN];
+    const char *p = inet_ntop(AF_INET, &addr, buf, sizeof(buf));
+    mu_assert("inet_ntop", p && strcmp(buf, "127.2.3.4") == 0);
+    struct in_addr back;
+    r = inet_pton(AF_INET, buf, &back);
+    mu_assert("inet_pton round", r == 1 && back.s_addr == addr.s_addr);
+    return 0;
+}
+
 static const char *test_errno_open(void)
 {
     int fd = open("/this/file/does/not/exist", O_RDONLY);
@@ -351,6 +379,37 @@ static const char *test_truncate_resize(void)
     return 0;
 }
 
+static const char *test_link_readlink(void)
+{
+    const char *target = "tmp_ln_target";
+    const char *hard = "tmp_ln_hard";
+    const char *sym = "tmp_ln_sym";
+
+    int fd = open(target, O_CREAT | O_RDWR, 0644);
+    mu_assert("open target", fd >= 0);
+    write(fd, "x", 1);
+    close(fd);
+
+    mu_assert("link", link(target, hard) == 0);
+    fd = open(hard, O_RDONLY);
+    mu_assert("open hard", fd >= 0);
+    char c;
+    mu_assert("read hard", read(fd, &c, 1) == 1 && c == 'x');
+    close(fd);
+
+    mu_assert("symlink", symlink(target, sym) == 0);
+    char buf[64] = {0};
+    ssize_t n = readlink(sym, buf, sizeof(buf) - 1);
+    mu_assert("readlink", n >= 0);
+    buf[n] = '\0';
+    mu_assert("link target", strcmp(buf, target) == 0);
+
+    unlink(target);
+    unlink(hard);
+    unlink(sym);
+    return 0;
+}
+
 static const char *test_string_helpers(void)
 {
     mu_assert("strcmp equal", strcmp("abc", "abc") == 0);
@@ -397,6 +456,14 @@ static const char *test_string_helpers(void)
     mu_assert("memchr", m == &mbuf[2]);
     mu_assert("memchr none", memchr(mbuf, 5, sizeof(mbuf)) == NULL);
 
+    return 0;
+}
+
+static const char *test_string_casecmp(void)
+{
+    mu_assert("strcasecmp eq", strcasecmp("HeLLo", "hello") == 0);
+    mu_assert("strcasecmp diff", strcasecmp("abc", "Abd") < 0);
+    mu_assert("strncasecmp n4", strncasecmp("TestX", "testY", 4) == 0);
     return 0;
 }
 
@@ -788,6 +855,18 @@ static const char *test_error_reporting(void)
     const char *exp = "test: No such file or directory\n";
     mu_assert("perror output", (size_t)n == strlen(exp) && memcmp(buf, exp, n) == 0);
 
+    pthread_t t1, t2;
+    int e1 = ENOENT;
+    int e2 = 9999;
+    pthread_create(&t1, NULL, strerror_r_worker, &e1);
+    pthread_create(&t2, NULL, strerror_r_worker, &e2);
+    void *r1 = (void *)1;
+    void *r2 = (void *)1;
+    pthread_join(t1, &r1);
+    pthread_join(t2, &r2);
+    mu_assert("strerror_r thread1", r1 == NULL);
+    mu_assert("strerror_r thread2", r2 == NULL);
+
     return 0;
 }
 
@@ -1072,11 +1151,14 @@ static const char *all_tests(void)
     mu_run_test(test_pipe2_cloexec);
     mu_run_test(test_socket);
     mu_run_test(test_udp_send_recv);
+    mu_run_test(test_inet_pton_ntop);
     mu_run_test(test_errno_open);
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_truncate_resize);
+    mu_run_test(test_link_readlink);
     mu_run_test(test_string_helpers);
+    mu_run_test(test_string_casecmp);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
@@ -1094,6 +1176,7 @@ static const char *all_tests(void)
     mu_run_test(test_strftime_basic);
     mu_run_test(test_time_conversions);
     mu_run_test(test_environment);
+    mu_run_test(test_error_reporting);
     mu_run_test(test_system_fn);
     mu_run_test(test_execvp_fn);
     mu_run_test(test_popen_fn);

@@ -149,6 +149,7 @@ locale.h     - locale helpers
 math.h       - basic math routines
 memory.h     - heap allocation
 netdb.h      - address resolution helpers
+arpa/inet.h  - IPv4 presentation conversion helpers
 poll.h       - I/O multiplexing helpers
 process.h    - process creation and control
 pthread.h    - minimal threading support
@@ -224,6 +225,7 @@ The **string** module provides fundamental operations needed by most C programs:
 
 - `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat` and `strncat` equivalents.
 - Search helpers `strstr`, `strrchr`, and `memchr` for locating substrings or bytes.
+- Case-insensitive comparisons `strcasecmp` and `strncasecmp`.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
 - The low-level memory helpers `vmemcpy`, `vmemmove`, `vmemset`, and `vmemcmp` operate on raw byte buffers. `vmemcpy` copies bytes from a source to a destination, `vmemmove` handles overlaps safely, `vmemset` fills a region with a byte value, and `vmemcmp` compares two buffers. The standard `memcpy`, `memmove`, `memset`, and `memcmp` functions simply call these implementations.
@@ -368,12 +370,14 @@ vlibc provides minimal helpers to report errors:
 
 ```c
 const char *strerror(int errnum);
+int strerror_r(int errnum, char *buf, size_t buflen);
 void perror(const char *s);
 ```
 
 
 `strerror()` returns a string describing `errnum` or "Unknown error" for
-codes it does not recognize. `perror()` writes a message to `stderr`
+codes it does not recognize. `strerror_r()` is a thread-safe variant that
+writes the message into `buf`. `perror()` writes a message to `stderr`
 combining the optional prefix with the text for the current `errno`.
 
 ## Errno Access
@@ -497,6 +501,13 @@ if (fd >= 0) {
     write(fd, "hello\n", 6);
     close(fd);
 }
+link("log.txt", "log.bak");
+symlink("log.txt", "log.lnk");
+char buf[32];
+ssize_t n = readlink("log.lnk", buf, sizeof(buf) - 1);
+if (n >= 0) {
+    buf[n] = '\0';
+}
 ```
 
 ## File Descriptor Helpers
@@ -534,6 +545,9 @@ The socket layer exposes thin wrappers around the kernel's networking
 syscalls including `socket`, `bind`, `listen`, `accept`, `connect`,
 `send`, `recv`, `sendto`, and `recvfrom`. Address resolution is handled
 via `getaddrinfo`, `freeaddrinfo`, and `getnameinfo`.
+
+Utilities `inet_pton` and `inet_ntop` convert between dotted IPv4 strings
+and binary network format.
 
 ```c
 struct addrinfo *ai;
