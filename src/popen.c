@@ -3,6 +3,7 @@
 #include "io.h"
 #include "memory.h"
 #include "string.h"
+#include "vlibc.h"
 
 struct popen_file {
     FILE file;
@@ -40,9 +41,10 @@ FILE *popen(const char *command, const char *mode)
             close(pipefd[1]);
             close(pipefd[0]);
         }
-        char *argv[] = {"/bin/sh", "-c", (char *)command, NULL};
+        const char *shell = vlibc_default_shell();
+        char *argv[] = {(char *)shell, "-c", (char *)command, NULL};
         extern char **environ;
-        execve("/bin/sh", argv, environ);
+        execve(shell, argv, environ);
         _exit(127);
     }
 

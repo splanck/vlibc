@@ -1,6 +1,7 @@
 #include "process.h"
 #include "stdlib.h"
 #include "string.h"
+#include "vlibc.h"
 
 /* Simple implementation of system(3) using fork/execve/waitpid */
 int system(const char *command)
@@ -12,9 +13,10 @@ int system(const char *command)
     if (pid < 0)
         return -1;
     if (pid == 0) {
-        char *argv[] = {"/bin/sh", "-c", (char *)command, NULL};
+        const char *shell = vlibc_default_shell();
+        char *argv[] = {(char *)shell, "-c", (char *)command, NULL};
         extern char **environ;
-        execve("/bin/sh", argv, environ);
+        execve(shell, argv, environ);
         _exit(127);
     }
 
