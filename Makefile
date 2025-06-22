@@ -2,7 +2,8 @@
 
 PREFIX ?= /usr/local
 CC ?= cc
-CFLAGS ?= -O2 -std=c11 -Wall -Wextra -fno-stack-protector -fno-builtin -Iinclude
+CFLAGS ?= -O2 -Wall -Wextra -fno-stack-protector -fno-builtin -Iinclude
+CFLAGS += -std=c11
 AR ?= ar
 ARCH ?= $(shell uname -m)
 
