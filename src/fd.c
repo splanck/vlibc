@@ -3,8 +3,16 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "syscall.h"
 #include "vlibc_features.h"
+
+#ifndef O_CLOEXEC
+#define O_CLOEXEC 0
+#endif
+#ifndef O_NONBLOCK
+#define O_NONBLOCK 0
+#endif
 
 off_t lseek(int fd, off_t offset, int whence)
 {
@@ -64,11 +72,23 @@ int dup3(int oldfd, int newfd, int flags)
     }
     return (int)ret;
 #else
-    if (flags != 0) {
+    if (flags & ~(O_CLOEXEC)) {
         errno = EINVAL;
         return -1;
     }
-    return dup2(oldfd, newfd);
+#ifdef F_DUPFD_CLOEXEC
+    if (flags & O_CLOEXEC)
+        return fcntl(oldfd, F_DUPFD_CLOEXEC, newfd);
+    else
+        return fcntl(oldfd, F_DUPFD, newfd);
+#else
+    int fd = dup2(oldfd, newfd);
+    if (fd < 0)
+        return -1;
+    if (flags & O_CLOEXEC)
+        fcntl(fd, F_SETFD, FD_CLOEXEC);
+    return fd;
+#endif
 #endif
 }
 
@@ -82,10 +102,31 @@ int pipe2(int pipefd[2], int flags)
     }
     return 0;
 #else
-    if (flags != 0) {
+    if (pipe(pipefd) < 0)
+        return -1;
+    int remain = flags;
+#ifdef O_CLOEXEC
+    if (flags & O_CLOEXEC) {
+        fcntl(pipefd[0], F_SETFD, FD_CLOEXEC);
+        fcntl(pipefd[1], F_SETFD, FD_CLOEXEC);
+        remain &= ~O_CLOEXEC;
+    }
+#endif
+#ifdef O_NONBLOCK
+    if (flags & O_NONBLOCK) {
+        int fl0 = fcntl(pipefd[0], F_GETFL);
+        int fl1 = fcntl(pipefd[1], F_GETFL);
+        fcntl(pipefd[0], F_SETFL, fl0 | O_NONBLOCK);
+        fcntl(pipefd[1], F_SETFL, fl1 | O_NONBLOCK);
+        remain &= ~O_NONBLOCK;
+    }
+#endif
+    if (remain != 0) {
+        close(pipefd[0]);
+        close(pipefd[1]);
         errno = EINVAL;
         return -1;
     }
-    return pipe(pipefd);
+    return 0;
 #endif
 }

@@ -12,6 +12,9 @@
 #include "../include/dlfcn.h"
 
 #include <fcntl.h>
+#ifndef O_CLOEXEC
+#define O_CLOEXEC 0
+#endif
 #include "../include/string.h"
 #include "../include/stdlib.h"
 #include "../include/wchar.h"
@@ -205,6 +208,28 @@ static const char *test_socket(void)
     mu_assert("socket creation failed", fd >= 0);
     if (fd >= 0)
         close(fd);
+    return 0;
+}
+
+static const char *test_dup3_cloexec(void)
+{
+    const char *fname = "tmp_dup3_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+    int fd2 = dup3(fd, fd + 1, O_CLOEXEC);
+    mu_assert("dup3", fd2 >= 0);
+    close(fd);
+    close(fd2);
+    unlink(fname);
+    return 0;
+}
+
+static const char *test_pipe2_cloexec(void)
+{
+    int p[2];
+    mu_assert("pipe2", pipe2(p, O_CLOEXEC) == 0);
+    close(p[0]);
+    close(p[1]);
     return 0;
 }
 
@@ -966,6 +991,8 @@ static const char *all_tests(void)
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
+    mu_run_test(test_dup3_cloexec);
+    mu_run_test(test_pipe2_cloexec);
     mu_run_test(test_socket);
     mu_run_test(test_udp_send_recv);
     mu_run_test(test_errno_open);
