@@ -29,14 +29,15 @@ This document outlines the architecture, planned modules, and API design for **v
 23. [File Permissions](#file-permissions)
 24. [File Status](#file-status)
 25. [Directory Iteration](#directory-iteration)
-26. [Time Formatting](#time-formatting)
-27. [Locale Support](#locale-support)
-28. [Time Retrieval](#time-retrieval)
-29. [Sleep Functions](#sleep-functions)
-30. [Raw System Calls](#raw-system-calls)
-31. [Non-local Jumps](#non-local-jumps)
-32. [Limitations](#limitations)
-33. [Conclusion](#conclusion)
+26. [Path Canonicalization](#path-canonicalization)
+27. [Time Formatting](#time-formatting)
+28. [Locale Support](#locale-support)
+29. [Time Retrieval](#time-retrieval)
+30. [Sleep Functions](#sleep-functions)
+31. [Raw System Calls](#raw-system-calls)
+32. [Non-local Jumps](#non-local-jumps)
+33. [Limitations](#limitations)
+34. [Conclusion](#conclusion)
 
 ## Overview
 
@@ -611,6 +612,18 @@ if (d) {
     }
     closedir(d);
 }
+```
+
+## Path Canonicalization
+
+`realpath` converts a pathname into an absolute canonical form. It
+resolves `.` and `..` segments without consulting `/proc` so it works on
+any POSIX system. Relative paths are expanded using the current working
+directory.
+
+```c
+char buf[256];
+realpath("tests/../", buf); // buf now holds the absolute path to the repository
 ```
 
 ## Time Formatting
