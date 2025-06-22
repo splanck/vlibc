@@ -30,6 +30,16 @@ Install the headers and library system-wide with:
 make install PREFIX=/usr/local
 ```
 
+For packaging or staged installs, specify `DESTDIR`:
+
+```sh
+make install PREFIX=/usr/local DESTDIR=/tmp/vlibc-pkg
+```
+
+Headers are placed under `$PREFIX/include` and the static library under
+`$PREFIX/lib` inside `DESTDIR` (or directly under the prefix if no
+`DESTDIR` is provided).
+
 ## Quick Start
 
 After building the library you can compile programs against `libvlibc.a`.
