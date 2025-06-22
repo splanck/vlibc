@@ -37,7 +37,7 @@ int listen(int sockfd, int backlog)
 
 int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
-#ifdef SYS_accept4
+#if VLIBC_HAVE_ACCEPT4
     long ret = vlibc_syscall(SYS_accept4, sockfd, (long)addr, (long)addrlen, 0, 0, 0);
 #else
     long ret = vlibc_syscall(SYS_accept, sockfd, (long)addr, (long)addrlen, 0, 0, 0);
@@ -51,7 +51,7 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags)
 {
-#ifdef VLIBC_HAVE_ACCEPT4
+#if VLIBC_HAVE_ACCEPT4
     long ret = vlibc_syscall(SYS_accept4, sockfd, (long)addr, (long)addrlen, flags, 0, 0);
     if (ret < 0) {
         errno = -ret;

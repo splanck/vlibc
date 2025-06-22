@@ -28,7 +28,7 @@ int dup(int oldfd)
 
 int dup2(int oldfd, int newfd)
 {
-#ifdef SYS_dup3
+#if VLIBC_HAVE_DUP3
     long ret = vlibc_syscall(SYS_dup3, oldfd, newfd, 0, 0, 0, 0);
 #else
     long ret = vlibc_syscall(SYS_dup2, oldfd, newfd, 0, 0, 0, 0);
@@ -42,7 +42,7 @@ int dup2(int oldfd, int newfd)
 
 int pipe(int pipefd[2])
 {
-#ifdef SYS_pipe2
+#if VLIBC_HAVE_PIPE2
     long ret = vlibc_syscall(SYS_pipe2, (long)pipefd, 0, 0, 0, 0, 0);
 #else
     long ret = vlibc_syscall(SYS_pipe, (long)pipefd, 0, 0, 0, 0, 0);
@@ -56,7 +56,7 @@ int pipe(int pipefd[2])
 
 int dup3(int oldfd, int newfd, int flags)
 {
-#ifdef VLIBC_HAVE_DUP3
+#if VLIBC_HAVE_DUP3
     long ret = vlibc_syscall(SYS_dup3, oldfd, newfd, flags, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
@@ -74,7 +74,7 @@ int dup3(int oldfd, int newfd, int flags)
 
 int pipe2(int pipefd[2], int flags)
 {
-#ifdef VLIBC_HAVE_PIPE2
+#if VLIBC_HAVE_PIPE2
     long ret = vlibc_syscall(SYS_pipe2, (long)pipefd, flags, 0, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;

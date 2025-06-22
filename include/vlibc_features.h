@@ -1,18 +1,24 @@
 #ifndef VLIBC_FEATURES_H
 #define VLIBC_FEATURES_H
 
-#include <sys/syscall.h>
+/*
+ * Feature detection macros for optional syscalls.
+ * The build system defines VLIBC_HAVE_ACCEPT4, VLIBC_HAVE_PIPE2 and
+ * VLIBC_HAVE_DUP3 when the respective system calls are available.
+ * If a macro is not provided, it defaults to 0 so the code can fall
+ * back to portable implementations.
+ */
 
-#ifdef SYS_accept4
-#define VLIBC_HAVE_ACCEPT4 1
+#ifndef VLIBC_HAVE_ACCEPT4
+#define VLIBC_HAVE_ACCEPT4 0
 #endif
 
-#ifdef SYS_pipe2
-#define VLIBC_HAVE_PIPE2 1
+#ifndef VLIBC_HAVE_PIPE2
+#define VLIBC_HAVE_PIPE2 0
 #endif
 
-#ifdef SYS_dup3
-#define VLIBC_HAVE_DUP3 1
+#ifndef VLIBC_HAVE_DUP3
+#define VLIBC_HAVE_DUP3 0
 #endif
 
 #endif /* VLIBC_FEATURES_H */

@@ -12,6 +12,20 @@ ifeq ($(HAVE_SBRK),1)
 CFLAGS += -DHAVE_SBRK
 endif
 
+# Detect optional syscalls used by vlibc
+HAVE_ACCEPT4 := $(shell printf '#include <sys/syscall.h>\nint main(){return SYS_accept4;}' | $(CC) -x c - -Werror -c -o /dev/null 2>/dev/null && echo 1 || echo 0)
+ifeq ($(HAVE_ACCEPT4),1)
+CFLAGS += -DVLIBC_HAVE_ACCEPT4=1
+endif
+HAVE_PIPE2 := $(shell printf '#include <sys/syscall.h>\nint main(){return SYS_pipe2;}' | $(CC) -x c - -Werror -c -o /dev/null 2>/dev/null && echo 1 || echo 0)
+ifeq ($(HAVE_PIPE2),1)
+CFLAGS += -DVLIBC_HAVE_PIPE2=1
+endif
+HAVE_DUP3 := $(shell printf '#include <sys/syscall.h>\nint main(){return SYS_dup3;}' | $(CC) -x c - -Werror -c -o /dev/null 2>/dev/null && echo 1 || echo 0)
+ifeq ($(HAVE_DUP3),1)
+CFLAGS += -DVLIBC_HAVE_DUP3=1
+endif
+
 TARGET_OS ?= $(OS)
 ifeq ($(TARGET_OS),)
 TARGET_OS := $(shell uname -s)
