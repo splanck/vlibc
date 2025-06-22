@@ -79,6 +79,7 @@ SRC := \
     src/file_perm.c \
     src/truncate.c \
     src/dir.c \
+    src/getcwd.c \
     $(SYS_SRC) \
     src/mmap.c \
     src/env.c \

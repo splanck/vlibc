@@ -510,6 +510,16 @@ if (n >= 0) {
 }
 ```
 
+Retrieve the current directory with `getcwd` and switch directories
+with `chdir`:
+
+```c
+char path[128];
+if (getcwd(path, sizeof(path)))
+    printf("cwd: %s\n", path);
+chdir("/");
+```
+
 ## File Descriptor Helpers
 
 Low-level descriptor routines perform simple tasks such as repositioning a file
