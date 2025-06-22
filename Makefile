@@ -22,7 +22,9 @@ CFLAGS += -D__BSD_VISIBLE
 endif
 
 SYS_SRC := src/syscall.c
-ifeq ($(TARGET_OS),Windows_NT)
+ifneq (,$(filter $(TARGET_OS),FreeBSD NetBSD OpenBSD DragonFly))
+SYS_SRC := src/arch/bsd/syscall.c
+else ifeq ($(TARGET_OS),Windows_NT)
 SYS_SRC := src/arch/win32/syscall.c
 endif
 
