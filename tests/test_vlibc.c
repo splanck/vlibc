@@ -497,6 +497,20 @@ static const char *test_pthread(void)
     return 0;
 }
 
+static const char *test_pthread_detach(void)
+{
+    pthread_t t;
+    int val = 0;
+    int r = pthread_create(&t, NULL, thread_fn, &val);
+    mu_assert("pthread_create", r == 0);
+    pthread_detach(&t);
+    waitpid(t.tid, NULL, 0);
+    mu_assert("shared value", val == 42);
+    mu_assert("join fails", pthread_join(&t, NULL) == -1);
+
+    return 0;
+}
+
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
@@ -1000,6 +1014,7 @@ static const char *all_tests(void)
     mu_run_test(test_fgets_fputs);
     mu_run_test(test_fflush);
     mu_run_test(test_pthread);
+    mu_run_test(test_pthread_detach);
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
