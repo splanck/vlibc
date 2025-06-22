@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include "../include/time.h"
 #include "../include/sys/mman.h"
 
@@ -718,6 +719,18 @@ static const char *test_rand_fn(void)
     return 0;
 }
 
+static const char *test_abort_fn(void)
+{
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0)
+        abort();
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("abort", WIFSIGNALED(status) && WTERMSIG(status) == SIGABRT);
+    return 0;
+}
+
 static const char *test_mprotect_anon(void)
 {
     size_t len = 4096;
@@ -890,6 +903,7 @@ static const char *all_tests(void)
     mu_run_test(test_execvp_fn);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
+    mu_run_test(test_abort_fn);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_dirent);
