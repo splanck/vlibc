@@ -487,15 +487,22 @@ int main(int argc, char **argv, char **envp) {
 ## Basic File I/O
 
 Thin wrappers around the kernel's file APIs live in `io.h`. Functions
-like `open`, `read`, `write`, `close`, `unlink`, `rename`, `symlink`,
-`mkdir`, `rmdir`, and `chdir` simply pass their arguments to the
-corresponding syscalls.
+like `open`, `read`, `write`, `close`, `unlink`, `rename`, `link`,
+`symlink`, `readlink`, `mkdir`, `rmdir`, and `chdir` simply pass their
+arguments to the corresponding syscalls.
 
 ```c
 int fd = open("log.txt", O_WRONLY | O_CREAT, 0644);
 if (fd >= 0) {
     write(fd, "hello\n", 6);
     close(fd);
+}
+link("log.txt", "log.bak");
+symlink("log.txt", "log.lnk");
+char buf[32];
+ssize_t n = readlink("log.lnk", buf, sizeof(buf) - 1);
+if (n >= 0) {
+    buf[n] = '\0';
 }
 ```
 
