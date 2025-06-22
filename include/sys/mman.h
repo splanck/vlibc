@@ -4,13 +4,17 @@
 #include <sys/types.h>
 #include <stddef.h>
 
+#if defined(__has_include)
+#  if __has_include("/usr/include/x86_64-linux-gnu/sys/mman.h")
+#    include "/usr/include/x86_64-linux-gnu/sys/mman.h"
+#  elif __has_include("/usr/include/sys/mman.h")
+#    include "/usr/include/sys/mman.h"
+#  endif
+#endif
+
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
 int munmap(void *addr, size_t length);
 int mprotect(void *addr, size_t length, int prot);
-
-#endif /* MMAN_H */
-
-#include_next <sys/mman.h>
 
 /*
  * Some BSD systems expose MAP_ANON instead of MAP_ANONYMOUS.  Provide
@@ -23,3 +27,29 @@ int mprotect(void *addr, size_t length, int prot);
 #if defined(MAP_ANONYMOUS) && !defined(MAP_ANON)
 #define MAP_ANON MAP_ANONYMOUS
 #endif
+
+/* Provide basic memory protection and mapping flags when missing. */
+#ifndef PROT_READ
+#define PROT_READ 0x1
+#endif
+#ifndef PROT_WRITE
+#define PROT_WRITE 0x2
+#endif
+#ifndef PROT_EXEC
+#define PROT_EXEC 0x4
+#endif
+#ifndef MAP_PRIVATE
+#define MAP_PRIVATE 0x02
+#endif
+#ifndef MAP_FAILED
+#define MAP_FAILED ((void *)-1)
+#endif
+
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS 0x20
+#endif
+#ifndef MAP_ANON
+#define MAP_ANON MAP_ANONYMOUS
+#endif
+
+#endif /* MMAN_H */
