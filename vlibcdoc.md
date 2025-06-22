@@ -138,31 +138,31 @@ vlibc installs a small set of public headers for application use:
 ```
 ctype.h      - character classification helpers
 dirent.h     - directory iteration
+dlfcn.h      - runtime loading of shared libraries
 env.h        - environment variable access
 errno.h      - standard error codes
+getopt.h     - option parsing
 io.h         - unbuffered I/O primitives
 locale.h     - locale helpers
-memory.h     - heap allocation
 math.h       - basic math routines
+memory.h     - heap allocation
+netdb.h      - address resolution helpers
+poll.h       - I/O multiplexing helpers
 process.h    - process creation and control
 pthread.h    - minimal threading support
-poll.h       - I/O multiplexing helpers
-sys/select.h - fd_set macros and select wrapper
-dlfcn.h      - runtime loading of shared libraries
+setjmp.h     - non-local jump helpers
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
-wchar.h     - wide character helpers
-getopt.h     - option parsing
-sys/mman.h   - memory mapping helpers
-sys/socket.h - networking wrappers
 sys/file.h   - file permission helpers
-netdb.h      - address resolution helpers
+sys/mman.h   - memory mapping helpers
+sys/select.h - fd_set macros and select wrapper
+sys/socket.h - networking wrappers
 sys/stat.h   - file status functions
 syscall.h    - raw syscall interface
 time.h       - time related helpers
-setjmp.h     - non-local jump helpers
 vlibc.h      - library initialization
+wchar.h      - wide character helpers
 ```
 
 
