@@ -3,6 +3,13 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include "syscall.h"
+#if !defined(SYS_time) && !defined(SYS_clock_gettime)
+#include_next <time.h>
+#include <sys/time.h>
+extern time_t host_time(time_t *t) __asm__("time");
+extern int host_gettimeofday(struct timeval *tv, void *tz)
+    __asm__("gettimeofday");
+#endif
 
 #ifdef SYS_clock_gettime
 #ifndef CLOCK_REALTIME
@@ -33,8 +40,7 @@ time_t time(time_t *t)
         *t = ts.tv_sec;
     return ts.tv_sec;
 #else
-    (void)t;
-    return (time_t)-1;
+    return host_time(t);
 #endif
 }
 
@@ -66,7 +72,6 @@ int gettimeofday(struct timeval *tv, void *tz)
     }
     return 0;
 #else
-    (void)tv;
-    return -1;
+    return host_gettimeofday(tv, tz);
 #endif
 }
