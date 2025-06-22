@@ -2,6 +2,7 @@
 #define PTHREAD_H
 
 #include <sys/types.h>
+#include <stdatomic.h>
 
 /*
  * vlibc threads are thin wrappers around the host pthread
@@ -11,7 +12,7 @@
 typedef unsigned long pthread_t;
 
 typedef struct {
-    volatile int locked;
+    atomic_flag locked;
 } pthread_mutex_t;
 
 int pthread_create(pthread_t *thread, const void *attr,
