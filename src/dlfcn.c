@@ -20,6 +20,39 @@ struct dl_handle {
 
 static char dl_err[128];
 
+static void apply_relocs(struct dl_handle *h, Elf64_Rela *rela, size_t relasz)
+{
+#ifdef __x86_64__
+    size_t n = relasz / sizeof(Elf64_Rela);
+    for (size_t i = 0; i < n; i++) {
+        Elf64_Addr *where = (Elf64_Addr *)((char *)h->base + rela[i].r_offset);
+        Elf64_Xword type = ELF64_R_TYPE(rela[i].r_info);
+        Elf64_Xword sym_index = ELF64_R_SYM(rela[i].r_info);
+        switch (type) {
+        case R_X86_64_RELATIVE:
+            *where = (Elf64_Addr)((char *)h->base + rela[i].r_addend);
+            break;
+        case R_X86_64_64:
+        case R_X86_64_GLOB_DAT:
+        case R_X86_64_JUMP_SLOT:
+            if (h->symtab && sym_index < h->nsyms) {
+                Elf64_Sym *sym = &h->symtab[sym_index];
+                *where = (Elf64_Addr)((char *)h->base + sym->st_value +
+                                      rela[i].r_addend);
+            }
+            break;
+        default:
+            break;
+        }
+    }
+#else
+    (void)h;
+    (void)rela;
+    (void)relasz;
+    set_error("unsupported architecture");
+#endif
+}
+
 static ssize_t pread_fd(int fd, void *buf, size_t count, off_t offset)
 {
     if (lseek(fd, offset, SEEK_SET) < 0)
@@ -70,6 +103,17 @@ void *dlopen(const char *filename, int flag)
         close(fd);
         return NULL;
     }
+#ifdef __x86_64__
+    if (eh.e_machine != EM_X86_64) {
+        set_error("wrong architecture");
+        close(fd);
+        return NULL;
+    }
+#else
+    set_error("unsupported architecture");
+    close(fd);
+    return NULL;
+#endif
 
     if (lseek(fd, eh.e_phoff, SEEK_SET) < 0) {
         set_error("seek phdr");
@@ -170,15 +214,8 @@ void *dlopen(const char *filename, int flag)
         }
         if (h->nsyms == 0 && h->symtab && h->strtab && syment)
             h->nsyms = ((char *)h->strtab - (char *)h->symtab) / syment;
-        if (rela && relasz) {
-            size_t n = relasz / sizeof(Elf64_Rela);
-            for (size_t i = 0; i < n; i++) {
-                if (ELF64_R_TYPE(rela[i].r_info) == R_X86_64_RELATIVE) {
-                    *(Elf64_Addr *)((char *)base + rela[i].r_offset) =
-                        (Elf64_Addr)((char *)base + rela[i].r_addend);
-                }
-            }
-        }
+        if (rela && relasz)
+            apply_relocs(h, rela, relasz);
     }
 
     close(fd);
