@@ -348,6 +348,37 @@ static const char *test_stat_wrappers(void)
     return 0;
 }
 
+static const char *test_link_readlink(void)
+{
+    const char *target = "tmp_ln_target";
+    const char *hard = "tmp_ln_hard";
+    const char *sym = "tmp_ln_sym";
+
+    int fd = open(target, O_CREAT | O_RDWR, 0644);
+    mu_assert("open target", fd >= 0);
+    write(fd, "x", 1);
+    close(fd);
+
+    mu_assert("link", link(target, hard) == 0);
+    fd = open(hard, O_RDONLY);
+    mu_assert("open hard", fd >= 0);
+    char c;
+    mu_assert("read hard", read(fd, &c, 1) == 1 && c == 'x');
+    close(fd);
+
+    mu_assert("symlink", symlink(target, sym) == 0);
+    char buf[64] = {0};
+    ssize_t n = readlink(sym, buf, sizeof(buf) - 1);
+    mu_assert("readlink", n >= 0);
+    buf[n] = '\0';
+    mu_assert("link target", strcmp(buf, target) == 0);
+
+    unlink(target);
+    unlink(hard);
+    unlink(sym);
+    return 0;
+}
+
 static const char *test_string_helpers(void)
 {
     mu_assert("strcmp equal", strcmp("abc", "abc") == 0);
@@ -1085,6 +1116,7 @@ static const char *all_tests(void)
     mu_run_test(test_errno_open);
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
+    mu_run_test(test_link_readlink);
     mu_run_test(test_string_helpers);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_strtok_basic);

@@ -30,6 +30,17 @@ int rename(const char *oldpath, const char *newpath)
     return (int)ret;
 }
 
+int link(const char *oldpath, const char *newpath)
+{
+    long ret = vlibc_syscall(SYS_linkat, AT_FDCWD, (long)oldpath, AT_FDCWD,
+                             (long)newpath, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+}
+
 int symlink(const char *target, const char *linkpath)
 {
     long ret = vlibc_syscall(SYS_symlinkat, (long)target, AT_FDCWD,
@@ -39,6 +50,17 @@ int symlink(const char *target, const char *linkpath)
         return -1;
     }
     return (int)ret;
+}
+
+ssize_t readlink(const char *pathname, char *buf, size_t bufsiz)
+{
+    long ret = vlibc_syscall(SYS_readlinkat, AT_FDCWD, (long)pathname,
+                             (long)buf, bufsiz, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
 }
 
 int chdir(const char *path)
