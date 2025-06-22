@@ -348,6 +348,37 @@ static const char *test_stat_wrappers(void)
     return 0;
 }
 
+static const char *test_truncate_resize(void)
+{
+    const char *fname = "tmp_trunc_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+
+    const char *msg = "abcdef";
+    ssize_t w = write(fd, msg, strlen(msg));
+    mu_assert("write", w == (ssize_t)strlen(msg));
+    close(fd);
+
+    int r = truncate(fname, 3);
+    mu_assert("truncate", r == 0);
+
+    struct stat st;
+    r = stat(fname, &st);
+    mu_assert("size shrink", r == 0 && st.st_size == 3);
+
+    fd = open(fname, O_RDWR);
+    mu_assert("open2", fd >= 0);
+    r = ftruncate(fd, 10);
+    mu_assert("ftruncate", r == 0);
+    close(fd);
+
+    r = stat(fname, &st);
+    mu_assert("size expand", r == 0 && st.st_size == 10);
+
+    unlink(fname);
+    return 0;
+}
+
 static const char *test_link_readlink(void)
 {
     const char *target = "tmp_ln_target";
@@ -1124,6 +1155,7 @@ static const char *all_tests(void)
     mu_run_test(test_errno_open);
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
+    mu_run_test(test_truncate_resize);
     mu_run_test(test_link_readlink);
     mu_run_test(test_string_helpers);
     mu_run_test(test_string_casecmp);
