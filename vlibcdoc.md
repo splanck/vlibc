@@ -162,6 +162,13 @@ result is identical to `gmtime`.
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
+## Option Parsing
+
+Command-line arguments can be processed with `getopt` or `getopt_long`. The
+former handles short options while the latter accepts an array of `struct
+option` describing long names. `getopt_long` returns the option's value field
+or sets a flag when supplied in the table.
+
 ## Random Numbers
 
 vlibc provides a minimal pseudo-random number generator implemented as a
