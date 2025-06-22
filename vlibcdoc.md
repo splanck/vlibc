@@ -288,8 +288,56 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex);
 Threads share the process address space and use a simple spinlock-based
 mutex for synchronization.
 
-`pthread_detach()` marks a thread so that its stack is freed automatically
-when the start routine returns. Detached threads cannot be joined.
+`pthread_create()` spawns a new thread running the `start` routine with the
+given argument.  The thread ID is written to `thread` and can later be passed
+to `pthread_join()` or `pthread_detach()`.
+
+`pthread_join()` waits for a joinable thread to finish and retrieves the value
+returned by the start routine. It should only be called once per thread.
+
+`pthread_detach()` marks a thread so that its resources are reclaimed
+automatically when it terminates. Detached threads cannot be joined.
+
+Mutex routines provide minimal mutual exclusion. `pthread_mutex_init()`
+initializes a mutex, `pthread_mutex_lock()` acquires it, and
+`pthread_mutex_unlock()` releases it.  Destroying a locked mutex with
+`pthread_mutex_destroy()` is undefined.
+
+### Example
+
+```c
+#include "pthread.h"
+#include <stdio.h>
+
+static pthread_mutex_t lock;
+
+static void *worker(void *arg) {
+    int *val = arg;
+    for (int i = 0; i < 1000; ++i) {
+        pthread_mutex_lock(&lock);
+        (*val)++;
+        pthread_mutex_unlock(&lock);
+    }
+    return NULL;
+}
+
+int main(void) {
+    pthread_t t1, t2;
+    int counter = 0;
+
+    pthread_mutex_init(&lock, NULL);
+    pthread_create(&t1, NULL, worker, &counter);
+    pthread_create(&t2, NULL, worker, &counter);
+
+    pthread_join(&t1, NULL);
+    pthread_join(&t2, NULL);
+
+    printf("final: %d\n", counter);
+    pthread_mutex_destroy(&lock);
+    return 0;
+}
+```
+
 ## Dynamic Loading
 
 The `dlfcn` module implements a minimal ELF loader. Only the
