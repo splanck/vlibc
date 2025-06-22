@@ -16,6 +16,7 @@ SRC := \
     src/memory_ops.c \
     src/atexit.c \
     src/process.c \
+    src/abort.c \
     src/system.c \
     src/string.c \
     src/string_extra.c \
