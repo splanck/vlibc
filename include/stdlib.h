@@ -32,4 +32,7 @@ void srand(unsigned seed);
 /* Register a function to run at normal process exit */
 int atexit(void (*fn)(void));
 
+/* Terminate the process with SIGABRT */
+void abort(void);
+
 #endif /* STDLIB_H */

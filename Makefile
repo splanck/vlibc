@@ -16,6 +16,7 @@ SRC := \
     src/memory_ops.c \
     src/atexit.c \
     src/process.c \
+    src/abort.c \
     src/system.c \
     src/string.c \
     src/string_extra.c \
@@ -42,6 +43,7 @@ SRC := \
     src/select.c \
     src/qsort.c \
     src/getopt.c \
+    src/dlfcn.c \
     src/getopt_long.c \
     src/locale.c \
     src/wchar.c \
@@ -51,13 +53,17 @@ OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
 TEST_SRC := $(wildcard tests/*.c)
 TEST_BIN := tests/run_tests
+PLUGIN_SO := tests/plugin.so
 
 all: $(LIB)
 
 $(LIB): $(OBJ)
 	$(AR) rcs $@ $^
 
-$(TEST_BIN): $(TEST_SRC) $(LIB)
+$(PLUGIN_SO): tests/plugin.c
+	$(CC) -shared -fPIC tests/plugin.c -o $(PLUGIN_SO)
+
+$(TEST_BIN): $(TEST_SRC) $(LIB) $(PLUGIN_SO)
 	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -o $@
 
 test: $(TEST_BIN)
@@ -75,6 +81,6 @@ install: $(LIB)
 	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys
 
 clean:
-	rm -f $(OBJ) $(LIB) $(TEST_BIN)
+	rm -f $(OBJ) $(LIB) $(TEST_BIN) $(PLUGIN_SO)
 
 .PHONY: all install clean test

@@ -65,6 +65,7 @@ math.h       - basic math routines
 process.h    - process creation and control
 pthread.h    - minimal threading support
 poll.h       - I/O multiplexing helpers
+dlfcn.h      - runtime loading of shared libraries
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
@@ -187,9 +188,19 @@ while ((c = getopt(argc, argv, "fa:")) != -1) {
 }
 ```
 
-`getopt_long()` provides basic GNU-style long option handling. It accepts an
-array of `struct option` entries describing the long names and whether they
-take arguments.
+`getopt_long()` behaves similarly but accepts an array of `struct option` to
+describe GNU-style long options:
+
+```c
+static const struct option longopts[] = {
+    {"flag",  no_argument,       NULL, 'f'},
+    {"alpha", required_argument, NULL, 'a'},
+    {0, 0, 0, 0}
+};
+while ((c = getopt_long(argc, argv, "fa:", longopts, NULL)) != -1) {
+    ...
+}
+```
 
 ## Standard Streams
 
@@ -228,6 +239,19 @@ if (getaddrinfo("localhost", "80", NULL, &ai) == 0) {
 }
 ```
 
+## Dynamic Loading
+
+vlibc ships with a tiny ELF loader that understands position-independent
+shared objects on Linux. Applications can call `dlopen`, `dlsym`, and
+`dlclose` from `dlfcn.h` to load modules at runtime.
+
+```c
+void *h = dlopen("plugin.so", RTLD_NOW);
+int (*fn)(void) = dlsym(h, "plugin_value");
+fn();
+dlclose(h);
+```
+
 ## Error Reporting
 
 Two helpers make it easier to display error messages:
@@ -252,10 +276,12 @@ chown("data.txt", 1000, 1000);
 
 ## Process Control
 
-The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `execvp`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
+The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `execvp`, `waitpid`, `kill`, `getpid`, `getppid`, `signal`, and `abort`. A simple `system()` convenience function is also included.
 
-`execvp` searches the directories listed in the `PATH` environment variable and then invokes `execve` on the first matching program.
+`execvp` searches the directories listed in the `PATH` environment variable and
+then invokes `execve` on the first matching program.
 
+A call to `abort()` sends `SIGABRT` to the process and terminates it immediately.
 A lightweight `popen`/`pclose` pair runs a shell command with a pipe
 connected to the child. Use mode `"r"` to read the command's output or
 `"w"` to send data to its stdin:

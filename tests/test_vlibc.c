@@ -9,6 +9,7 @@
 #include "../include/poll.h"
 #include "../include/dirent.h"
 #include "../include/vlibc.h"
+#include "../include/dlfcn.h"
 
 #include <fcntl.h>
 #include "../include/string.h"
@@ -21,6 +22,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include "../include/time.h"
 #include "../include/sys/mman.h"
 
@@ -744,6 +746,18 @@ static const char *test_rand_fn(void)
     return 0;
 }
 
+static const char *test_abort_fn(void)
+{
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0)
+        abort();
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("abort", WIFSIGNALED(status) && WTERMSIG(status) == SIGABRT);
+    return 0;
+}
+
 static const char *test_mprotect_anon(void)
 {
     size_t len = 4096;
@@ -884,6 +898,50 @@ static const char *test_getopt_missing(void)
     return 0;
 }
 
+static const char *test_dlopen_basic(void)
+{
+    void *h = dlopen("tests/plugin.so", RTLD_NOW);
+    mu_assert("dlopen", h != NULL);
+    int (*val)(void) = dlsym(h, "plugin_value");
+    mu_assert("dlsym", val != NULL);
+    mu_assert("call", val() == 123);
+    mu_assert("dlclose", dlclose(h) == 0);
+    return 0;
+}
+
+static const char *test_getopt_long_basic(void)
+{
+    char *argv[] = {"prog", "--flag", "--alpha", "val", "rest", NULL};
+    int argc = 5;
+    struct option opts[] = {
+        {"flag",  no_argument,       NULL, 'f'},
+        {"alpha", required_argument, NULL, 'a'},
+        {0, 0, 0, 0}
+    };
+    int flag = 0;
+    char *arg = NULL;
+    optind = 1;
+    opterr = 0;
+    int c;
+    while ((c = getopt_long(argc, argv, "fa:", opts, NULL)) != -1) {
+        switch (c) {
+        case 'f':
+            flag = 1;
+            break;
+        case 'a':
+            arg = optarg;
+            break;
+        default:
+            return "unexpected opt long";
+        }
+    }
+    mu_assert("flag long", flag == 1);
+    mu_assert("arg long", arg && strcmp(arg, "val") == 0);
+    mu_assert("rest long", strcmp(argv[optind], "rest") == 0);
+  
+    return 0;
+}
+
 static const char *test_getopt_long_missing(void)
 {
     char *argv[] = {"prog", "--bar", NULL};
@@ -930,6 +988,7 @@ static const char *test_getopt_long_basic(void)
     mu_assert("bar", bar && strcmp(bar, "val") == 0);
     mu_assert("optind", optind == 3);
     mu_assert("rest", strcmp(argv[optind], "rest") == 0);
+
     return 0;
 }
 
@@ -966,6 +1025,7 @@ static const char *all_tests(void)
     mu_run_test(test_execvp_fn);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
+    mu_run_test(test_abort_fn);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_dirent);
@@ -973,6 +1033,7 @@ static const char *all_tests(void)
     mu_run_test(test_qsort_strings);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
+    mu_run_test(test_dlopen_basic);
     mu_run_test(test_getopt_long_missing);
     mu_run_test(test_getopt_long_basic);
 

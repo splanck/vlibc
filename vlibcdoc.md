@@ -10,6 +10,8 @@ This document outlines the architecture, planned modules, and API design for **v
 4. [String Handling](#string-handling)
 5. [Process Control](#process-control)
 6. [Error Reporting](#error-reporting)
+7. [Threading](#threading)
+8. [Dynamic Loading](#dynamic-loading)
 
 ## Architecture
 
@@ -162,6 +164,13 @@ result is identical to `gmtime`.
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
+## Option Parsing
+
+Command-line arguments can be processed with `getopt` or `getopt_long`. The
+former handles short options while the latter accepts an array of `struct
+option` describing long names. `getopt_long` returns the option's value field
+or sets a flag when supplied in the table.
+
 ## Random Numbers
 
 vlibc provides a minimal pseudo-random number generator implemented as a
@@ -201,6 +210,7 @@ pid_t getppid(void);
 sighandler_t signal(int signum, sighandler_t handler);
 int system(const char *command);
 int atexit(void (*fn)(void));
+void abort(void);
 void exit(int status);
 ```
 
@@ -226,6 +236,8 @@ kill(getpid(), SIGINT);
 The convenience `system()` call executes a shell command by forking and
 invoking `/bin/sh -c command`. It returns the raw status from `waitpid`
 and is intended only for simple helper tasks.
+`abort()` sends `SIGABRT` to the current process and does not invoke
+`atexit` handlers.
 `exit()` terminates the process after running any handlers registered with `atexit()`. The handlers execute in reverse registration order. `_exit()` bypasses them.
 The design favors straightforward semantics over comprehensive POSIX
 conformance.
@@ -304,6 +316,13 @@ mutex for synchronization.
 
 `pthread_detach()` marks a thread so that its stack is freed automatically
 when the start routine returns. Detached threads cannot be joined.
+=======
+## Dynamic Loading
+
+The `dlfcn` module implements a minimal ELF loader. Only the
+`R_X86_64_RELATIVE` relocation type is supported, which is enough for
+simple position independent libraries. Use `dlopen`, `dlsym`, and
+`dlclose` to load code at runtime.
 
 ## Conclusion
 
