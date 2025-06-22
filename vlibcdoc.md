@@ -547,6 +547,10 @@ FD_SET(fd, &set);
 select(fd + 1, &set, NULL, NULL, NULL);
 ```
 
+On BSD systems these wrappers simply call the host C library's
+implementations which may exhibit slightly different semantics than the
+Linux syscall-based versions.
+
 ## File Permissions
 
 Simple helpers adjust permissions and ownership:
