@@ -148,14 +148,6 @@ Calling `srand()` initializes the internal state. Reusing the same seed
 produces the identical sequence of numbers, each in the range `0` to
 `32767`.
 
-## Option Parsing
-
-Command line processing mirrors the familiar `getopt` interface. The
-extended `getopt_long()` handles GNU-style long options described by an
-array of `struct option` entries. Both functions update `optind`, set
-`optarg` when an option takes an argument and return `?` for unknown
-options.
-
 ## Process Control
 
 Process-related functionality resides in the **process** module. It provides
@@ -279,7 +271,6 @@ mutex for synchronization.
 
 `pthread_detach()` marks a thread so that its stack is freed automatically
 when the start routine returns. Detached threads cannot be joined.
-=======
 ## Dynamic Loading
 
 The `dlfcn` module implements a minimal ELF loader. Only the
