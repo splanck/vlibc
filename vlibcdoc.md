@@ -109,6 +109,7 @@ int unlink(const char *pathname);
 int rename(const char *oldpath, const char *newpath);
 int mkdir(const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
+int chdir(const char *path);
 ```
 
 These functions forward their arguments directly to the kernel using the syscall interface. No buffering or stream abstraction is performed.
