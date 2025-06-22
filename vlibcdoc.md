@@ -1,15 +1,14 @@
 # vlibc Documentation
 
-This document outlines the architecture, planned modules, and API design for **vlibc**. The goal is to provide a clear overview for contributors and users who wish to understand how the library is organized.
+This document outlines the architecture, planned modules, and API design for **vlibc**. The goal is to provide a clear overview for contributors and users who wish to understand how the library is organized. For usage examples see the [README](README.md).
 
 ## Table of Contents
 1. [Memory Management](#memory-management)
-2. [Input/Output](#inputoutput)
-3. [String Handling](#string-handling)
-4. [Process Control](#process-control)
-5. [Error Reporting](#error-reporting)
-6. [Threading](#threading)
-7. [Dynamic Loading](#dynamic-loading)
+2. [String Handling](#string-handling)
+3. [Process Control](#process-control)
+4. [Error Reporting](#error-reporting)
+5. [Threading](#threading)
+6. [Dynamic Loading](#dynamic-loading)
 
 
 ## Memory Management
@@ -56,47 +55,6 @@ int mprotect(void *addr, size_t length, int prot);
 
 `mmap` creates new mappings, `munmap` releases them and `mprotect` changes
 their access protections.
-
-## Input/Output
-
-vlibc includes simple wrappers for the fundamental POSIX file APIs:
-
-```c
-int open(const char *path, int flags, mode_t mode);
-ssize_t read(int fd, void *buf, size_t count);
-ssize_t write(int fd, const void *buf, size_t count);
-int close(int fd);
-int unlink(const char *pathname);
-int rename(const char *oldpath, const char *newpath);
-int symlink(const char *target, const char *linkpath);
-int mkdir(const char *pathname, mode_t mode);
-int rmdir(const char *pathname);
-int chdir(const char *path);
-```
-
-These functions forward their arguments directly to the kernel using the syscall interface. No buffering or stream abstraction is performed.
-
-### Example
-
-```c
-int fd = open("log.txt", O_WRONLY | O_CREAT, 0644);
-if (fd >= 0) {
-    write(fd, "hello\n", 6);
-    close(fd);
-}
-```
-
-The stdio module also exposes `stdin`, `stdout`, and `stderr` as global
-pointers. These streams wrap file descriptors 0, 1 and 2 and are
-initialized in `vlibc_init()` so they can be used with the basic FILE
-APIs. Available helpers include `fopen`, `fread`, `fwrite`, `fseek`,
-`ftell`, `rewind`, `fclose`, `fgetc`, `fputc`, `fgets`, `fputs`,
-`sprintf`, `snprintf`, `vsprintf`, `vsnprintf`, `fprintf`, `vfprintf`,
-`printf`, and `vprintf`.
-`fflush`, and simple formatted output via `fprintf` and `printf`.
-Because the library does not buffer stream data, `fflush` simply
-performs an `fsync` on the given stream when it is non-`NULL` and
-otherwise returns success.
 
 ## String Handling
 
@@ -215,45 +173,6 @@ and is intended only for simple helper tasks.
 `exit()` terminates the process after running any handlers registered with `atexit()`. The handlers execute in reverse registration order. `_exit()` bypasses them.
 The design favors straightforward semantics over comprehensive POSIX
 conformance.
-
-## Networking
-
-vlibc currently provides minimal socket wrappers for basic network
-communication:
-
-```c
-int socket(int domain, int type, int protocol);
-int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-ssize_t send(int sockfd, const void *buf, size_t len, int flags);
-ssize_t recv(int sockfd, void *buf, size_t len, int flags);
-ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
-               const struct sockaddr *dest, socklen_t addrlen);
-ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
-                 struct sockaddr *src, socklen_t *addrlen);
-int select(int nfds, fd_set *readfds, fd_set *writefds,
-           fd_set *exceptfds, struct timeval *timeout);
-int poll(struct pollfd *fds, nfds_t nfds, int timeout);
-int getaddrinfo(const char *node, const char *service,
-                const struct addrinfo *hints, struct addrinfo **res);
-void freeaddrinfo(struct addrinfo *res);
-int getnameinfo(const struct sockaddr *sa, socklen_t salen,
-                char *host, socklen_t hostlen,
-                char *serv, socklen_t servlen, int flags);
-```
-
-These wrappers directly invoke the underlying `socket`, `bind`,
-`connect`, `sendto`, and `recvfrom` syscalls without additional
-buffering or complex address handling.  Address lookups can be
-performed with `getaddrinfo` and `getnameinfo`:
-
-```c
-struct addrinfo *ai;
-if (getaddrinfo("127.0.0.1", "8080", NULL, &ai) == 0) {
-    connect(fd, ai->ai_addr, ai->ai_addrlen);
-    freeaddrinfo(ai);
-}
-```
 
 ## Error Reporting
 
