@@ -30,6 +30,8 @@ static int start_thread(void *arg)
     struct start_info *info = arg;
     void *rv = info->func(info->arg);
     info->thread->retval = rv;
+    if (info->thread->detached)
+        free(info->thread->stack);
     _exit(0);
     return 0;
 }
@@ -42,6 +44,7 @@ int pthread_create(pthread_t *thread, const void *attr,
     thread->start_routine = start_routine;
     thread->arg = arg;
     thread->retval = NULL;
+    thread->detached = 0;
     thread->stack = malloc(STACK_SIZE + 16);
     if (!thread->stack)
         return -1;
@@ -64,11 +67,20 @@ int pthread_create(pthread_t *thread, const void *attr,
 
 int pthread_join(pthread_t *thread, void **retval)
 {
+    if (thread->detached)
+        return -1;
     if (waitpid(thread->tid, NULL, 0) < 0)
         return -1;
     if (retval)
         *retval = thread->retval;
     free(thread->stack);
+    return 0;
+}
+
+int pthread_detach(pthread_t *thread)
+{
+    thread->detached = 1;
+    /* resources will be released automatically when the thread exits */
     return 0;
 }
 
