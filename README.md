@@ -1,5 +1,9 @@
 # vlibc
 
+vlibc aims to provide a tiny C standard library for UNIX-like systems.
+Its design keeps things simple and favors static linking so binaries
+remain self-contained.
+
 A minimal libc replacement for UNIX-like systems.
 
 The library includes wrappers for file I/O, memory management, processes,
