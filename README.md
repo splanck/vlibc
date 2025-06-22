@@ -55,6 +55,25 @@ Use `strcat()` or `strncat()` to append one string to another.
 Search helpers `strstr()`, `strrchr()`, and `memchr()` locate substrings or
 individual bytes within a buffer.
 
+## Wide Character Conversion
+
+`wchar.h` exposes a few helpers for working with wide characters. The
+`mbtowc()` function converts a multibyte sequence to a single `wchar_t`.
+Passing `NULL` for `s` resets the conversion state, which is trivial in
+vlibc. `wctomb()` performs the opposite conversion, translating a
+`wchar_t` back to a single byte stored in `s`. Both functions return the
+number of bytes written or read, or `-1` on invalid input. Finally,
+`wcslen()` returns the length of a wide-character string excluding the
+terminating `L'\0'`.
+
+```c
+wchar_t wc;
+mbtowc(&wc, "A", 1);        /* wc == L'A' */
+char buf[2];
+wctomb(buf, wc);            /* buf[0] == 'A' */
+size_t n = wcslen(L"hi");   /* n == 2 */
+```
+
 ## String Tokenization
 
 `strtok()` splits a string into tokens separated by any characters in the
