@@ -4,6 +4,7 @@ PREFIX ?= /usr/local
 CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -fno-stack-protector -fno-builtin -Iinclude
 AR ?= ar
+ARCH ?= $(shell uname -m)
 
 TARGET_OS ?= $(OS)
 ifeq ($(TARGET_OS),)
@@ -57,8 +58,10 @@ SRC := \
     src/getopt_long.c \
     src/locale.c \
     src/wchar.c \
-    src/math.c \
-    src/setjmp.c
+    src/math.c
+
+ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
+SRC += $(if $(ARCH_SRC),$(ARCH_SRC),src/setjmp.c)
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
