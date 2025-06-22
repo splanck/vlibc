@@ -9,7 +9,7 @@
 #include "../include/pthread.h"
 #include "../include/sys/select.h"
 #include "../include/poll.h"
-#include "../include/dirent.h"
+#include <dirent.h>
 #include "../include/vlibc.h"
 #include "../include/dlfcn.h"
 

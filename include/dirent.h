@@ -4,23 +4,14 @@
 #include <sys/types.h>
 #include <stddef.h>
 
-/* BSD style directory entry */
-struct dirent {
-    ino_t          d_fileno;   /* file number */
-    off_t          d_off;      /* seek offset to next entry */
-    unsigned short d_reclen;   /* length of this record */
-    unsigned char  d_type;     /* file type */
-    unsigned char  d_namlen;   /* length of name */
-    char           d_name[256];/* null terminated file name */
-};
+/*
+ * Pull in the system definitions of DIR and struct dirent. This header sits
+ * ahead of the system directories on the include path, so use
+ * include_next to reach the real header.
+ */
+#include_next <dirent.h>
 
-#define d_ino d_fileno
-
-typedef struct {
-    void *impl;               /* pointer to system DIR structure */
-    struct dirent ent;        /* storage for returned entry */
-} DIR;
-
+/* Wrapper prototypes for the system directory functions. */
 DIR *vlibc_opendir(const char *name);
 struct dirent *vlibc_readdir(DIR *dirp);
 int vlibc_closedir(DIR *dirp);
