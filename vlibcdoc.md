@@ -538,7 +538,8 @@ pipe(pipefd);
 descriptors 0, 1 and 2. They can be used with the provided `fread`,
 `fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`, `fputc`, `fgets`,
 `fputs`, `sprintf`, `snprintf`, `vsprintf`, `vsnprintf`, `fprintf`,
-`vfprintf`, `printf`, `vprintf`, `sscanf`, `fscanf`, and `scanf` helpers.
+`vfprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
+`sscanf`, `fscanf`, and `scanf` helpers.
 `fflush(stream)` succeeds
 and invokes `fsync` on the descriptor when one is present.
 
@@ -547,6 +548,17 @@ int a;
 unsigned b;
 char word[16];
 sscanf("1 2 hi", "%d %u %s", &a, &b, word);
+```
+
+Using the `vscanf` family directly allows forwarding a `va_list`:
+
+```c
+void parse_numbers(const char *buf, const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vsscanf(buf, fmt, ap);
+    va_end(ap);
+}
 ```
 
 ## Networking
