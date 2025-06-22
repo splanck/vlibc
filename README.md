@@ -4,10 +4,16 @@ vlibc aims to provide a tiny C standard library for UNIX-like systems.
 Its design keeps things simple and favors static linking so binaries
 remain self-contained.
 
-A minimal libc replacement for UNIX-like systems.
+Designed as a minimal libc implementation for UNIX-like systems, vlibc
+packs only the most essential runtime components needed by portable C
+programs. Key features include:
 
-The library includes wrappers for file I/O, memory management, processes,
-threading, networking and other core functionality.
+- File I/O wrappers
+- Process creation and control
+- Threading primitives
+- Networking sockets
+- Dynamic loading
+- Environment variable handling
 
 Build the static library with:
 
@@ -21,6 +27,5 @@ Install the headers and library system-wide with:
 make install PREFIX=/usr/local
 ```
 
-For a comprehensive guide covering build notes, architectural details and the
-full API reference, see [vlibcdoc.md](vlibcdoc.md).
+For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
