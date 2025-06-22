@@ -9,6 +9,9 @@ char *getenv(const char *name);
 int setenv(const char *name, const char *value, int overwrite);
 int unsetenv(const char *name);
 
+/* Current working directory */
+char *getcwd(char *buf, size_t size);
+
 /* Execute a shell command */
 int system(const char *command);
 

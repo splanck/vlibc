@@ -908,6 +908,24 @@ static const char *test_atexit_handler(void)
     return 0;
 }
 
+static const char *test_getcwd_chdir(void)
+{
+    char orig[256];
+    mu_assert("getcwd orig", getcwd(orig, sizeof(orig)) != NULL);
+
+    mu_assert("chdir root", chdir("/") == 0);
+    char buf[256];
+    mu_assert("getcwd root", getcwd(buf, sizeof(buf)) != NULL);
+    mu_assert("root path", strcmp(buf, "/") == 0);
+
+    mu_assert("restore", chdir(orig) == 0);
+    char back[256];
+    mu_assert("getcwd restore", getcwd(back, sizeof(back)) != NULL);
+    mu_assert("restore path", strcmp(back, orig) == 0);
+
+    return 0;
+}
+
 static const char *test_dirent(void)
 {
     DIR *d = opendir("tests");
@@ -1111,6 +1129,7 @@ static const char *all_tests(void)
     mu_run_test(test_abort_fn);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_atexit_handler);
+    mu_run_test(test_getcwd_chdir);
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
