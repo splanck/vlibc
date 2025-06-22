@@ -11,6 +11,10 @@ ifeq ($(TARGET_OS),)
 TARGET_OS := $(shell uname -s)
 endif
 
+ifneq (,$(filter $(TARGET_OS),FreeBSD NetBSD OpenBSD DragonFly))
+CFLAGS += -D__BSD_VISIBLE
+endif
+
 SYS_SRC := src/syscall.c
 ifeq ($(TARGET_OS),Windows_NT)
 SYS_SRC := src/arch/win32/syscall.c

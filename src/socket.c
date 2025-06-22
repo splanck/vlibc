@@ -3,6 +3,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include "syscall.h"
+#include "vlibc_features.h"
 
 int socket(int domain, int type, int protocol)
 {
@@ -46,6 +47,24 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
         return -1;
     }
     return (int)ret;
+}
+
+int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags)
+{
+#ifdef VLIBC_HAVE_ACCEPT4
+    long ret = vlibc_syscall(SYS_accept4, sockfd, (long)addr, (long)addrlen, flags, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+    if (flags != 0) {
+        errno = EINVAL;
+        return -1;
+    }
+    return accept(sockfd, addr, addrlen);
+#endif
 }
 
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
