@@ -601,8 +601,9 @@ int nanosleep(const struct timespec *req, struct timespec *rem);
 
 ## Raw System Calls
 
-The `syscall` function from `syscall.h` invokes Linux system calls
-directly when no wrapper exists.
+The `syscall` function from `syscall.h` invokes the host's `syscall()`
+wrapper when available. Platform specific implementations may override
+this if the operating system lacks a compatible interface.
 
 ## Non-local Jumps
 
