@@ -452,10 +452,12 @@ int main(void) {
 
 ## Dynamic Loading
 
-The `dlfcn` module implements a minimal ELF loader. Only the
-`R_X86_64_RELATIVE` relocation type is supported, which is enough for
-simple position independent libraries. Use `dlopen`, `dlsym`, and
-`dlclose` to load code at runtime.
+The `dlfcn` module implements a minimal ELF loader. On 64-bit x86
+systems it can resolve `R_X86_64_RELATIVE`, `R_X86_64_64`,
+`R_X86_64_GLOB_DAT`, and `R_X86_64_JUMP_SLOT` relocations. Other
+architectures are currently unsupported and attempting to load a
+library will fail with an error. Use `dlopen`, `dlsym`, and `dlclose`
+to load code at runtime.
 
 ## Environment Variables
 
