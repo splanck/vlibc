@@ -184,6 +184,20 @@ while ((c = getopt(argc, argv, "fa:")) != -1) {
 }
 ```
 
+`getopt_long()` behaves similarly but accepts an array of `struct option` to
+describe GNU-style long options:
+
+```c
+static const struct option longopts[] = {
+    {"flag",  no_argument,       NULL, 'f'},
+    {"alpha", required_argument, NULL, 'a'},
+    {0, 0, 0, 0}
+};
+while ((c = getopt_long(argc, argv, "fa:", longopts, NULL)) != -1) {
+    ...
+}
+```
+
 ## Standard Streams
 
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and

@@ -7,9 +7,10 @@ int optind = 1;
 int opterr = 1;
 int optopt = 0;
 
+static const char *next = NULL;
+
 int getopt(int argc, char * const argv[], const char *optstring)
 {
-    static const char *next = NULL;
 
     if (!next || *next == '\0') {
         if (optind >= argc)
@@ -52,4 +53,73 @@ int getopt(int argc, char * const argv[], const char *optstring)
     }
 
     return c;
+}
+
+int getopt_long(int argc, char * const argv[], const char *optstring,
+                const struct option *longopts, int *longindex)
+{
+    if (optind >= argc)
+        return -1;
+
+    const char *arg = argv[optind];
+    if (arg[0] != '-' || arg[1] == '\0')
+        return -1;
+
+    if (strcmp(arg, "--") == 0) {
+        optind++;
+        return -1;
+    }
+
+    if (arg[1] == '-') {
+        const char *name = arg + 2;
+        const char *eq = strchr(name, '=');
+        size_t namelen = eq ? (size_t)(eq - name) : strlen(name);
+
+        for (int i = 0; longopts && longopts[i].name; i++) {
+            if (strncmp(name, longopts[i].name, namelen) == 0 &&
+                longopts[i].name[namelen] == '\0') {
+                if (longindex)
+                    *longindex = i;
+
+                if (longopts[i].has_arg == required_argument) {
+                    if (eq) {
+                        optarg = (char *)(eq + 1);
+                    } else if (optind + 1 < argc) {
+                        optarg = argv[++optind];
+                    } else {
+                        optind++;
+                        optopt = longopts[i].val;
+                        if (opterr)
+                            fprintf(stderr,
+                                    "option '--%s' requires argument\n",
+                                    longopts[i].name);
+                        return '?';
+                    }
+                } else if (longopts[i].has_arg == optional_argument) {
+                    optarg = eq ? (char *)(eq + 1) : NULL;
+                } else {
+                    if (eq && opterr)
+                        fprintf(stderr,
+                                "option '--%s' doesn't allow an argument\n",
+                                longopts[i].name);
+                    optarg = NULL;
+                }
+
+                optind++;
+                if (longopts[i].flag) {
+                    *longopts[i].flag = longopts[i].val;
+                    return 0;
+                }
+                return longopts[i].val;
+            }
+        }
+
+        optind++;
+        if (opterr)
+            fprintf(stderr, "unknown option '%s'\n", arg);
+        optopt = 0;
+        return '?';
+    }
+
+    return getopt(argc, argv, optstring);
 }
