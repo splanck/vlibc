@@ -65,6 +65,7 @@ math.h       - basic math routines
 process.h    - process creation and control
 pthread.h    - minimal threading support
 poll.h       - I/O multiplexing helpers
+dlfcn.h      - runtime loading of shared libraries
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
@@ -206,6 +207,19 @@ the I/O multiplexing helpers `select` and `poll`.
 These calls accept the same arguments as their POSIX counterparts and
 translate directly to the underlying `socket`, `bind`, `connect`, and
 `sendto`/`recvfrom` syscalls.
+
+## Dynamic Loading
+
+vlibc ships with a tiny ELF loader that understands position-independent
+shared objects on Linux. Applications can call `dlopen`, `dlsym`, and
+`dlclose` from `dlfcn.h` to load modules at runtime.
+
+```c
+void *h = dlopen("plugin.so", RTLD_NOW);
+int (*fn)(void) = dlsym(h, "plugin_value");
+fn();
+dlclose(h);
+```
 
 ## Error Reporting
 

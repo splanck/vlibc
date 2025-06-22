@@ -9,6 +9,7 @@
 #include "../include/poll.h"
 #include "../include/dirent.h"
 #include "../include/vlibc.h"
+#include "../include/dlfcn.h"
 
 #include <fcntl.h>
 #include "../include/string.h"
@@ -822,6 +823,17 @@ static const char *test_getopt_missing(void)
     return 0;
 }
 
+static const char *test_dlopen_basic(void)
+{
+    void *h = dlopen("tests/plugin.so", RTLD_NOW);
+    mu_assert("dlopen", h != NULL);
+    int (*val)(void) = dlsym(h, "plugin_value");
+    mu_assert("dlsym", val != NULL);
+    mu_assert("call", val() == 123);
+    mu_assert("dlclose", dlclose(h) == 0);
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
@@ -859,6 +871,7 @@ static const char *all_tests(void)
     mu_run_test(test_qsort_strings);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
+    mu_run_test(test_dlopen_basic);
 
     return 0;
 }

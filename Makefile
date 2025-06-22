@@ -38,19 +38,24 @@ SRC := \
     src/select.c \
     src/qsort.c \
     src/getopt.c \
-    src/math.c
+    src/math.c \
+    src/dlfcn.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
 TEST_SRC := $(wildcard tests/*.c)
 TEST_BIN := tests/run_tests
+PLUGIN_SO := tests/plugin.so
 
 all: $(LIB)
 
 $(LIB): $(OBJ)
 	$(AR) rcs $@ $^
 
-$(TEST_BIN): $(TEST_SRC) $(LIB)
+$(PLUGIN_SO): tests/plugin.c
+	$(CC) -shared -fPIC tests/plugin.c -o $(PLUGIN_SO)
+
+$(TEST_BIN): $(TEST_SRC) $(LIB) $(PLUGIN_SO)
 	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -o $@
 
 test: $(TEST_BIN)
@@ -68,6 +73,6 @@ install: $(LIB)
 	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys
 
 clean:
-	rm -f $(OBJ) $(LIB) $(TEST_BIN)
+	rm -f $(OBJ) $(LIB) $(TEST_BIN) $(PLUGIN_SO)
 
 .PHONY: all install clean test
