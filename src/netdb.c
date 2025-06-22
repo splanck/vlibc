@@ -5,6 +5,8 @@
 #include "errno.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include <stdint.h>
+#include <netinet/in.h>
 
 #ifndef O_RDONLY
 #define O_RDONLY 0

@@ -2,6 +2,8 @@
 #include "../include/memory.h"
 #include "../include/io.h"
 #include "../include/sys/socket.h"
+#include <netinet/in.h>
+#include <stdint.h>
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
 #include "../include/pthread.h"
