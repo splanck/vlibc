@@ -29,3 +29,13 @@ int rename(const char *oldpath, const char *newpath)
     }
     return (int)ret;
 }
+
+int chdir(const char *path)
+{
+    long ret = vlibc_syscall(SYS_chdir, (long)path, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+}

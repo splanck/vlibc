@@ -15,5 +15,6 @@ int unlink(const char *pathname);
 int rename(const char *oldpath, const char *newpath);
 int mkdir(const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
+int chdir(const char *path);
 
 #endif /* IO_H */
