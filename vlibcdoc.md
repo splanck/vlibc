@@ -10,6 +10,40 @@ This document outlines the architecture, planned modules, and API design for **v
 5. [Threading](#threading)
 6. [Dynamic Loading](#dynamic-loading)
 
+## Provided Headers
+
+vlibc installs a small set of public headers for application use:
+
+```
+ctype.h      - character classification helpers
+dirent.h     - directory iteration
+env.h        - environment variable access
+errno.h      - standard error codes
+io.h         - unbuffered I/O primitives
+locale.h     - locale helpers
+memory.h     - heap allocation
+math.h       - basic math routines
+process.h    - process creation and control
+pthread.h    - minimal threading support
+poll.h       - I/O multiplexing helpers
+sys/select.h - fd_set macros and select wrapper
+dlfcn.h      - runtime loading of shared libraries
+stdio.h      - simple stream I/O
+stdlib.h     - basic utilities
+string.h     - string manipulation
+wchar.h     - wide character helpers
+getopt.h     - option parsing
+sys/mman.h   - memory mapping helpers
+sys/socket.h - networking wrappers
+sys/file.h   - file permission helpers
+netdb.h      - address resolution helpers
+sys/stat.h   - file status functions
+syscall.h    - raw syscall interface
+time.h       - time related helpers
+setjmp.h     - non-local jump helpers
+vlibc.h      - library initialization
+```
+
 
 ## Memory Management
 
@@ -85,6 +119,12 @@ result is identical to `gmtime`.
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
+### Wide Character Conversion
+
+`mbtowc` converts a multibyte sequence to a single `wchar_t` and `wctomb`
+performs the opposite conversion. `wcslen` returns the length of a wide
+string excluding the terminator.
+
 ## Character Classification
 
 Character checks live in [include/ctype.h](include/ctype.h).  The macros
@@ -124,6 +164,22 @@ void srand(unsigned seed);
 Calling `srand()` initializes the internal state. Reusing the same seed
 produces the identical sequence of numbers, each in the range `0` to
 `32767`.
+
+## Sorting Helpers
+
+`qsort` sorts an array in place using a user-supplied comparison
+function while `bsearch` performs binary search on a sorted array.
+
+```c
+int values[] = {4, 2, 7};
+qsort(values, 3, sizeof(int), cmp_int);
+int key = 7;
+int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
+```
+
+## Math Functions
+
+`sin`, `cos`, `tan`, `sqrt`, and `pow` are provided in `math.h`.
 
 ## Process Control
 
@@ -168,6 +224,9 @@ kill(getpid(), SIGINT);
 The convenience `system()` call executes a shell command by forking and
 invoking `/bin/sh -c command`. It returns the raw status from `waitpid`
 and is intended only for simple helper tasks.
+`popen` and `pclose` provide a lightweight way to run a command with a
+pipe connected to the child. Use mode `"r"` to read its output or `"w"`
+to send data to its stdin.
 `abort()` sends `SIGABRT` to the current process and does not invoke
 `atexit` handlers.
 `exit()` terminates the process after running any handlers registered with `atexit()`. The handlers execute in reverse registration order. `_exit()` bypasses them.
@@ -263,6 +322,144 @@ The `dlfcn` module implements a minimal ELF loader. Only the
 `R_X86_64_RELATIVE` relocation type is supported, which is enough for
 simple position independent libraries. Use `dlopen`, `dlsym`, and
 `dlclose` to load code at runtime.
+
+## Environment Variables
+
+The environment module exposes a global pointer `environ` storing the
+process's `name=value` pairs. Programs with a custom entry point should
+call `env_init(envp)` before using `getenv`, `setenv`, or `unsetenv`.
+
+```c
+extern char **environ;
+
+int main(int argc, char **argv, char **envp) {
+    env_init(envp);
+    setenv("FOO", "BAR", 1);
+    const char *v = getenv("FOO");
+    unsetenv("FOO");
+    return 0;
+}
+```
+
+## Basic File I/O
+
+Thin wrappers around the kernel's file APIs live in `io.h`. Functions
+like `open`, `read`, `write`, `close`, `unlink`, `rename`, `symlink`,
+`mkdir`, `rmdir`, and `chdir` simply pass their arguments to the
+corresponding syscalls.
+
+```c
+int fd = open("log.txt", O_WRONLY | O_CREAT, 0644);
+if (fd >= 0) {
+    write(fd, "hello\n", 6);
+    close(fd);
+}
+```
+
+## Standard Streams
+
+`stdin`, `stdout`, and `stderr` are lightweight streams wrapping file
+descriptors 0, 1 and 2. They can be used with the provided `fread`,
+`fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`, `fputc`, `fgets`,
+`fputs`, `sprintf`, `snprintf`, `vsprintf`, `vsnprintf`, `fprintf`,
+`vfprintf`, `printf`, and `vprintf` helpers. `fflush(stream)` succeeds
+and invokes `fsync` on the descriptor when one is present.
+
+## Networking
+
+The socket layer exposes thin wrappers around the kernel's networking
+syscalls including `socket`, `bind`, `listen`, `accept`, `connect`,
+`send`, `recv`, `sendto`, and `recvfrom`. Address resolution is handled
+via `getaddrinfo`, `freeaddrinfo`, and `getnameinfo`.
+
+```c
+struct addrinfo *ai;
+if (getaddrinfo("localhost", "80", NULL, &ai) == 0) {
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    connect(fd, ai->ai_addr, ai->ai_addrlen);
+    freeaddrinfo(ai);
+}
+```
+
+## File Permissions
+
+Simple helpers adjust permissions and ownership:
+
+```c
+umask(022);
+chmod("data.txt", 0644);
+chown("data.txt", 1000, 1000);
+```
+
+## File Status
+
+`stat`, `fstat`, and `lstat` from `sys/stat.h` query file metadata.
+
+## Directory Iteration
+
+Use `opendir`, `readdir`, and `closedir` from `dirent.h` to traverse
+directories:
+
+```c
+DIR *d = opendir(".");
+if (d) {
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        printf("%s\n", e->d_name);
+    }
+    closedir(d);
+}
+```
+
+## Time Formatting
+
+A minimal `strftime` supports `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S`.
+
+## Locale Support
+
+`setlocale` switches between the built-in `"C"` and `"POSIX"` locales and
+`localeconv` returns formatting information. `gmtime`, `localtime`,
+`mktime`, and `ctime` convert between `time_t` and `struct tm` or human
+readable strings.
+
+## Sleep Functions
+
+Delay helpers are available in `time.h`:
+
+```c
+unsigned sleep(unsigned seconds);
+int usleep(useconds_t usec);
+int nanosleep(const struct timespec *req, struct timespec *rem);
+```
+
+## Raw System Calls
+
+The `syscall` function from `syscall.h` invokes Linux system calls
+directly when no wrapper exists.
+
+## Non-local Jumps
+
+Minimal `setjmp`/`longjmp` helpers save and restore register state:
+
+```c
+int setjmp(jmp_buf env);
+void longjmp(jmp_buf env, int val);
+```
+
+Jumping across signal handlers may leave blocked signals in an undefined
+state and only x86_64 is supported.
+
+## Limitations
+
+ - The I/O routines perform no buffering and provide only basic error
+   reporting.
+ - Process creation relies on Linux specific syscalls.
+ - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
+   codes.
+ - `perror` and `strerror` cover only common errors.
+ - Thread support is limited to basic mutexes and join/detach.
+ - Only the `"C"` and `"POSIX"` locales are built in.
+ - `setjmp`/`longjmp` do not preserve signal masks and target x86_64.
 
 ## Conclusion
 
