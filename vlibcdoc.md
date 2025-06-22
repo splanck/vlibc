@@ -135,7 +135,7 @@ routine simple and avoid complex features like C++ static constructors.
 
 vlibc installs a small set of public headers for application use:
 
-```
+```c
 ctype.h      - character classification helpers
 dirent.h     - directory iteration
 dlfcn.h      - runtime loading of shared libraries
