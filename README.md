@@ -3,6 +3,7 @@
 A minimal libc replacement for UNIX-like systems.
 See [docs/overview.md](docs/overview.md) for usage and build details.
 Architectural notes are in [docs/architecture.md](docs/architecture.md).
+Detailed module descriptions can be found in [vlibcdoc.md](vlibcdoc.md).
 
 ## Provided Headers
 
@@ -14,11 +15,13 @@ dirent.h     - directory iteration
 env.h        - environment variable access
 errno.h      - standard error codes
 io.h         - unbuffered I/O primitives
+locale.h     - locale helpers
 memory.h     - heap allocation
 math.h       - basic math routines
 process.h    - process creation and control
 pthread.h    - minimal threading support
 poll.h       - I/O multiplexing helpers
+sys/select.h - fd_set macros and select wrapper
 dlfcn.h      - runtime loading of shared libraries
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
@@ -35,6 +38,9 @@ time.h       - time related helpers
 setjmp.h     - non-local jump helpers
 vlibc.h      - library initialization
 ```
+
+Memory management routines and the mapping APIs are described in
+[vlibcdoc.md](vlibcdoc.md).
 
 
 ## String Conversion
@@ -103,6 +109,21 @@ int key = 7;
 int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
 ```
 
+## Math Functions
+
+The [include/math.h](include/math.h) header offers a very small set of
+mathematical helpers: `sin`, `cos`, `tan`, `sqrt`, and `pow`.
+
+```c
+double r = sqrt(2.0);
+```
+
+## Random Numbers
+
+`rand()` and `srand()` are declared in [include/stdlib.h](include/stdlib.h).
+The implementation is a simple linear congruential generator returning
+values in the range `0`&ndash;`32767`.
+
 ## Option Parsing
 
 `getopt()` iterates over command-line options. A character followed by `:` in the
@@ -164,6 +185,21 @@ int main(int argc, char **argv, char **envp) {
 }
 ```
 
+## Basic File I/O
+
+The [include/io.h](include/io.h) header exposes thin wrappers around the
+kernel's file APIs. Functions like `open`, `read`, `write`, `close`,
+`unlink`, `rename`, `symlink`, `mkdir`, `rmdir`, and `chdir` simply pass
+their arguments to the corresponding syscalls.
+
+```c
+int fd = open("log.txt", O_WRONLY | O_CREAT, 0644);
+if (fd >= 0) {
+    write(fd, "hello\n", 6);
+    close(fd);
+}
+```
+
 ## Standard Streams
 
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
@@ -183,8 +219,9 @@ Although I/O is unbuffered, `fflush(stream)` succeeds and invokes
 
 The socket layer exposes thin wrappers around the kernel's networking
 syscalls. Available functions include `socket`, `bind`, `listen`,
-`accept`, `connect`, `send`, `recv`, `sendto`, `recvfrom`, as well as
-the I/O multiplexing helpers `select` and `poll`.  Basic address
+`accept`, `connect`, `send`, `recv`, `sendto`, `recvfrom`, and the I/O
+multiplexing helpers `select` and `poll`. The `fd_set` macros used with
+`select` live in [include/sys/select.h](include/sys/select.h). Basic address
 resolution is provided through `getaddrinfo`, `freeaddrinfo`, and
 `getnameinfo`.
 
@@ -235,6 +272,11 @@ umask(022);
 chmod("data.txt", 0644);
 chown("data.txt", 1000, 1000);
 ```
+
+## File Status
+
+The [include/sys/stat.h](include/sys/stat.h) header exposes `stat`,
+`fstat` and `lstat` for querying file metadata.
 
 ## Directory Iteration
 
@@ -314,6 +356,12 @@ nanosleep(&ts, NULL);
 usleep(200000);           /* 200 ms */
 unsigned left = sleep(1); /* may be non-zero if interrupted */
 ```
+
+## Raw System Calls
+
+The [include/syscall.h](include/syscall.h) header exposes the `syscall`
+function for invoking Linux system calls directly when no wrapper is
+provided.
 
 ## Non-local Jumps
 
