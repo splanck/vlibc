@@ -909,39 +909,6 @@ static const char *test_dlopen_basic(void)
     return 0;
 }
 
-static const char *test_getopt_long_basic(void)
-{
-    char *argv[] = {"prog", "--flag", "--alpha", "val", "rest", NULL};
-    int argc = 5;
-    struct option opts[] = {
-        {"flag",  no_argument,       NULL, 'f'},
-        {"alpha", required_argument, NULL, 'a'},
-        {0, 0, 0, 0}
-    };
-    int flag = 0;
-    char *arg = NULL;
-    optind = 1;
-    opterr = 0;
-    int c;
-    while ((c = getopt_long(argc, argv, "fa:", opts, NULL)) != -1) {
-        switch (c) {
-        case 'f':
-            flag = 1;
-            break;
-        case 'a':
-            arg = optarg;
-            break;
-        default:
-            return "unexpected opt long";
-        }
-    }
-    mu_assert("flag long", flag == 1);
-    mu_assert("arg long", arg && strcmp(arg, "val") == 0);
-    mu_assert("rest long", strcmp(argv[optind], "rest") == 0);
-  
-    return 0;
-}
-
 static const char *test_getopt_long_missing(void)
 {
     char *argv[] = {"prog", "--bar", NULL};

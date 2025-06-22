@@ -122,6 +122,29 @@ while ((c = getopt_long(argc, argv, "fa:", longopts, NULL)) != -1) {
 }
 ```
 
+## Environment Variables
+
+The environment module exposes a global pointer `environ` which holds
+the process's `name=value` pairs. Programs with a custom entry point
+should call `env_init(envp)` to populate this pointer before using the
+helpers below. All APIs are declared in
+[include/env.h](include/env.h).
+
+`getenv()` retrieves the value for a name, while `setenv()` adds or
+updates an entry and `unsetenv()` removes one.
+
+```c
+extern char **environ;
+
+int main(int argc, char **argv, char **envp) {
+    env_init(envp);
+    setenv("FOO", "BAR", 1);
+    const char *v = getenv("FOO");
+    unsetenv("FOO");
+    return 0;
+}
+```
+
 ## Standard Streams
 
 vlibc's stdio layer exposes global pointers `stdin`, `stdout`, and
