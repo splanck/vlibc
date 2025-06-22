@@ -428,6 +428,14 @@ static const char *test_string_helpers(void)
     return 0;
 }
 
+static const char *test_string_casecmp(void)
+{
+    mu_assert("strcasecmp eq", strcasecmp("HeLLo", "hello") == 0);
+    mu_assert("strcasecmp diff", strcasecmp("abc", "Abd") < 0);
+    mu_assert("strncasecmp n4", strncasecmp("TestX", "testY", 4) == 0);
+    return 0;
+}
+
 static const char *test_widechar_basic(void)
 {
     wchar_t wc = 0;
@@ -1118,6 +1126,7 @@ static const char *all_tests(void)
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_link_readlink);
     mu_run_test(test_string_helpers);
+    mu_run_test(test_string_casecmp);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
