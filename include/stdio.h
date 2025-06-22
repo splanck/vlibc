@@ -36,6 +36,7 @@ int vsprintf(char *str, const char *format, va_list ap);
 
 /* Basic error helpers */
 char *strerror(int errnum);
+int strerror_r(int errnum, char *buf, size_t buflen);
 void perror(const char *s);
 
 FILE *popen(const char *command, const char *mode);
