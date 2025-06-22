@@ -138,6 +138,7 @@ otherwise returns success.
 The **string** module provides fundamental operations needed by most C programs:
 
 - `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat` and `strncat` equivalents.
+- Search helpers `strstr`, `strrchr`, and `memchr` for locating substrings or bytes.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
 - Basic locale handling is limited to the built-in `"C"` and `"POSIX"` locales.

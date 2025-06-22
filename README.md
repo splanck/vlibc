@@ -131,6 +131,8 @@ double f = strtod("3.14", NULL); /* f == 3.14 */
 ```
 
 Use `strcat()` or `strncat()` to append one string to another.
+Search helpers `strstr()`, `strrchr()`, and `memchr()` locate substrings or
+individual bytes within a buffer.
 
 ## String Tokenization
 
