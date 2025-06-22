@@ -10,6 +10,8 @@ This document outlines the architecture, planned modules, and API design for **v
 4. [String Handling](#string-handling)
 5. [Process Control](#process-control)
 6. [Error Reporting](#error-reporting)
+7. [Threading](#threading)
+8. [Dynamic Loading](#dynamic-loading)
 
 ## Architecture
 
@@ -310,6 +312,13 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex);
 
 Threads share the process address space and use a simple spinlock-based
 mutex for synchronization.
+
+## Dynamic Loading
+
+The `dlfcn` module implements a minimal ELF loader. Only the
+`R_X86_64_RELATIVE` relocation type is supported, which is enough for
+simple position independent libraries. Use `dlopen`, `dlsym`, and
+`dlclose` to load code at runtime.
 
 ## Conclusion
 
