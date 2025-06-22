@@ -56,8 +56,8 @@ Programs using vlibc are expected to define a `v_main()` function that receives 
 The **memory** module provides a very small heap allocator implemented in
 `memory.c`. It relies on the `sbrk` system call to extend the heap and keeps
 the implementation deliberately simple. Each allocation stores a small header
-so the most recent block can be released on `free()`. Memory for older blocks
-is still not recycled, keeping the code easy to audit at the cost of efficiency.
+and freed blocks are tracked on a linked list sorted by address. Adjacent free
+regions are coalesced so memory from any previous allocation can be reused.
 
 ### API
 
@@ -70,17 +70,18 @@ void *realloc(void *ptr, size_t size);
 
 ### Behavior and Caveats
 
-- `malloc` allocates memory linearly using `sbrk` and returns `NULL` on
-  failure.
-- `calloc` calls `malloc` and zeroes the allocated block.
-- `realloc` always allocates a new block and copies up to `size` bytes from the
-  old pointer if one was provided.
-- `free` releases memory only if called on the most recently allocated block.
+- `malloc` reuses freed regions from the free list before requesting more memory
+  from the system and returns `NULL` on failure.
+- `calloc` calls `malloc` and zeroes the allocated block, returning `NULL` on
+  overflow.
+- `realloc` expands or shrinks allocations, allocating a new block only when the
+  existing one cannot satisfy the request.
+- `free` places the block back on the free list and coalesces with adjacent free
+  regions.
 
-Because memory is only reclaimed for the most recent block, applications that
-allocate many objects may still eventually exhaust the heap. These routines are
-sufficient for
-small examples but should not be considered production quality.
+The allocator remains intentionally simple. While it can recycle memory from any
+previous allocation, heavy fragmentation may still lead to inefficient space
+usage.
 
 ## Memory Mapping
 

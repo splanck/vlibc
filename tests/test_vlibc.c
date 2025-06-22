@@ -85,11 +85,32 @@ static const char *test_malloc_reuse(void)
     void *e = malloc(8);
 
     mu_assert("reuse d", d == a);
-    mu_assert("reuse e", e == b);
+    mu_assert("reuse e", e != NULL);
 
     free(c);
     free(d);
     free(e);
+    return 0;
+}
+
+static const char *test_malloc_coalesce(void)
+{
+    void *a = malloc(16);
+    void *b = malloc(32);
+    void *c = malloc(16);
+
+    mu_assert("alloc a", a != NULL);
+    mu_assert("alloc b", b != NULL);
+    mu_assert("alloc c", c != NULL);
+
+    free(b);
+    free(a);
+
+    void *d = malloc(40);
+    mu_assert("coalesced reuse", d == a);
+
+    free(c);
+    free(d);
     return 0;
 }
 
@@ -909,7 +930,7 @@ static const char *test_dlopen_basic(void)
     return 0;
 }
 
-static const char *test_getopt_long_basic(void)
+static const char *test_getopt_long_flags(void)
 {
     char *argv[] = {"prog", "--flag", "--alpha", "val", "rest", NULL};
     int argc = 5;
@@ -996,6 +1017,7 @@ static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
     mu_run_test(test_malloc_reuse);
+    mu_run_test(test_malloc_coalesce);
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);

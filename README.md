@@ -46,7 +46,9 @@ The repository uses a straightforward layout:
 
 Common memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) are available
 as wrappers around the internal `v*` implementations so existing code can use
-the familiar names.
+the familiar names.  The tiny allocator in `memory.c` now tracks all freed
+blocks and coalesces adjacent regions so subsequent calls to `malloc` and
+`realloc` can reuse memory more effectively.
 Basic string helpers like `strcmp`, `strchr`, `strncpy`, `strdup`, and
 `strnlen` are also provided.
 
