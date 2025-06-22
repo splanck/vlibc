@@ -49,6 +49,7 @@ SRC := \
     src/stat.c \
     src/pthread.c \
     src/dirent.c \
+    src/default_shell.c \
     src/popen.c \
     src/ctype.c \
     src/select.c \
