@@ -12,6 +12,7 @@ programs. Key features include:
 - Process creation and control
 - Threading primitives
 - Networking sockets
+- Hostname retrieval
 - Dynamic loading
 - Environment variable handling
 

@@ -4,6 +4,7 @@
 #include "../include/sys/socket.h"
 #include <netinet/in.h>
 #include "../include/arpa/inet.h"
+#include "../include/netdb.h"
 #include <stdint.h>
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
@@ -298,6 +299,15 @@ static const char *test_inet_pton_ntop(void)
     struct in_addr back;
     r = inet_pton(AF_INET, buf, &back);
     mu_assert("inet_pton round", r == 1 && back.s_addr == addr.s_addr);
+    return 0;
+}
+
+static const char *test_gethostname(void)
+{
+    char buf[256] = {0};
+    int r = gethostname(buf, sizeof(buf));
+    mu_assert("gethostname", r == 0);
+    mu_assert("hostname empty", buf[0] != '\0');
     return 0;
 }
 
@@ -1113,6 +1123,7 @@ static const char *all_tests(void)
     mu_run_test(test_socket);
     mu_run_test(test_udp_send_recv);
     mu_run_test(test_inet_pton_ntop);
+    mu_run_test(test_gethostname);
     mu_run_test(test_errno_open);
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);

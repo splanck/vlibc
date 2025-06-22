@@ -546,7 +546,8 @@ syscalls including `socket`, `bind`, `listen`, `accept`, `connect`,
 via `getaddrinfo`, `freeaddrinfo`, and `getnameinfo`.
 
 Utilities `inet_pton` and `inet_ntop` convert between dotted IPv4 strings
-and binary network format.
+and binary network format. The current host name can be queried with
+`gethostname`.
 
 ```c
 struct addrinfo *ai;

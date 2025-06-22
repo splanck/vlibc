@@ -21,5 +21,6 @@ void freeaddrinfo(struct addrinfo *res);
 int getnameinfo(const struct sockaddr *sa, socklen_t salen,
                 char *host, socklen_t hostlen,
                 char *serv, socklen_t servlen, int flags);
+int gethostname(char *name, size_t len);
 
 #endif /* NETDB_H */
