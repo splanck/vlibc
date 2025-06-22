@@ -39,6 +39,7 @@ int sscanf(const char *str, const char *format, ...);
 
 /* Basic error helpers */
 char *strerror(int errnum);
+int strerror_r(int errnum, char *buf, size_t buflen);
 void perror(const char *s);
 
 FILE *popen(const char *command, const char *mode);

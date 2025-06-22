@@ -64,6 +64,19 @@ static void *thread_fn(void *arg)
     return (void *)123;
 }
 
+static void *strerror_r_worker(void *arg)
+{
+    int err = *(int *)arg;
+    char buf[64];
+    if (strerror_r(err, buf, sizeof(buf)) != 0)
+        return (void *)1;
+    if (err == ENOENT)
+        return (void *)(strcmp(buf, "No such file or directory") != 0);
+    char expect[32];
+    snprintf(expect, sizeof(expect), "Unknown error %d", err);
+    return (void *)(strcmp(buf, expect) != 0);
+}
+
 static const char *test_malloc(void)
 {
     void *p = malloc(16);
@@ -757,6 +770,18 @@ static const char *test_error_reporting(void)
     const char *exp = "test: No such file or directory\n";
     mu_assert("perror output", (size_t)n == strlen(exp) && memcmp(buf, exp, n) == 0);
 
+    pthread_t t1, t2;
+    int e1 = ENOENT;
+    int e2 = 9999;
+    pthread_create(&t1, NULL, strerror_r_worker, &e1);
+    pthread_create(&t2, NULL, strerror_r_worker, &e2);
+    void *r1 = (void *)1;
+    void *r2 = (void *)1;
+    pthread_join(t1, &r1);
+    pthread_join(t2, &r2);
+    mu_assert("strerror_r thread1", r1 == NULL);
+    mu_assert("strerror_r thread2", r2 == NULL);
+
     return 0;
 }
 
@@ -1062,6 +1087,7 @@ static const char *all_tests(void)
     mu_run_test(test_strftime_basic);
     mu_run_test(test_time_conversions);
     mu_run_test(test_environment);
+    mu_run_test(test_error_reporting);
     mu_run_test(test_system_fn);
     mu_run_test(test_execvp_fn);
     mu_run_test(test_popen_fn);

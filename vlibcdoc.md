@@ -368,12 +368,14 @@ vlibc provides minimal helpers to report errors:
 
 ```c
 const char *strerror(int errnum);
+int strerror_r(int errnum, char *buf, size_t buflen);
 void perror(const char *s);
 ```
 
 
 `strerror()` returns a string describing `errnum` or "Unknown error" for
-codes it does not recognize. `perror()` writes a message to `stderr`
+codes it does not recognize. `strerror_r()` is a thread-safe variant that
+writes the message into `buf`. `perror()` writes a message to `stderr`
 combining the optional prefix with the text for the current `errno`.
 
 ## Errno Access

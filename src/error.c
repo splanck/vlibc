@@ -6,7 +6,7 @@ struct err_entry {
     const char *msg;
 };
 
-static struct err_entry err_table[] = {
+const struct err_entry __vlibc_err_table[] = {
     { EPERM, "Operation not permitted" },
     { ENOENT, "No such file or directory" },
     { ESRCH, "No such process" },
@@ -85,9 +85,9 @@ static struct err_entry err_table[] = {
 
 char *strerror(int errnum)
 {
-    for (size_t i = 0; err_table[i].msg; ++i) {
-        if (err_table[i].code == errnum)
-            return err_table[i].msg;
+    for (size_t i = 0; __vlibc_err_table[i].msg; ++i) {
+        if (__vlibc_err_table[i].code == errnum)
+            return (char *)__vlibc_err_table[i].msg;
     }
     static char unknown[32];
     snprintf(unknown, sizeof(unknown), "Unknown error %d", errnum);

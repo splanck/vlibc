@@ -67,6 +67,7 @@ SRC := \
     src/system.c \
     src/string.c \
     src/string_extra.c \
+    src/strerror_r.c \
     src/strto.c \
     src/rand.c \
     src/socket.c \
