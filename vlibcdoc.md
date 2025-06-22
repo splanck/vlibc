@@ -219,6 +219,7 @@ The **string** module provides fundamental operations needed by most C programs:
 - Search helpers `strstr`, `strrchr`, and `memchr` for locating substrings or bytes.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
+- The low-level memory helpers `vmemcpy`, `vmemmove`, `vmemset`, and `vmemcmp` operate on raw byte buffers. `vmemcpy` copies bytes from a source to a destination, `vmemmove` handles overlaps safely, `vmemset` fills a region with a byte value, and `vmemcmp` compares two buffers. The standard `memcpy`, `memmove`, `memset`, and `memcmp` functions simply call these implementations.
 - Basic locale handling is limited to the built-in `"C"` and `"POSIX"` locales.
    `setlocale` switches between them and `localeconv` exposes formatting data.
    All strings are treated as byte sequences.
