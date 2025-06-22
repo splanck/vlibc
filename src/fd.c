@@ -4,6 +4,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include "syscall.h"
+#include "vlibc_features.h"
 
 off_t lseek(int fd, off_t offset, int whence)
 {
@@ -51,4 +52,40 @@ int pipe(int pipefd[2])
         return -1;
     }
     return 0;
+}
+
+int dup3(int oldfd, int newfd, int flags)
+{
+#ifdef VLIBC_HAVE_DUP3
+    long ret = vlibc_syscall(SYS_dup3, oldfd, newfd, flags, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+    if (flags != 0) {
+        errno = EINVAL;
+        return -1;
+    }
+    return dup2(oldfd, newfd);
+#endif
+}
+
+int pipe2(int pipefd[2], int flags)
+{
+#ifdef VLIBC_HAVE_PIPE2
+    long ret = vlibc_syscall(SYS_pipe2, (long)pipefd, flags, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#else
+    if (flags != 0) {
+        errno = EINVAL;
+        return -1;
+    }
+    return pipe(pipefd);
+#endif
 }
