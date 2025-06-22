@@ -49,3 +49,18 @@ cc -Iinclude hello.c libvlibc.a -o hello
 
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
+## Running Tests
+
+Execute the unit test suite by running:
+
+```sh
+make test
+```
+
+This builds the test binary and runs all tests.
+
+## License
+
+This project is released under the terms of the
+[GNU General Public License version 3](LICENSE).
+
