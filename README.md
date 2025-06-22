@@ -72,6 +72,7 @@ wchar.h     - wide character helpers
 getopt.h     - option parsing
 sys/mman.h   - memory mapping helpers
 sys/socket.h - networking wrappers
+sys/file.h   - file permission helpers
 netdb.h      - address resolution helpers
 sys/stat.h   - file status functions
 syscall.h    - raw syscall interface
@@ -130,6 +131,8 @@ double f = strtod("3.14", NULL); /* f == 3.14 */
 ```
 
 Use `strcat()` or `strncat()` to append one string to another.
+Search helpers `strstr()`, `strrchr()`, and `memchr()` locate substrings or
+individual bytes within a buffer.
 
 ## String Tokenization
 
@@ -247,6 +250,16 @@ void perror(const char *s);
 `strerror()` returns a string for a known error code, while `perror()`
 prints the current `errno` value with an optional prefix.
 
+## File Permissions
+
+The file module exposes simple wrappers to adjust permissions and ownership.
+
+```c
+umask(022);
+chmod("data.txt", 0644);
+chown("data.txt", 1000, 1000);
+```
+
 ## Process Control
 
 The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `execvp`, `waitpid`, `kill`, `getpid`, `getppid`, and `signal`. A simple `system()` convenience function is also included.
@@ -294,5 +307,7 @@ behaves identically to `gmtime`.
   It does not handle complex quoting or return detailed status codes.
 - `perror` and `strerror` cover only common error codes.
 - Basic thread support is implemented using the `clone` syscall. Only
-  `pthread_create`, `pthread_join`, and simple mutexes are provided.
+  `pthread_create`, `pthread_join`, and simple mutexes
+  (`pthread_mutex_init`, `pthread_mutex_destroy`,
+  `pthread_mutex_lock`, `pthread_mutex_unlock`) are provided.
 - Locale data is minimal: only the `"C"` and `"POSIX"` locales are supported.

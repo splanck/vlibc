@@ -325,6 +325,18 @@ static const char *test_string_helpers(void)
     mu_assert("strnlen short", strnlen("hello", 3) == 3);
     mu_assert("strnlen full", strnlen("hi", 10) == 2);
 
+    const char *h = "abcabc";
+    const char *s = strstr(h, "cab");
+    mu_assert("strstr", s && s - h == 2);
+
+    const char *r = strrchr("abca", 'a');
+    mu_assert("strrchr", r && r - "abca" == 3);
+
+    char mbuf[4] = {1, 2, 3, 4};
+    void *m = memchr(mbuf, 3, sizeof(mbuf));
+    mu_assert("memchr", m == &mbuf[2]);
+    mu_assert("memchr none", memchr(mbuf, 5, sizeof(mbuf)) == NULL);
+
     return 0;
 }
 
@@ -887,6 +899,57 @@ static const char *test_getopt_long_basic(void)
     mu_assert("flag long", flag == 1);
     mu_assert("arg long", arg && strcmp(arg, "val") == 0);
     mu_assert("rest long", strcmp(argv[optind], "rest") == 0);
+  
+    return 0;
+}
+
+static const char *test_getopt_long_missing(void)
+{
+    char *argv[] = {"prog", "--bar", NULL};
+    int argc = 2;
+    struct option longopts[] = {
+        {"bar", required_argument, NULL, 'b'},
+        {0, 0, 0, 0}
+    };
+    optind = 1;
+    opterr = 0;
+    int r = getopt_long(argc, argv, "b:", longopts, NULL);
+    mu_assert("missing ret", r == '?');
+    mu_assert("optopt", optopt == 'b');
+    mu_assert("index", optind == 2);
+    return 0;
+}
+
+static const char *test_getopt_long_basic(void)
+{
+    char *argv[] = {"prog", "--foo", "--bar=val", "rest", NULL};
+    int argc = 4;
+    int foo = 0;
+    char *bar = NULL;
+    struct option longopts[] = {
+        {"foo", no_argument, &foo, 1},
+        {"bar", required_argument, NULL, 'b'},
+        {0, 0, 0, 0}
+    };
+    optind = 1;
+    opterr = 0;
+    int c;
+    while ((c = getopt_long(argc, argv, "b:", longopts, NULL)) != -1) {
+        switch (c) {
+        case 0:
+            break;
+        case 'b':
+            bar = optarg;
+            break;
+        default:
+            return "unexpected long opt";
+        }
+    }
+    mu_assert("foo", foo == 1);
+    mu_assert("bar", bar && strcmp(bar, "val") == 0);
+    mu_assert("optind", optind == 3);
+    mu_assert("rest", strcmp(argv[optind], "rest") == 0);
+
     return 0;
 }
 
@@ -929,6 +992,7 @@ static const char *all_tests(void)
     mu_run_test(test_qsort_strings);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
+    mu_run_test(test_getopt_long_missing);
     mu_run_test(test_getopt_long_basic);
 
     return 0;

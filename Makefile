@@ -18,12 +18,14 @@ SRC := \
     src/process.c \
     src/system.c \
     src/string.c \
+    src/string_extra.c \
     src/strto.c \
     src/rand.c \
     src/socket.c \
     src/netdb.c \
     src/fd.c \
     src/file.c \
+    src/file_perm.c \
     src/dir.c \
     src/syscall.c \
     src/mmap.c \
@@ -40,6 +42,7 @@ SRC := \
     src/select.c \
     src/qsort.c \
     src/getopt.c \
+    src/getopt_long.c \
     src/locale.c \
     src/wchar.c \
     src/math.c

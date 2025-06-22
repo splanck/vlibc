@@ -91,3 +91,9 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex)
     __sync_lock_release(&mutex->locked);
     return 0;
 }
+
+int pthread_mutex_destroy(pthread_mutex_t *mutex)
+{
+    (void)mutex;
+    return 0;
+}

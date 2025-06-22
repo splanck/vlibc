@@ -138,6 +138,7 @@ otherwise returns success.
 The **string** module provides fundamental operations needed by most C programs:
 
 - `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat` and `strncat` equivalents.
+- Search helpers `strstr`, `strrchr`, and `memchr` for locating substrings or bytes.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
 - Basic locale handling is limited to the built-in `"C"` and `"POSIX"` locales.
@@ -181,6 +182,14 @@ void srand(unsigned seed);
 Calling `srand()` initializes the internal state. Reusing the same seed
 produces the identical sequence of numbers, each in the range `0` to
 `32767`.
+
+## Option Parsing
+
+Command line processing mirrors the familiar `getopt` interface. The
+extended `getopt_long()` handles GNU-style long options described by an
+array of `struct option` entries. Both functions update `optind`, set
+`optarg` when an option takes an argument and return `?` for unknown
+options.
 
 ## Process Control
 
@@ -291,6 +300,7 @@ int pthread_create(pthread_t *thread, const void *attr,
 int pthread_join(pthread_t *thread, void **retval);
 
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
+int pthread_mutex_destroy(pthread_mutex_t *mutex);
 int pthread_mutex_lock(pthread_mutex_t *mutex);
 int pthread_mutex_unlock(pthread_mutex_t *mutex);
 ```
