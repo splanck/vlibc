@@ -76,7 +76,7 @@
 #define ESTALE           116
 #define ECANCELED        125
 
-extern int errno;
+extern __thread int errno;
 int *__errno_location(void);
 
 #endif /* ERRNO_H */

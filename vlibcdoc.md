@@ -378,12 +378,12 @@ combining the optional prefix with the text for the current `errno`.
 
 ## Errno Access
 
-The global `errno` variable stores the last failure code. The helper
-`__errno_location()` returns a pointer to this value so that macros can
-reference it directly.
+The `errno` variable is thread‑local and stores the last failure code.
+The helper `__errno_location()` returns a pointer to this value so that
+macros can reference it directly.
 
 ```c
-extern int errno;
+extern __thread int errno;
 int *__errno_location(void);
 ```
 

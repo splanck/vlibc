@@ -1,6 +1,7 @@
 #include "errno.h"
 
-int errno;
+/* each thread maintains its own errno value */
+__thread int errno;
 
 int *__errno_location(void)
 {
