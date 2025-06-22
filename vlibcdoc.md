@@ -606,7 +606,9 @@ directly when no wrapper exists.
 
 ## Non-local Jumps
 
-Minimal `setjmp`/`longjmp` helpers save and restore register state:
+When possible vlibc defers to the host C library's `setjmp` and `longjmp`.
+For targets lacking a native implementation, custom versions live under
+`src/arch/<arch>/setjmp.c`.
 
 ```c
 int setjmp(jmp_buf env);
@@ -614,7 +616,7 @@ void longjmp(jmp_buf env, int val);
 ```
 
 Jumping across signal handlers may leave blocked signals in an undefined
-state and only x86_64 is supported.
+state.
 
 ## Limitations
 
@@ -626,7 +628,8 @@ state and only x86_64 is supported.
  - `perror` and `strerror` cover only common errors.
  - Thread support is limited to basic mutexes and join/detach.
  - Only the `"C"` and `"POSIX"` locales are built in.
- - `setjmp`/`longjmp` do not preserve signal masks and target x86_64.
+ - `setjmp`/`longjmp` rely on the host C library when available.
+   Only an x86_64 fallback implementation is provided.
 
 ## Conclusion
 
