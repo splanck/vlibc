@@ -6,6 +6,12 @@ CFLAGS ?= -O2 -std=c11 -Wall -Wextra -fno-stack-protector -fno-builtin -Iinclude
 AR ?= ar
 ARCH ?= $(shell uname -m)
 
+# Detect availability of sbrk
+HAVE_SBRK := $(shell printf '#include <unistd.h>\nint main(){void *p=sbrk(0);return 0;}' | $(CC) -x c - -Werror -c -o /dev/null 2>/dev/null && echo 1 || echo 0)
+ifeq ($(HAVE_SBRK),1)
+CFLAGS += -DHAVE_SBRK
+endif
+
 TARGET_OS ?= $(OS)
 ifeq ($(TARGET_OS),)
 TARGET_OS := $(shell uname -s)
