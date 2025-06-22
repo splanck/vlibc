@@ -434,6 +434,50 @@ static const char *test_printf_functions(void)
     return 0;
 }
 
+static const char *test_scanf_functions(void)
+{
+    vlibc_init();
+
+    int a = 0;
+    unsigned b = 0;
+    char str[16] = {0};
+    int r = sscanf("5 10 test", "%d %u %s", &a, &b, str);
+    mu_assert("sscanf count", r == 3);
+    mu_assert("sscanf a", a == 5);
+    mu_assert("sscanf b", b == 10);
+    mu_assert("sscanf str", strcmp(str, "test") == 0);
+
+    FILE *f = fopen("tmp_scan", "w+");
+    mu_assert("fopen scan", f != NULL);
+    fputs("7 8 hi", f);
+    rewind(f);
+    a = b = 0; str[0] = '\0';
+    r = fscanf(f, "%d %u %s", &a, &b, str);
+    fclose(f);
+    unlink("tmp_scan");
+    mu_assert("fscanf count", r == 3);
+    mu_assert("fscanf a", a == 7);
+    mu_assert("fscanf b", b == 8);
+    mu_assert("fscanf str", strcmp(str, "hi") == 0);
+
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+    write(p[1], "9 11 end", 9);
+    close(p[1]);
+    int old = stdin->fd;
+    stdin->fd = p[0];
+    a = b = 0; str[0] = '\0';
+    r = scanf("%d %u %s", &a, &b, str);
+    stdin->fd = old;
+    close(p[0]);
+    mu_assert("scanf count", r == 3);
+    mu_assert("scanf a", a == 9);
+    mu_assert("scanf b", b == 11);
+    mu_assert("scanf str", strcmp(str, "end") == 0);
+
+    return 0;
+}
+
 static const char *test_fseek_rewind(void)
 {
     FILE *f = fopen("tmp_seek", "w+");
@@ -1005,6 +1049,7 @@ static const char *all_tests(void)
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);
+    mu_run_test(test_scanf_functions);
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
     mu_run_test(test_fgets_fputs);

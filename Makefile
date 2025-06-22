@@ -58,6 +58,7 @@ SRC := \
     src/io.c \
     src/stdio.c \
     src/printf.c \
+    src/scanf.c \
     src/memory.c \
     src/memory_ops.c \
     src/atexit.c \

@@ -63,6 +63,14 @@ Compile it with the vlibc headers and library:
 cc -Iinclude hello.c libvlibc.a -o hello
 ```
 
+Parsing strings is similarly straightforward using `sscanf`:
+
+```c
+int num;
+char word[16];
+sscanf("42 example", "%d %s", &num, word);
+```
+
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
 ## Platform Support
