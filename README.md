@@ -77,6 +77,7 @@ netdb.h      - address resolution helpers
 sys/stat.h   - file status functions
 syscall.h    - raw syscall interface
 time.h       - time related helpers
+setjmp.h     - non-local jump helpers
 vlibc.h      - library initialization
 ```
 
@@ -301,3 +302,4 @@ behaves identically to `gmtime`.
   (`pthread_mutex_init`, `pthread_mutex_destroy`,
   `pthread_mutex_lock`, `pthread_mutex_unlock`) are provided.
 - Locale data is minimal: only the `"C"` and `"POSIX"` locales are supported.
+- `setjmp`/`longjmp` only work on x86_64 and do not preserve signal masks.

@@ -45,7 +45,8 @@ SRC := \
     src/getopt_long.c \
     src/locale.c \
     src/wchar.c \
-    src/math.c
+    src/math.c \
+    src/setjmp.c
 
 OBJ := $(SRC:.c=.o)
 LIB := libvlibc.a
