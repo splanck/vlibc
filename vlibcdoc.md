@@ -51,8 +51,9 @@ Public License v3.0.
 - Offer consistent behavior for statically linked or embedded programs.
 
 ### Target Platforms
-- Linux (x86_64, aarch64, armv7).
-- Other POSIX systems with minimal porting effort.
+- Linux (x86_64, aarch64, armv7) is currently the primary platform.
+- *BSD variants are planned and patches are welcome.
+- Other POSIX systems should work with minimal porting effort.
 - Lightweight containers or small research kernels implementing POSIX system
   calls.
 
@@ -631,7 +632,8 @@ state.
 
  - The I/O routines perform no buffering and provide only basic error
    reporting.
- - Process creation relies on Linux specific syscalls.
+ - Process creation currently relies on Linux-specific syscalls.
+ - BSD support is in progress and some subsystems may not compile yet.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
    codes.
  - `perror` and `strerror` cover only common errors.
