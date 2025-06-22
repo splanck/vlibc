@@ -236,6 +236,25 @@ chmod("data.txt", 0644);
 chown("data.txt", 1000, 1000);
 ```
 
+## Directory Iteration
+
+Directory traversal uses `opendir()`, `readdir()`, and `closedir()` from
+`dirent.h`. A call to `opendir()` returns a `DIR` object that holds the
+underlying file descriptor, a small buffer and the current `struct dirent`
+record. `readdir()` fills this record with the next entry and returns a
+pointer to it or `NULL` once all entries have been read.
+
+```c
+DIR *d = opendir(".");
+if (d) {
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        printf("%s\n", e->d_name);
+    }
+    closedir(d);
+}
+```
+
 ## Process Control
 
 The process module forwards common process-management calls directly to the kernel. Wrappers are available for `fork`, `execve`, `execvp`, `waitpid`, `kill`, `getpid`, `getppid`, `signal`, and `abort`. A simple `system()` convenience function is also included.
