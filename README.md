@@ -15,6 +15,9 @@ programs. Key features include:
 - Dynamic loading
 - Environment variable handling
 
+**Note**: vlibc provides only a small subset of the standard C library, and
+some functions rely on Linux-specific system calls.
+
 Build the static library with:
 
 ```sh
