@@ -297,5 +297,7 @@ behaves identically to `gmtime`.
   It does not handle complex quoting or return detailed status codes.
 - `perror` and `strerror` cover only common error codes.
 - Basic thread support is implemented using the `clone` syscall. Only
-  `pthread_create`, `pthread_join`, and simple mutexes are provided.
+  `pthread_create`, `pthread_join`, and simple mutexes
+  (`pthread_mutex_init`, `pthread_mutex_destroy`,
+  `pthread_mutex_lock`, `pthread_mutex_unlock`) are provided.
 - Locale data is minimal: only the `"C"` and `"POSIX"` locales are supported.
