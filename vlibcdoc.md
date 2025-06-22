@@ -12,6 +12,10 @@ This document outlines the architecture, planned modules, and API design for **v
 7. [Error Reporting](#error-reporting)
 8. [Threading](#threading)
 9. [Dynamic Loading](#dynamic-loading)
+10. [Errno Access](#errno-access)
+11. [File Descriptor Helpers](#file-descriptor-helpers)
+12. [I/O Multiplexing](#io-multiplexing)
+13. [Time Retrieval](#time-retrieval)
 
 ## Overview
 
@@ -338,9 +342,21 @@ const char *strerror(int errnum);
 void perror(const char *s);
 ```
 
+
 `strerror()` returns a string describing `errnum` or "Unknown error" for
 codes it does not recognize. `perror()` writes a message to `stderr`
 combining the optional prefix with the text for the current `errno`.
+
+## Errno Access
+
+The global `errno` variable stores the last failure code. The helper
+`__errno_location()` returns a pointer to this value so that macros can
+reference it directly.
+
+```c
+extern int errno;
+int *__errno_location(void);
+```
 
 ## Threading
 
@@ -452,6 +468,18 @@ if (fd >= 0) {
 }
 ```
 
+## File Descriptor Helpers
+
+Low-level descriptor routines perform simple tasks such as repositioning a file
+or duplicating handles.
+
+```c
+off_t pos = lseek(fd, 0, SEEK_SET);
+int duped = dup(fd);
+int pipefd[2];
+pipe(pipefd);
+```
+
 ## Standard Streams
 
 `stdin`, `stdout`, and `stderr` are lightweight streams wrapping file
@@ -475,6 +503,17 @@ if (getaddrinfo("localhost", "80", NULL, &ai) == 0) {
     connect(fd, ai->ai_addr, ai->ai_addrlen);
     freeaddrinfo(ai);
 }
+```
+
+## I/O Multiplexing
+
+`select` and `poll` wait for activity on multiple file descriptors.
+
+```c
+fd_set set;
+FD_ZERO(&set);
+FD_SET(fd, &set);
+select(fd + 1, &set, NULL, NULL, NULL);
 ```
 
 ## File Permissions
@@ -517,6 +556,16 @@ A minimal `strftime` supports `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S`.
 `localeconv` returns formatting information. `gmtime`, `localtime`,
 `mktime`, and `ctime` convert between `time_t` and `struct tm` or human
 readable strings.
+
+## Time Retrieval
+
+Use `time` or `gettimeofday` to obtain the current time of day.
+
+```c
+time_t now = time(NULL);
+struct timeval tv;
+gettimeofday(&tv, NULL);
+```
 
 ## Sleep Functions
 
