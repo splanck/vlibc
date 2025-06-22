@@ -17,7 +17,6 @@ Install the headers and library system-wide with:
 make install PREFIX=/usr/local
 ```
 
-See [docs/overview.md](docs/overview.md) for additional build notes and
-[docs/architecture.md](docs/architecture.md) for design details. A complete
-API reference is available in [vlibcdoc.md](vlibcdoc.md).
+For a comprehensive guide covering build notes, architectural details and the
+full API reference, see [vlibcdoc.md](vlibcdoc.md).
 
