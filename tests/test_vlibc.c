@@ -576,6 +576,54 @@ static const char *test_scanf_functions(void)
     return 0;
 }
 
+static int call_vsscanf(const char *buf, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    int r = vsscanf(buf, fmt, ap);
+    va_end(ap);
+    return r;
+}
+
+static int call_vfscanf(FILE *f, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    int r = vfscanf(f, fmt, ap);
+    va_end(ap);
+    return r;
+}
+
+static const char *test_vscanf_variants(void)
+{
+    vlibc_init();
+
+    int a = 0;
+    unsigned b = 0;
+    char str[16] = {0};
+
+    int r = call_vsscanf("4 5 buf", "%d %u %s", &a, &b, str);
+    mu_assert("vsscanf count", r == 3);
+    mu_assert("vsscanf a", a == 4);
+    mu_assert("vsscanf b", b == 5);
+    mu_assert("vsscanf str", strcmp(str, "buf") == 0);
+
+    FILE *f = fopen("tmp_vscan", "w+");
+    mu_assert("vfopen", f != NULL);
+    fputs("6 7 file", f);
+    rewind(f);
+    a = b = 0; str[0] = '\0';
+    r = call_vfscanf(f, "%d %u %s", &a, &b, str);
+    fclose(f);
+    unlink("tmp_vscan");
+    mu_assert("vfscanf count", r == 3);
+    mu_assert("vfscanf a", a == 6);
+    mu_assert("vfscanf b", b == 7);
+    mu_assert("vfscanf str", strcmp(str, "file") == 0);
+
+    return 0;
+}
+
 static const char *test_fseek_rewind(void)
 {
     FILE *f = fopen("tmp_seek", "w+");
@@ -1182,6 +1230,7 @@ static const char *all_tests(void)
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);
     mu_run_test(test_scanf_functions);
+    mu_run_test(test_vscanf_variants);
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
     mu_run_test(test_fgets_fputs);

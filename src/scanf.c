@@ -69,6 +69,11 @@ static int vsscanf_impl(const char *str, const char *fmt, va_list ap)
     return count;
 }
 
+int vsscanf(const char *str, const char *format, va_list ap)
+{
+    return vsscanf_impl(str, format, ap);
+}
+
 int sscanf(const char *str, const char *format, ...)
 {
     va_list ap;
@@ -92,6 +97,11 @@ static int vfscanf_impl(FILE *stream, const char *format, va_list ap)
     return vsscanf_impl(buf, format, ap);
 }
 
+int vfscanf(FILE *stream, const char *format, va_list ap)
+{
+    return vfscanf_impl(stream, format, ap);
+}
+
 int fscanf(FILE *stream, const char *format, ...)
 {
     va_list ap;
@@ -108,4 +118,9 @@ int scanf(const char *format, ...)
     int r = vfscanf_impl(stdin, format, ap);
     va_end(ap);
     return r;
+}
+
+int vscanf(const char *format, va_list ap)
+{
+    return vfscanf_impl(stdin, format, ap);
 }
