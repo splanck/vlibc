@@ -313,7 +313,7 @@ behaves identically to `gmtime`.
 
 ## Limitations
 
-- The I/O routines (`open`, `read`, `write`, `close`, `unlink`, `rename`, `mkdir`, `rmdir`) are thin wrappers around
+- The I/O routines (`open`, `read`, `write`, `close`, `unlink`, `rename`, `link`, `mkdir`, `rmdir`) are thin wrappers around
   the corresponding system calls. They perform no buffering and provide only
   basic error reporting.
 - Process creation and signal functions rely on Linux `fork`, `execve`,

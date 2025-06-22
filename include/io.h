@@ -13,6 +13,7 @@ int dup2(int oldfd, int newfd);
 int pipe(int pipefd[2]);
 int unlink(const char *pathname);
 int rename(const char *oldpath, const char *newpath);
+int link(const char *oldpath, const char *newpath);
 int mkdir(const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
 

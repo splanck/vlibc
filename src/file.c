@@ -29,3 +29,15 @@ int rename(const char *oldpath, const char *newpath)
     }
     return (int)ret;
 }
+
+int link(const char *oldpath, const char *newpath)
+{
+    long ret =
+        vlibc_syscall(SYS_linkat, AT_FDCWD, (long)oldpath, AT_FDCWD,
+                      (long)newpath, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+}

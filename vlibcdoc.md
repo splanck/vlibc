@@ -107,6 +107,7 @@ ssize_t write(int fd, const void *buf, size_t count);
 int close(int fd);
 int unlink(const char *pathname);
 int rename(const char *oldpath, const char *newpath);
+int link(const char *oldpath, const char *newpath);
 int mkdir(const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
 ```

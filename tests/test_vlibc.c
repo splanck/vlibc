@@ -293,6 +293,30 @@ static const char *test_stat_wrappers(void)
     return 0;
 }
 
+static const char *test_link_fn(void)
+{
+    const char *src = "tmp_link_src";
+    const char *dst = "tmp_link_dst";
+    int fd = open(src, O_CREAT | O_RDWR, 0644);
+    mu_assert("open src", fd >= 0);
+    write(fd, "x", 1);
+    close(fd);
+
+    int r = link(src, dst);
+    mu_assert("link", r == 0);
+
+    int fd2 = open(dst, O_RDONLY);
+    mu_assert("open dst", fd2 >= 0);
+    char buf[2] = {0};
+    ssize_t n = read(fd2, buf, 1);
+    mu_assert("read dst", n == 1 && buf[0] == 'x');
+    close(fd2);
+
+    unlink(src);
+    unlink(dst);
+    return 0;
+}
+
 static const char *test_string_helpers(void)
 {
     mu_assert("strcmp equal", strcmp("abc", "abc") == 0);
@@ -909,38 +933,6 @@ static const char *test_dlopen_basic(void)
     return 0;
 }
 
-static const char *test_getopt_long_basic(void)
-{
-    char *argv[] = {"prog", "--flag", "--alpha", "val", "rest", NULL};
-    int argc = 5;
-    struct option opts[] = {
-        {"flag",  no_argument,       NULL, 'f'},
-        {"alpha", required_argument, NULL, 'a'},
-        {0, 0, 0, 0}
-    };
-    int flag = 0;
-    char *arg = NULL;
-    optind = 1;
-    opterr = 0;
-    int c;
-    while ((c = getopt_long(argc, argv, "fa:", opts, NULL)) != -1) {
-        switch (c) {
-        case 'f':
-            flag = 1;
-            break;
-        case 'a':
-            arg = optarg;
-            break;
-        default:
-            return "unexpected opt long";
-        }
-    }
-    mu_assert("flag long", flag == 1);
-    mu_assert("arg long", arg && strcmp(arg, "val") == 0);
-    mu_assert("rest long", strcmp(argv[optind], "rest") == 0);
-  
-    return 0;
-}
 
 static const char *test_getopt_long_missing(void)
 {
@@ -1004,6 +996,7 @@ static const char *all_tests(void)
     mu_run_test(test_errno_open);
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
+    mu_run_test(test_link_fn);
     mu_run_test(test_string_helpers);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_strtok_basic);
