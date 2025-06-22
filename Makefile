@@ -42,6 +42,14 @@ else ifeq ($(TARGET_OS),Windows_NT)
 SYS_SRC := src/arch/win32/syscall.c
 endif
 
+# Use the system implementations of select(2) and poll(2) on the BSD
+# family. These wrappers are only needed on Linux where direct
+# syscalls are issued.
+SELECT_SRC := src/select.c
+ifneq (,$(filter $(TARGET_OS),FreeBSD NetBSD OpenBSD DragonFly))
+SELECT_SRC :=
+endif
+
 SRC := \
     src/errno.c \
     src/error.c \
@@ -78,7 +86,7 @@ SRC := \
     src/default_shell.c \
     src/popen.c \
     src/ctype.c \
-    src/select.c \
+    $(SELECT_SRC) \
     src/qsort.c \
     src/getopt.c \
     src/dlfcn.c \

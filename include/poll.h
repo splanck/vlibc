@@ -18,6 +18,11 @@ struct pollfd {
 #define POLLHUP 0x0010
 #define POLLNVAL 0x0020
 
+/*
+ * Wait for events on multiple file descriptors. On BSD systems this
+ * wrapper delegates to the host C library's poll(2) instead of issuing a
+ * raw system call which may have different semantics.
+ */
 int poll(struct pollfd *fds, nfds_t nfds, int timeout);
 
 #endif /* POLL_H */

@@ -1,3 +1,8 @@
+/*
+ * Linux wrappers for select(2) and poll(2) using raw syscalls. On BSD the
+ * build relies on the system C library versions instead.
+ */
+
 #include "sys/select.h"
 #include "time.h"
 #include "errno.h"

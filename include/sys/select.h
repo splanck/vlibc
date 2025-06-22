@@ -21,7 +21,11 @@ typedef struct {
 #define FD_CLR(fd, set) ((set)->fds_bits[(fd) / (8 * sizeof(unsigned long))] &= ~(1UL << ((fd) % (8 * sizeof(unsigned long)))))
 #define FD_ISSET(fd, set) (((set)->fds_bits[(fd) / (8 * sizeof(unsigned long))] >> ((fd) % (8 * sizeof(unsigned long)))) & 1UL)
 
-/* wrapper */
+/*
+ * Wait for activity on file descriptors. On BSD targets this function
+ * simply calls the C library's select(2) as the raw syscall interface may
+ * differ.
+ */
 int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
            struct timeval *timeout);
 
