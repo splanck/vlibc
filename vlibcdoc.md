@@ -127,6 +127,25 @@ result is identical to `gmtime`.
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
+## Character Classification
+
+Character checks live in [include/ctype.h](include/ctype.h).  The macros
+operate on a small table of 128 entries, so only the standard ASCII
+characters are recognized.
+
+- `isalpha(c)`  – non-zero for letters `A`–`Z` or `a`–`z`.
+- `isdigit(c)`  – non-zero for decimal digits `0`–`9`.
+- `isalnum(c)`  – true when `isalpha(c)` or `isdigit(c)` is true.
+- `isspace(c)`  – tests for whitespace characters such as space or tab.
+- `isupper(c)`  – non-zero for uppercase letters.
+- `islower(c)`  – non-zero for lowercase letters.
+- `isxdigit(c)` – true for hexadecimal digits.
+- `tolower(c)`  – converts an uppercase letter to lowercase.
+- `toupper(c)`  – converts a lowercase letter to uppercase.
+
+Values outside the ASCII range always fail the classification tests and are
+returned unchanged by `tolower` and `toupper`.
+
 ## Option Parsing
 
 Command-line arguments can be processed with `getopt` or `getopt_long`. The
