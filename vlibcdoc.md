@@ -470,6 +470,10 @@ pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 pid_t getpid(void);
 pid_t getppid(void);
+int setpgid(pid_t pid, pid_t pgid);
+pid_t getpgid(pid_t pid);
+pid_t setsid(void);
+pid_t getsid(pid_t pid);
 sighandler_t signal(int signum, sighandler_t handler);
 uid_t getuid(void);
 uid_t geteuid(void);
@@ -486,7 +490,8 @@ void exit(int status);
 
 These wrappers retrieve and manipulate process information. `getuid`,
 `geteuid`, `getgid`, and `getegid` return the real and effective user and
-group IDs.
+group IDs. `setpgid` and `getpgid` manage process groups, while `setsid`
+and `getsid` work with session IDs.
 
 ### Example
 

@@ -230,6 +230,90 @@ pid_t getppid(void)
     return (pid_t)ret;
 }
 
+int setpgid(pid_t pid, pid_t pgid)
+{
+#ifdef SYS_setpgid
+    long ret = vlibc_syscall(SYS_setpgid, pid, pgid, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_setpgid(pid_t, pid_t) __asm__("setpgid");
+    return host_setpgid(pid, pgid);
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
+}
+
+pid_t getpgid(pid_t pid)
+{
+#ifdef SYS_getpgid
+    long ret = vlibc_syscall(SYS_getpgid, pid, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (pid_t)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern pid_t host_getpgid(pid_t) __asm__("getpgid");
+    return host_getpgid(pid);
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
+}
+
+pid_t setsid(void)
+{
+#ifdef SYS_setsid
+    long ret = vlibc_syscall(SYS_setsid, 0, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (pid_t)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern pid_t host_setsid(void) __asm__("setsid");
+    return host_setsid();
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
+}
+
+pid_t getsid(pid_t pid)
+{
+#ifdef SYS_getsid
+    long ret = vlibc_syscall(SYS_getsid, pid, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (pid_t)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern pid_t host_getsid(pid_t) __asm__("getsid");
+    return host_getsid(pid);
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
+}
+
 
 void _exit(int status)
 {
