@@ -50,6 +50,7 @@ This document outlines the architecture, planned modules, and API design for **v
 44. [Logging](#logging)
 45. [Path Expansion](#path-expansion)
 46. [Filesystem Statistics](#filesystem-statistics)
+47. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -1090,6 +1091,20 @@ returns the remaining time and interval.
 ```c
 struct itimerval it = { {1, 0}, {1, 0} };
 setitimer(ITIMER_REAL, &it, NULL);
+```
+
+## Resource Limits
+
+Processes may query and update operating system limits using
+`getrlimit` and `setrlimit` from `sys/resource.h`.
+
+```c
+struct rlimit lim;
+if (getrlimit(RLIMIT_NOFILE, &lim) == 0) {
+    printf("soft: %lu hard: %lu\n",
+           (unsigned long)lim.rlim_cur,
+           (unsigned long)lim.rlim_max);
+}
 ```
 
 ## Logging
