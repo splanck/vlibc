@@ -254,6 +254,8 @@ The **string** module provides fundamental operations needed by most C programs:
   requested. `localeconv` exposes formatting data. All strings are treated as
   byte sequences.
 - Utility functions for tokenizing and simple formatting.
+- `printf` style routines understand `%d`, `%u`, `%s`, `%x`, `%X`, `%o`, `%p`,
+  and `%c` with basic field width and precision handling.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
   delimiter characters. `strtok` stores its parsing state in static
   memory and is not thread-safe. `strtok_r` lets the caller maintain the

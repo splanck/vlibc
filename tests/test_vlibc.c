@@ -573,10 +573,23 @@ static const char *test_strtok_r_basic(void)
 
 static const char *test_printf_functions(void)
 {
-    char buf[32];
+    char buf[64];
     int n = snprintf(buf, sizeof(buf), "v=%d %s", 42, "ok");
     mu_assert("snprintf len", n == (int)strlen("v=42 ok"));
     mu_assert("snprintf buf", strcmp(buf, "v=42 ok") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%X %o %c", 0x2B, 10, 'A');
+    mu_assert("hex/oct/char", strcmp(buf, "2B 12 A") == 0);
+
+    int x = 0;
+    n = snprintf(buf, sizeof(buf), "%p", &x);
+    mu_assert("pointer prefix", strncmp(buf, "0x", 2) == 0);
+
+    n = snprintf(buf, sizeof(buf), "[%5x]", 1);
+    mu_assert("field width", strcmp(buf, "[    1]") == 0);
+
+    n = snprintf(buf, sizeof(buf), "[%.4x]", 3);
+    mu_assert("precision", strcmp(buf, "[0003]") == 0);
 
     FILE *f = fopen("tmp_pf", "w");
     mu_assert("fopen failed", f != NULL);
