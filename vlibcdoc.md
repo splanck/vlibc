@@ -14,31 +14,32 @@ This document outlines the architecture, planned modules, and API design for **v
 8. [Option Parsing](#option-parsing)
 9. [Random Numbers](#random-numbers)
 10. [Sorting Helpers](#sorting-helpers)
-11. [Math Functions](#math-functions)
-12. [Process Control](#process-control)
-13. [Error Reporting](#error-reporting)
-14. [Errno Access](#errno-access)
-15. [Threading](#threading)
-16. [Dynamic Loading](#dynamic-loading)
-17. [Environment Variables](#environment-variables)
-18. [Basic File I/O](#basic-file-io)
-19. [File Descriptor Helpers](#file-descriptor-helpers)
-20. [Standard Streams](#standard-streams)
-21. [Temporary Files](#temporary-files)
-22. [Networking](#networking)
-23. [I/O Multiplexing](#io-multiplexing)
-24. [File Permissions](#file-permissions)
-25. [File Status](#file-status)
-26. [Directory Iteration](#directory-iteration)
-27. [Path Canonicalization](#path-canonicalization)
-28. [Time Formatting](#time-formatting)
-29. [Locale Support](#locale-support)
-30. [Time Retrieval](#time-retrieval)
-31. [Sleep Functions](#sleep-functions)
-32. [Raw System Calls](#raw-system-calls)
-33. [Non-local Jumps](#non-local-jumps)
-34. [Limitations](#limitations)
-35. [Conclusion](#conclusion)
+11. [Regular Expressions](#regular-expressions)
+12. [Math Functions](#math-functions)
+13. [Process Control](#process-control)
+14. [Error Reporting](#error-reporting)
+15. [Errno Access](#errno-access)
+16. [Threading](#threading)
+17. [Dynamic Loading](#dynamic-loading)
+18. [Environment Variables](#environment-variables)
+19. [Basic File I/O](#basic-file-io)
+20. [File Descriptor Helpers](#file-descriptor-helpers)
+21. [Standard Streams](#standard-streams)
+22. [Temporary Files](#temporary-files)
+23. [Networking](#networking)
+24. [I/O Multiplexing](#io-multiplexing)
+25. [File Permissions](#file-permissions)
+26. [File Status](#file-status)
+27. [Directory Iteration](#directory-iteration)
+28. [Path Canonicalization](#path-canonicalization)
+29. [Time Formatting](#time-formatting)
+30. [Locale Support](#locale-support)
+31. [Time Retrieval](#time-retrieval)
+32. [Sleep Functions](#sleep-functions)
+33. [Raw System Calls](#raw-system-calls)
+34. [Non-local Jumps](#non-local-jumps)
+35. [Limitations](#limitations)
+36. [Conclusion](#conclusion)
 
 ## Overview
 
@@ -160,6 +161,7 @@ setjmp.h     - non-local jump helpers
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
+regex.h     - simple regular expression matching
 sys/file.h   - file permission helpers
 sys/mman.h   - memory mapping helpers
 sys/select.h - fd_set macros and select wrapper
@@ -314,6 +316,25 @@ qsort(values, 3, sizeof(int), cmp_int);
 int key = 7;
 int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
 ```
+
+## Regular Expressions
+
+The `regex` module offers a lightweight matcher covering a small
+subset of POSIX expressions.  Patterns are compiled with `regcomp`
+and executed using `regexec`.
+
+```c
+regex_t re;
+regcomp(&re, "h.*o", 0);
+if (regexec(&re, "hello", 0, NULL, 0) == 0) {
+    /* matched */
+}
+regfree(&re);
+```
+
+Only simple features are implemented: `.` matches any character,
+`*`, `+` and `?` provide repetition, `[]` defines character classes
+and `^`/`$` anchor to the start or end of the string.
 
 ## Math Functions
 
@@ -731,6 +752,8 @@ state.
    than `"C"` or `"POSIX"`.
  - `setjmp`/`longjmp` rely on the host C library when available.
    Only an x86_64 fallback implementation is provided.
+ - Regular expressions cover only a subset of POSIX syntax and do not
+   implement advanced constructs like backreferences.
 
 ## Conclusion
 
