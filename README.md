@@ -11,6 +11,7 @@ programs. Key features include:
 - File I/O wrappers
 - Permission checks with `access()` and `faccessat()`
 - Process creation and control
+- Basic session and process-group APIs
 - Threading primitives and simple read-write locks
 - Thread-local storage helpers
 - Networking sockets
@@ -21,8 +22,10 @@ programs. Key features include:
 - Directory scanning helpers
 - Standard `assert` macro for runtime checks
 - Extended math helpers
+- Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Large-file aware seeks
 - Simple alarm timers with `alarm()`
+- Basic character set conversion with `iconv`
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD

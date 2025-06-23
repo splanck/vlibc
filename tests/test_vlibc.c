@@ -23,6 +23,7 @@
 #include "../include/stdlib.h"
 #include "../include/wchar.h"
 #include "../include/wctype.h"
+#include "../include/iconv.h"
 #include "../include/env.h"
 #include "../include/sys/utsname.h"
 #include "../include/pwd.h"
@@ -772,6 +773,39 @@ static const char *test_wctype_checks(void)
     return 0;
 }
 
+static const char *test_iconv_ascii_roundtrip(void)
+{
+    iconv_t cd = iconv_open("UTF-8", "ASCII");
+    mu_assert("iconv open", cd != (iconv_t)-1);
+    char inbuf[] = "abc";
+    char *in = inbuf;
+    size_t inleft = 3;
+    char out[8] = {0};
+    char *outp = out;
+    size_t outleft = sizeof(out);
+    size_t r = iconv(cd, &in, &inleft, &outp, &outleft);
+    mu_assert("iconv ok", r != (size_t)-1 && strcmp(out, "abc") == 0);
+    mu_assert("iconv all consumed", inleft == 0);
+    iconv_close(cd);
+    return 0;
+}
+
+static const char *test_iconv_invalid_byte(void)
+{
+    iconv_t cd = iconv_open("ASCII", "UTF-8");
+    mu_assert("iconv open2", cd != (iconv_t)-1);
+    char in[2] = { (char)0xC3, (char)0x81 }; /* \xC3\x81 = U+00C1 */
+    char *pin = in;
+    size_t inleft = 2;
+    char out[4];
+    char *pout = out;
+    size_t outleft = sizeof(out);
+    size_t r = iconv(cd, &pin, &inleft, &pout, &outleft);
+    mu_assert("iconv bad", r == (size_t)-1);
+    iconv_close(cd);
+    return 0;
+}
+
 static const char *test_strtok_basic(void)
 {
     char buf[] = "a,b,c";
@@ -859,6 +893,46 @@ static const char *test_printf_functions(void)
     mu_assert("fprintf content", strncmp(rbuf, "num=7", 5) == 0);
 
     printf("printf check %u\n", 123u);
+
+    return 0;
+}
+
+static int call_vdprintf(int fd, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    int r = vdprintf(fd, fmt, ap);
+    va_end(ap);
+    return r;
+}
+
+static const char *test_dprintf_functions(void)
+{
+    int fd = open("tmp_dpr", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    mu_assert("open dprintf", fd >= 0);
+    dprintf(fd, "val=%d", 5);
+    close(fd);
+
+    char buf[16] = {0};
+    fd = open("tmp_dpr", O_RDONLY);
+    ssize_t r = read(fd, buf, sizeof(buf) - 1);
+    close(fd);
+    unlink("tmp_dpr");
+    mu_assert("dprintf read", r > 0);
+    mu_assert("dprintf content", strcmp(buf, "val=5") == 0);
+
+    fd = open("tmp_vdpr", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    mu_assert("open vdprintf", fd >= 0);
+    call_vdprintf(fd, "num=%u", 10u);
+    close(fd);
+
+    char buf2[16] = {0};
+    fd = open("tmp_vdpr", O_RDONLY);
+    r = read(fd, buf2, sizeof(buf2) - 1);
+    close(fd);
+    unlink("tmp_vdpr");
+    mu_assert("vdprintf read", r > 0);
+    mu_assert("vdprintf content", strcmp(buf2, "num=10") == 0);
 
     return 0;
 }
@@ -973,6 +1047,7 @@ static int call_vfscanf(FILE *f, const char *fmt, ...)
     va_end(ap);
     return r;
 }
+
 
 static const char *test_vscanf_variants(void)
 {
@@ -2264,10 +2339,13 @@ static const char *all_tests(void)
     mu_run_test(test_widechar_conv);
     mu_run_test(test_widechar_width);
     mu_run_test(test_wctype_checks);
+    mu_run_test(test_iconv_ascii_roundtrip);
+    mu_run_test(test_iconv_invalid_byte);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_strsep_basic);
     mu_run_test(test_printf_functions);
+    mu_run_test(test_dprintf_functions);
     mu_run_test(test_scanf_functions);
     mu_run_test(test_vscanf_variants);
     mu_run_test(test_fseek_rewind);

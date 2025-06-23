@@ -176,6 +176,7 @@ setjmp.h     - non-local jump helpers
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
+iconv.h      - character set conversion helpers
 regex.h     - simple regular expression matching
 termios.h   - terminal attribute helpers
 unistd.h    - POSIX I/O and process helpers
@@ -336,6 +337,15 @@ int c = wcwidth(L'A');               // 1
 int w = wcswidth(L"hello", 5);      // 5
 ```
 
+### Character Set Conversion
+
+`iconv_open` returns a descriptor for translating between character
+sets.  vlibc understands only conversions between `"ASCII"` and
+`"UTF-8"`.  The `iconv` function copies bytes from the input buffer to
+the output buffer and fails with `EILSEQ` on bytes that cannot be
+represented.  On BSD systems other conversions are delegated to the
+host `iconv` implementation when present.
+
 ## Character Classification
 
 Character checks live in [include/ctype.h](include/ctype.h).  The macros
@@ -470,11 +480,19 @@ pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 pid_t getpid(void);
 pid_t getppid(void);
+int setpgid(pid_t pid, pid_t pgid);
+pid_t getpgid(pid_t pid);
+pid_t setsid(void);
+pid_t getsid(pid_t pid);
 sighandler_t signal(int signum, sighandler_t handler);
 uid_t getuid(void);
 uid_t geteuid(void);
 gid_t getgid(void);
 gid_t getegid(void);
+int setuid(uid_t uid);
+int seteuid(uid_t euid);
+int setgid(gid_t gid);
+int setegid(gid_t egid);
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 int system(const char *command);
@@ -486,7 +504,8 @@ void exit(int status);
 
 These wrappers retrieve and manipulate process information. `getuid`,
 `geteuid`, `getgid`, and `getegid` return the real and effective user and
-group IDs.
+group IDs. `setuid`, `seteuid`, `setgid`, and `setegid` modify them when
+supported by the host.
 
 ### Example
 
@@ -805,7 +824,7 @@ if (tcgetattr(STDIN_FILENO, &t) == 0) {
 descriptors 0, 1 and 2. They can be used with the provided `fread`,
 `fwrite`, `fseek`, `ftell`, `fseeko`, `ftello`, `rewind`, `fgetc`, `fputc`, `ungetc`, `fgets`,
 `fputs`, `sprintf`, `snprintf`, `asprintf`, `vasprintf`, `vsprintf`,
-`vsnprintf`, `fprintf`, `vfprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
+`vsnprintf`, `fprintf`, `vfprintf`, `dprintf`, `vdprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
 `sscanf`, `fscanf`, `scanf`, `getline`, and `getdelim` helpers.  Query
 stream state with `feof`, `ferror`, and `clearerr`, obtain the descriptor
 number via `fileno`, or wrap an existing descriptor with `fdopen`.

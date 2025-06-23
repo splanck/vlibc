@@ -58,6 +58,8 @@ int snprintf(char *str, size_t size, const char *format, ...);
 int sprintf(char *str, const char *format, ...);
 int asprintf(char **strp, const char *format, ...);
 int vasprintf(char **strp, const char *format, va_list ap);
+int dprintf(int fd, const char *format, ...);
+int vdprintf(int fd, const char *format, va_list ap);
 int vprintf(const char *format, va_list ap);
 int vfprintf(FILE *stream, const char *format, va_list ap);
 int vsnprintf(char *str, size_t size, const char *format, va_list ap);
