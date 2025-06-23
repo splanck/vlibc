@@ -167,6 +167,7 @@ stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
 regex.h     - simple regular expression matching
+unistd.h    - POSIX I/O and process helpers
 sys/file.h   - file permission helpers
 sys/mman.h   - memory mapping helpers
 sys/select.h - fd_set macros and select wrapper
