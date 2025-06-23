@@ -20,6 +20,7 @@ programs. Key features include:
 - Syslog-style logging
 - Directory scanning helpers
 - Extended math helpers
+- Descriptor-based printing with `dprintf()`/`vdprintf()`
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD
