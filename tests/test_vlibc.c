@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <sys/resource.h>
 #include "../include/time.h"
 #include "../include/sys/mman.h"
 
@@ -569,6 +570,51 @@ static const char *test_printf_functions(void)
 
     printf("printf check %u\n", 123u);
 
+    return 0;
+}
+
+static const char *test_asprintf_success(void)
+{
+    char *buf = NULL;
+    int n = asprintf(&buf, "val=%d %s", 10, "ok");
+    mu_assert("asprintf ret", n == (int)strlen("val=10 ok"));
+    mu_assert("asprintf buf", buf && strcmp(buf, "val=10 ok") == 0);
+    free(buf);
+    return 0;
+}
+
+static int call_vasprintf(char **out, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    int r = vasprintf(out, fmt, ap);
+    va_end(ap);
+    return r;
+}
+
+static const char *test_vasprintf_success(void)
+{
+    char *buf = NULL;
+    int n = call_vasprintf(&buf, "num=%d %s", 5, "five");
+    mu_assert("vasprintf ret", n == (int)strlen("num=5 five"));
+    mu_assert("vasprintf buf", buf && strcmp(buf, "num=5 five") == 0);
+    free(buf);
+    return 0;
+}
+
+static const char *test_asprintf_oom(void)
+{
+    struct rlimit old;
+    getrlimit(RLIMIT_AS, &old);
+    struct rlimit rl = {1024 * 1024, old.rlim_max};
+    mu_assert("setrlimit", setrlimit(RLIMIT_AS, &rl) == 0);
+    char *buf = NULL;
+    errno = 0;
+    int r = asprintf(&buf, "%s", "oom");
+    int err = errno;
+    rl.rlim_cur = old.rlim_cur;
+    setrlimit(RLIMIT_AS, &rl);
+    mu_assert("asprintf oom", r == -1 && buf == NULL && err == ENOMEM);
     return 0;
 }
 
@@ -1445,6 +1491,9 @@ static const char *all_tests(void)
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);
+    mu_run_test(test_asprintf_success);
+    mu_run_test(test_vasprintf_success);
+    mu_run_test(test_asprintf_oom);
     mu_run_test(test_scanf_functions);
     mu_run_test(test_vscanf_variants);
     mu_run_test(test_fseek_rewind);

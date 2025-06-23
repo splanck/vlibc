@@ -2,6 +2,8 @@
 #include "io.h"
 #include <stdarg.h>
 #include <string.h>
+#include "memory.h"
+#include "errno.h"
 
 static int uint_to_str(unsigned int value, char *buf, size_t size)
 {
@@ -149,6 +151,54 @@ int printf(const char *format, ...)
     va_list ap;
     va_start(ap, format);
     int r = vprintf(format, ap);
+    va_end(ap);
+    return r;
+}
+
+int vasprintf(char **strp, const char *fmt, va_list ap)
+{
+    if (!strp || !fmt) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    size_t size = 64;
+    char *buf = malloc(size);
+    if (!buf) {
+        errno = ENOMEM;
+        return -1;
+    }
+
+    for (;;) {
+        va_list aq;
+        va_copy(aq, ap);
+        int n = vsnprintf(buf, size, fmt, aq);
+        va_end(aq);
+        if (n < 0) {
+            free(buf);
+            errno = EINVAL;
+            return -1;
+        }
+        if ((size_t)n < size) {
+            *strp = buf;
+            return n;
+        }
+        size = (size_t)n + 1;
+        char *tmp = realloc(buf, size);
+        if (!tmp) {
+            free(buf);
+            errno = ENOMEM;
+            return -1;
+        }
+        buf = tmp;
+    }
+}
+
+int asprintf(char **strp, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    int r = vasprintf(strp, fmt, ap);
     va_end(ap);
     return r;
 }
