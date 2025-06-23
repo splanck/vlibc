@@ -40,13 +40,14 @@ This document outlines the architecture, planned modules, and API design for **v
 34. [Locale Support](#locale-support)
 35. [Time Retrieval](#time-retrieval)
 36. [Sleep Functions](#sleep-functions)
-37. [Raw System Calls](#raw-system-calls)
-38. [Non-local Jumps](#non-local-jumps)
-39. [Limitations](#limitations)
-40. [Conclusion](#conclusion)
-41. [Logging](#logging)
-42. [Path Expansion](#path-expansion)
-43. [Filesystem Statistics](#filesystem-statistics)
+37. [Interval Timers](#interval-timers)
+38. [Raw System Calls](#raw-system-calls)
+39. [Non-local Jumps](#non-local-jumps)
+40. [Limitations](#limitations)
+41. [Conclusion](#conclusion)
+42. [Logging](#logging)
+43. [Path Expansion](#path-expansion)
+44. [Filesystem Statistics](#filesystem-statistics)
 
 ## Overview
 
@@ -999,6 +1000,16 @@ Delay helpers are available in `time.h`:
 unsigned sleep(unsigned seconds);
 int usleep(useconds_t usec);
 int nanosleep(const struct timespec *req, struct timespec *rem);
+```
+
+## Interval Timers
+
+`setitimer` schedules periodic `SIGALRM` delivery or CPU timers. `getitimer`
+returns the remaining time and interval.
+
+```c
+struct itimerval it = { {1, 0}, {1, 0} };
+setitimer(ITIMER_REAL, &it, NULL);
 ```
 
 ## Logging

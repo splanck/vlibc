@@ -24,6 +24,21 @@ struct timeval {
 };
 #endif
 
+struct itimerval {
+    struct timeval it_interval; /* timer period */
+    struct timeval it_value;    /* time until next expiration */
+};
+
+#ifndef ITIMER_REAL
+#define ITIMER_REAL    0
+#endif
+#ifndef ITIMER_VIRTUAL
+#define ITIMER_VIRTUAL 1
+#endif
+#ifndef ITIMER_PROF
+#define ITIMER_PROF    2
+#endif
+
 struct tm {
     int tm_sec;   /* seconds [0,60] */
     int tm_min;   /* minutes [0,59] */
@@ -52,6 +67,10 @@ int gettimeofday(struct timeval *tv, void *tz);
 unsigned sleep(unsigned seconds);
 int usleep(useconds_t usec);
 int nanosleep(const struct timespec *req, struct timespec *rem);
+
+int setitimer(int which, const struct itimerval *new,
+              struct itimerval *old);
+int getitimer(int which, struct itimerval *curr);
 
 size_t strftime(char *s, size_t max, const char *format, const struct tm *tm);
 char *strptime(const char *s, const char *format, struct tm *tm);
