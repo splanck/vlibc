@@ -24,30 +24,31 @@ This document outlines the architecture, planned modules, and API design for **v
 18. [Environment Variables](#environment-variables)
 19. [Basic File I/O](#basic-file-io)
 20. [File Descriptor Helpers](#file-descriptor-helpers)
-21. [Terminal Attributes](#terminal-attributes)
-22. [Standard Streams](#standard-streams)
-23. [Temporary Files](#temporary-files)
-24. [Networking](#networking)
-25. [I/O Multiplexing](#io-multiplexing)
-26. [File Permissions](#file-permissions)
-27. [File Status](#file-status)
-28. [Directory Iteration](#directory-iteration)
-29. [Path Canonicalization](#path-canonicalization)
-30. [Path Utilities](#path-utilities)
-31. [User Database](#user-database)
-32. [Group Database](#group-database)
-33. [Time Formatting](#time-formatting)
-34. [Locale Support](#locale-support)
-35. [Time Retrieval](#time-retrieval)
-36. [Sleep Functions](#sleep-functions)
-37. [Interval Timers](#interval-timers)
-38. [Raw System Calls](#raw-system-calls)
-39. [Non-local Jumps](#non-local-jumps)
-40. [Limitations](#limitations)
-41. [Conclusion](#conclusion)
-42. [Logging](#logging)
-43. [Path Expansion](#path-expansion)
-44. [Filesystem Statistics](#filesystem-statistics)
+21. [File Control](#file-control)
+22. [Terminal Attributes](#terminal-attributes)
+23. [Standard Streams](#standard-streams)
+24. [Temporary Files](#temporary-files)
+25. [Networking](#networking)
+26. [I/O Multiplexing](#io-multiplexing)
+27. [File Permissions](#file-permissions)
+28. [File Status](#file-status)
+29. [Directory Iteration](#directory-iteration)
+30. [Path Canonicalization](#path-canonicalization)
+31. [Path Utilities](#path-utilities)
+32. [User Database](#user-database)
+33. [Group Database](#group-database)
+34. [Time Formatting](#time-formatting)
+35. [Locale Support](#locale-support)
+36. [Time Retrieval](#time-retrieval)
+37. [Sleep Functions](#sleep-functions)
+38. [Interval Timers](#interval-timers)
+39. [Raw System Calls](#raw-system-calls)
+40. [Non-local Jumps](#non-local-jumps)
+41. [Limitations](#limitations)
+42. [Conclusion](#conclusion)
+43. [Logging](#logging)
+44. [Path Expansion](#path-expansion)
+45. [Filesystem Statistics](#filesystem-statistics)
 
 ## Overview
 
@@ -693,6 +694,17 @@ pipe(pipefd);
 ```
 
 Use `isatty(fd)` to query whether a descriptor refers to a terminal.
+
+## File Control
+
+`fcntl` adjusts descriptor flags such as `FD_CLOEXEC` or toggles
+non-blocking mode:
+
+```c
+int fl = fcntl(fd, F_GETFL);
+fcntl(fd, F_SETFL, fl | O_NONBLOCK);
+fcntl(fd, F_SETFD, FD_CLOEXEC);
+```
 
 ## Terminal Attributes
 
