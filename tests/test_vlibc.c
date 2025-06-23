@@ -24,6 +24,7 @@
 #include "../include/env.h"
 #include "../include/process.h"
 #include "../include/getopt.h"
+#include "../include/math.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -1125,6 +1126,17 @@ static const char *test_qsort_strings(void)
     return 0;
 }
 
+static const char *test_math_functions(void)
+{
+    mu_assert("fabs", fabs(-3.5) == 3.5);
+    mu_assert("floor", floor(2.7) == 2.0);
+    mu_assert("ceil", ceil(2.3) == 3.0);
+    double l = log(5.0);
+    mu_assert("exp/log", fabs(exp(l) - 5.0) < 1e-6);
+    mu_assert("log/exp", fabs(log(exp(1.0)) - 1.0) < 1e-6);
+    return 0;
+}
+
 static const char *test_getopt_basic(void)
 {
     char *argv[] = {"prog", "-f", "-a", "val", "rest", NULL};
@@ -1277,6 +1289,7 @@ static const char *all_tests(void)
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
+    mu_run_test(test_math_functions);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
     mu_run_test(test_dlopen_basic);

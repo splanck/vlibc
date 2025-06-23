@@ -311,7 +311,9 @@ int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
 
 ## Math Functions
 
-`sin`, `cos`, `tan`, `sqrt`, and `pow` are provided in `math.h`.
+`sin`, `cos`, `tan`, `sqrt`, `pow`, `log`, `exp`, `floor`, `ceil`, and
+`fabs` are provided in `math.h`. These use simple series approximations
+and are suitable for basic calculations but may lack high precision.
 
 ## Process Control
 
