@@ -17,4 +17,12 @@ double sinh(double x);
 double cosh(double x);
 double tanh(double x);
 
+double fmod(double x, double y);
+float fabsf(float x);
+double ldexp(double x, int exp);
+double log2(double x);
+double fmin(double a, double b);
+double fmax(double a, double b);
+double copysign(double x, double y);
+
 #endif /* MATH_H */
