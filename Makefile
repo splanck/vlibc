@@ -104,7 +104,8 @@ SRC := \
     src/locale.c \
     src/wchar.c \
     src/tempfile.c \
-    src/math.c
+    src/math.c \
+    src/regex.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
 SRC += $(if $(ARCH_SRC),$(ARCH_SRC),src/setjmp.c)
