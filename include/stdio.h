@@ -50,6 +50,10 @@ int vprintf(const char *format, va_list ap);
 int vfprintf(FILE *stream, const char *format, va_list ap);
 int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 int vsprintf(char *str, const char *format, va_list ap);
+/*
+ * The scanf family supports %d, %u, %x, %o, %s, and floating point
+ * formats like %f, %lf, and %g.
+ */
 int vscanf(const char *format, va_list ap);
 int vfscanf(FILE *stream, const char *format, va_list ap);
 int vsscanf(const char *str, const char *format, va_list ap);

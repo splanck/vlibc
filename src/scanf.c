@@ -30,6 +30,11 @@ static int vsscanf_impl(const char *str, const char *fmt, va_list ap)
             continue;
         }
         fmt++;
+        int long_mod = 0;
+        if (*fmt == 'l') {
+            long_mod = 1;
+            fmt++;
+        }
         if (*fmt == 'd') {
             s = skip_ws(s);
             char *end;
@@ -64,6 +69,20 @@ static int vsscanf_impl(const char *str, const char *fmt, va_list ap)
             if (end == s)
                 return count;
             *va_arg(ap, unsigned *) = (unsigned)v;
+            s = end;
+            count++;
+        } else if (*fmt == 'f' || *fmt == 'F' ||
+                   *fmt == 'e' || *fmt == 'E' ||
+                   *fmt == 'g' || *fmt == 'G') {
+            s = skip_ws(s);
+            char *end;
+            double v = strtod(s, &end);
+            if (end == s)
+                return count;
+            if (long_mod)
+                *va_arg(ap, double *) = v;
+            else
+                *va_arg(ap, float *) = (float)v;
             s = end;
             count++;
         } else if (*fmt == 's') {

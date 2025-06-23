@@ -263,7 +263,8 @@ The **string** module provides fundamental operations needed by most C programs:
 - Utility functions for tokenizing and simple formatting.
 - `printf` style routines understand `%d`, `%u`, `%s`, `%x`, `%X`, `%o`, `%p`,
   and `%c` with basic field width and precision handling.
-- `scanf` style routines parse `%d`, `%u`, `%x`, `%o`, and `%s`.
+- `scanf` style routines parse `%d`, `%u`, `%x`, `%o`, `%s`, and floating
+  point formats such as `%f`, `%lf`, and `%g`.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
   delimiter characters. `strtok` stores its parsing state in static
   memory and is not thread-safe. `strtok_r` lets the caller maintain the
