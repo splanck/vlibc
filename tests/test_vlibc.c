@@ -979,6 +979,39 @@ static const char *test_rand_fn(void)
     return 0;
 }
 
+static const char *test_temp_files(void)
+{
+    char tmpl[] = "/tmp/vlibctestXXXXXX";
+    int fd = mkstemp(tmpl);
+    mu_assert("mkstemp", fd >= 0);
+    const char *msg = "ok";
+    mu_assert("write", write(fd, msg, 2) == 2);
+    close(fd);
+    fd = open(tmpl, O_RDONLY);
+    mu_assert("open", fd >= 0);
+    close(fd);
+    unlink(tmpl);
+
+    FILE *f = tmpfile();
+    mu_assert("tmpfile", f != NULL);
+    mu_assert("tmpfile write", fwrite(msg, 1, 2, f) == 2);
+    rewind(f);
+    char buf[3] = {0};
+    mu_assert("tmpfile read", fread(buf, 1, 2, f) == 2);
+    mu_assert("tmpfile content", strcmp(buf, msg) == 0);
+    int tmpfd = f->fd;
+    fclose(f);
+    mu_assert("closed", write(tmpfd, msg, 2) == -1);
+
+    char *name = tmpnam(NULL);
+    mu_assert("tmpnam", name != NULL);
+    fd = open(name, O_RDWR | O_CREAT | O_EXCL, 0600);
+    mu_assert("tmpnam open", fd >= 0);
+    close(fd);
+    unlink(name);
+    return 0;
+}
+
 static const char *test_abort_fn(void)
 {
     pid_t pid = fork();
@@ -1284,6 +1317,7 @@ static const char *all_tests(void)
     mu_run_test(test_execvp_fn);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
+    mu_run_test(test_temp_files);
     mu_run_test(test_abort_fn);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_atexit_handler);

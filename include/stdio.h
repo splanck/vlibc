@@ -62,4 +62,9 @@ void perror(const char *s);
 FILE *popen(const char *command, const char *mode);
 int pclose(FILE *stream);
 
+int mkstemp(char *template);
+FILE *tmpfile(void);
+char *tmpnam(char *s);
+char *tempnam(const char *dir, const char *pfx);
+
 #endif /* STDIO_H */
