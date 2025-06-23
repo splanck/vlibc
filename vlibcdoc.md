@@ -595,11 +595,14 @@ pipe(pipefd);
 `stdin`, `stdout`, and `stderr` are lightweight streams wrapping file
 descriptors 0, 1 and 2. They can be used with the provided `fread`,
 `fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`, `fputc`, `fgets`,
-`fputs`, `sprintf`, `snprintf`, `vsprintf`, `vsnprintf`, `fprintf`,
-`vfprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
+`fputs`, `sprintf`, `snprintf`, `asprintf`, `vasprintf`, `vsprintf`,
+`vsnprintf`, `fprintf`, `vfprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
 `sscanf`, `fscanf`, `scanf`, `getline`, and `getdelim` helpers.
 `fflush(stream)` succeeds
 and invokes `fsync` on the descriptor when one is present.
+
+`asprintf` and `vasprintf` return a newly allocated string sized by
+`vsnprintf`.
 
 `getline` and `getdelim` grow the supplied buffer automatically while reading.
 

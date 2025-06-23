@@ -1,5 +1,7 @@
 #include "stdio.h"
 #include "io.h"
+#include "memory.h"
+#include "errno.h"
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
@@ -227,6 +229,47 @@ int printf(const char *format, ...)
     va_list ap;
     va_start(ap, format);
     int r = vprintf(format, ap);
+    va_end(ap);
+    return r;
+}
+
+int vasprintf(char **strp, const char *format, va_list ap)
+{
+    va_list copy;
+    va_copy(copy, ap);
+    int len = vsnprintf(NULL, 0, format, copy);
+    va_end(copy);
+    if (len < 0) {
+        if (strp)
+            *strp = NULL;
+        return -1;
+    }
+    char *buf = malloc((size_t)len + 1);
+    if (!buf) {
+        if (strp)
+            *strp = NULL;
+        errno = ENOMEM;
+        return -1;
+    }
+    int r = vsnprintf(buf, (size_t)len + 1, format, ap);
+    if (r < 0) {
+        free(buf);
+        if (strp)
+            *strp = NULL;
+        return -1;
+    }
+    if (strp)
+        *strp = buf;
+    else
+        free(buf);
+    return r;
+}
+
+int asprintf(char **strp, const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    int r = vasprintf(strp, format, ap);
     va_end(ap);
     return r;
 }
