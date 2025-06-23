@@ -164,6 +164,7 @@ io.h         - unbuffered I/O primitives
 locale.h     - locale helpers
 math.h       - basic math routines
 memory.h     - heap allocation
+assert.h     - runtime assertion checks
 netdb.h      - address resolution helpers
 arpa/inet.h  - IPv4/IPv6 presentation conversion helpers
 ftw.h        - directory tree traversal helpers
@@ -574,6 +575,12 @@ int pthread_cond_init(pthread_cond_t *cond, void *attr);
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
 int pthread_cond_signal(pthread_cond_t *cond);
 int pthread_cond_broadcast(pthread_cond_t *cond);
+
+int pthread_rwlock_init(pthread_rwlock_t *rwlock, void *attr);
+int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
 ```
 
 Threads share the process address space and use a simple spinlock-based
@@ -598,6 +605,11 @@ Condition variables provide simple waiting semantics. A thread calls
 `pthread_cond_wait()` with a locked mutex and blocks until another thread
 signals the condition. `pthread_cond_signal()` wakes a single waiter while
 `pthread_cond_broadcast()` wakes all waiters.
+
+Read-write locks allow multiple threads to hold the lock in read mode or
+a single writer to hold it exclusively. They are lightweight wrappers
+around atomic counters and follow the same initialization and destruction
+pattern as mutexes.
 
 Thread-local storage is available through key objects:
 
@@ -791,7 +803,7 @@ if (tcgetattr(STDIN_FILENO, &t) == 0) {
 
 `stdin`, `stdout`, and `stderr` are lightweight streams wrapping file
 descriptors 0, 1 and 2. They can be used with the provided `fread`,
-`fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`, `fputc`, `ungetc`, `fgets`,
+`fwrite`, `fseek`, `ftell`, `fseeko`, `ftello`, `rewind`, `fgetc`, `fputc`, `ungetc`, `fgets`,
 `fputs`, `sprintf`, `snprintf`, `asprintf`, `vasprintf`, `vsprintf`,
 `vsnprintf`, `fprintf`, `vfprintf`, `dprintf`, `vdprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
 `sscanf`, `fscanf`, `scanf`, `getline`, and `getdelim` helpers.  Query

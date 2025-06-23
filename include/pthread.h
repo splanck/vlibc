@@ -19,6 +19,11 @@ typedef struct {
     atomic_int seq;
 } pthread_cond_t;
 
+typedef struct {
+    atomic_int readers;
+    atomic_int writer;
+} pthread_rwlock_t;
+
 typedef unsigned int pthread_key_t;
 
 typedef struct {
@@ -41,6 +46,12 @@ int pthread_cond_init(pthread_cond_t *cond, void *attr);
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
 int pthread_cond_signal(pthread_cond_t *cond);
 int pthread_cond_broadcast(pthread_cond_t *cond);
+
+int pthread_rwlock_init(pthread_rwlock_t *rwlock, void *attr);
+int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
 
 int pthread_key_create(pthread_key_t *key, void (*destructor)(void *));
 int pthread_key_delete(pthread_key_t key);

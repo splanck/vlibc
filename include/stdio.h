@@ -35,6 +35,8 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 int fclose(FILE *stream);
 int fseek(FILE *stream, long offset, int whence);
 long ftell(FILE *stream);
+int fseeko(FILE *stream, off_t offset, int whence);
+off_t ftello(FILE *stream);
 void rewind(FILE *stream);
 int fgetc(FILE *stream);
 int fputc(int c, FILE *stream);
