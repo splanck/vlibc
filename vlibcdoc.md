@@ -551,9 +551,11 @@ descriptors 0, 1 and 2. They can be used with the provided `fread`,
 `fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`, `fputc`, `fgets`,
 `fputs`, `sprintf`, `snprintf`, `vsprintf`, `vsnprintf`, `fprintf`,
 `vfprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
-`sscanf`, `fscanf`, and `scanf` helpers.
+`sscanf`, `fscanf`, `scanf`, `getline`, and `getdelim` helpers.
 `fflush(stream)` succeeds
 and invokes `fsync` on the descriptor when one is present.
+
+`getline` and `getdelim` grow the supplied buffer automatically while reading.
 
 Streams may be given a custom buffer with `setvbuf` or the simpler
 `setbuf`. When buffered, I/O operates on that memory until it is filled
