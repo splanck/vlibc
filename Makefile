@@ -97,6 +97,7 @@ SRC := \
     src/mmap.c \
     src/env.c \
     src/hostname.c \
+    src/uname.c \
     src/sleep.c \
     src/clock_gettime.c \
     src/time.c \
