@@ -1,7 +1,16 @@
 #include "locale.h"
 #include "string.h"
+#include "env.h"
 
-static char current_locale[6] = "C";
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+#define setlocale host_setlocale
+#include_next <locale.h>
+#undef setlocale
+extern char *host_setlocale(int, const char *) __asm("setlocale");
+#endif
+
+static char current_locale[32] = "C";
 
 static struct lconv c_lconv = {
     .decimal_point = ".",
@@ -27,8 +36,16 @@ static struct lconv c_lconv = {
 char *setlocale(int category, const char *locale)
 {
     (void)category;
+
     if (!locale)
         return current_locale;
+
+    if (*locale == '\0') {
+        const char *env = getenv("LC_ALL");
+        if (!env || !*env)
+            env = getenv("LANG");
+        locale = env ? env : "C";
+    }
 
     if (strcmp(locale, "C") == 0 || strcmp(locale, "POSIX") == 0) {
         strncpy(current_locale, locale, sizeof(current_locale) - 1);
@@ -36,7 +53,18 @@ char *setlocale(int category, const char *locale)
         return current_locale;
     }
 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    char *ret = host_setlocale(category, locale);
+    if (ret) {
+        strncpy(current_locale, ret, sizeof(current_locale) - 1);
+        current_locale[sizeof(current_locale) - 1] = '\0';
+    }
+    return ret;
+#else
+    (void)locale;
     return NULL;
+#endif
 }
 
 struct lconv *localeconv(void)
