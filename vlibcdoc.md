@@ -489,6 +489,11 @@ int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
 int pthread_mutex_destroy(pthread_mutex_t *mutex);
 int pthread_mutex_lock(pthread_mutex_t *mutex);
 int pthread_mutex_unlock(pthread_mutex_t *mutex);
+
+int pthread_cond_init(pthread_cond_t *cond, void *attr);
+int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
+int pthread_cond_signal(pthread_cond_t *cond);
+int pthread_cond_broadcast(pthread_cond_t *cond);
 ```
 
 Threads share the process address space and use a simple spinlock-based
@@ -508,6 +513,11 @@ Mutex routines provide minimal mutual exclusion. `pthread_mutex_init()`
 initializes a mutex, `pthread_mutex_lock()` acquires it, and
 `pthread_mutex_unlock()` releases it.  Destroying a locked mutex with
 `pthread_mutex_destroy()` is undefined.
+
+Condition variables provide simple waiting semantics. A thread calls
+`pthread_cond_wait()` with a locked mutex and blocks until another thread
+signals the condition. `pthread_cond_signal()` wakes a single waiter while
+`pthread_cond_broadcast()` wakes all waiters.
 
 ### Example
 
