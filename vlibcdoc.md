@@ -204,6 +204,7 @@ void *malloc(size_t size);
 void free(void *ptr);
 void *calloc(size_t nmemb, size_t size);
 void *realloc(void *ptr, size_t size);
+void *reallocarray(void *ptr, size_t nmemb, size_t size);
 int posix_memalign(void **memptr, size_t alignment, size_t size);
 ```
 
@@ -217,6 +218,8 @@ int posix_memalign(void **memptr, size_t alignment, size_t size);
 - `calloc` calls `malloc` and zeroes the allocated block.
 - `realloc` always allocates a new block and copies up to `size` bytes from the
   old pointer if one was provided.
+- `reallocarray` multiplies `nmemb` and `size` with overflow checks, returning
+  `NULL` and setting `errno` to `ENOMEM` on overflow.
 - `posix_memalign` stores the allocated pointer in `*memptr` with the requested
   alignment. It returns `0` on success, `EINVAL` if the alignment is not a power
   of two or not a multiple of `sizeof(void *)`, or `ENOMEM` when the allocation
