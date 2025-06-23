@@ -111,6 +111,7 @@ SRC := \
     src/wchar.c \
     src/wchar_conv.c \
     src/tempfile.c \
+    src/syslog.c \
     src/getline.c \
     src/pwd.c \
     src/math.c \

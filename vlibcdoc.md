@@ -37,10 +37,11 @@ This document outlines the architecture, planned modules, and API design for **v
 31. [Locale Support](#locale-support)
 32. [Time Retrieval](#time-retrieval)
 33. [Sleep Functions](#sleep-functions)
-34. [Raw System Calls](#raw-system-calls)
-35. [Non-local Jumps](#non-local-jumps)
-36. [Limitations](#limitations)
-37. [Conclusion](#conclusion)
+34. [Logging](#logging)
+35. [Raw System Calls](#raw-system-calls)
+36. [Non-local Jumps](#non-local-jumps)
+37. [Limitations](#limitations)
+38. [Conclusion](#conclusion)
 
 ## Overview
 
@@ -808,6 +809,21 @@ unsigned sleep(unsigned seconds);
 int usleep(useconds_t usec);
 int nanosleep(const struct timespec *req, struct timespec *rem);
 ```
+
+## Logging
+
+`syslog.h` provides simple helpers to send log messages to `/dev/log` on
+BSD-style systems. Call `openlog` once with an identifier then use `syslog`
+with a priority and `printf`-style format:
+
+```c
+openlog("myapp", LOG_PID, LOG_USER);
+syslog(LOG_INFO, "started with %d workers", workers);
+closelog();
+```
+
+Messages are written using a Unix datagram socket so applications can integrate
+with the host's syslog daemon.
 
 ## Raw System Calls
 
