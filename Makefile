@@ -93,6 +93,7 @@ SRC := \
     src/time_conv.c \
     src/strftime.c \
     src/stat.c \
+    src/utime.c \
     src/pthread.c \
     src/dirent.c \
     src/default_shell.c \
