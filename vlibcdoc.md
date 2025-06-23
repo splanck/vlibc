@@ -421,6 +421,7 @@ vlibc provides minimal helpers to report errors:
 const char *strerror(int errnum);
 int strerror_r(int errnum, char *buf, size_t buflen);
 void perror(const char *s);
+const char *strsignal(int signum);
 ```
 
 
@@ -428,6 +429,8 @@ void perror(const char *s);
 codes it does not recognize. `strerror_r()` is a thread-safe variant that
 writes the message into `buf`. `perror()` writes a message to `stderr`
 combining the optional prefix with the text for the current `errno`.
+`strsignal()` maps a signal number to a short descriptive string or
+"Unknown signal" when the name is not recognized.
 
 ## Errno Access
 
