@@ -24,20 +24,21 @@ This document outlines the architecture, planned modules, and API design for **v
 18. [Basic File I/O](#basic-file-io)
 19. [File Descriptor Helpers](#file-descriptor-helpers)
 20. [Standard Streams](#standard-streams)
-21. [Networking](#networking)
-22. [I/O Multiplexing](#io-multiplexing)
-23. [File Permissions](#file-permissions)
-24. [File Status](#file-status)
-25. [Directory Iteration](#directory-iteration)
-26. [Path Canonicalization](#path-canonicalization)
-27. [Time Formatting](#time-formatting)
-28. [Locale Support](#locale-support)
-29. [Time Retrieval](#time-retrieval)
-30. [Sleep Functions](#sleep-functions)
-31. [Raw System Calls](#raw-system-calls)
-32. [Non-local Jumps](#non-local-jumps)
-33. [Limitations](#limitations)
-34. [Conclusion](#conclusion)
+21. [Temporary Files](#temporary-files)
+22. [Networking](#networking)
+23. [I/O Multiplexing](#io-multiplexing)
+24. [File Permissions](#file-permissions)
+25. [File Status](#file-status)
+26. [Directory Iteration](#directory-iteration)
+27. [Path Canonicalization](#path-canonicalization)
+28. [Time Formatting](#time-formatting)
+29. [Locale Support](#locale-support)
+30. [Time Retrieval](#time-retrieval)
+31. [Sleep Functions](#sleep-functions)
+32. [Raw System Calls](#raw-system-calls)
+33. [Non-local Jumps](#non-local-jumps)
+34. [Limitations](#limitations)
+35. [Conclusion](#conclusion)
 
 ## Overview
 
@@ -567,6 +568,18 @@ void parse_numbers(const char *buf, const char *fmt, ...) {
     vsscanf(buf, fmt, ap);
     va_end(ap);
 }
+```
+
+## Temporary Files
+
+`mkstemp` replaces the trailing `XXXXXX` in a template with random
+characters and opens the resulting path. `tmpfile` returns a stream
+backed by an anonymous temporary file that is unlinked immediately.
+
+```c
+char path[] = "/tmp/exampleXXXXXX";
+int fd = mkstemp(path);
+FILE *anon = tmpfile();
 ```
 
 ## Networking
