@@ -658,6 +658,15 @@ static const char *test_printf_functions(void)
     n = snprintf(buf, sizeof(buf), "%X %o %c", 0x2B, 10, 'A');
     mu_assert("hex/oct/char", strcmp(buf, "2B 12 A") == 0);
 
+    n = snprintf(buf, sizeof(buf), "%x", 0x2b);
+    mu_assert("lower hex", strcmp(buf, "2b") == 0);
+
+    n = snprintf(buf, sizeof(buf), "[%4o]", 9);
+    mu_assert("octal width", strcmp(buf, "[   11]") == 0);
+
+    n = snprintf(buf, sizeof(buf), "[%.3o]", 7);
+    mu_assert("octal precision", strcmp(buf, "[007]") == 0);
+
     int x = 0;
     n = snprintf(buf, sizeof(buf), "%p", &x);
     mu_assert("pointer prefix", strncmp(buf, "0x", 2) == 0);
@@ -712,6 +721,18 @@ static const char *test_scanf_functions(void)
     mu_assert("fscanf b", b == 8);
     mu_assert("fscanf str", strcmp(str, "hi") == 0);
 
+    f = fopen("tmp_hex", "w+");
+    mu_assert("fopen hex", f != NULL);
+    fputs("ff 12", f);
+    rewind(f);
+    a = b = 0;
+    r = fscanf(f, "%x %o", &a, &b);
+    fclose(f);
+    unlink("tmp_hex");
+    mu_assert("fscanf hex count", r == 2);
+    mu_assert("fscanf hex val", a == 0xff);
+    mu_assert("fscanf oct val", b == 10u);
+
     int p[2];
     mu_assert("pipe", pipe(p) == 0);
     write(p[1], "9 11 end", 9);
@@ -726,6 +747,24 @@ static const char *test_scanf_functions(void)
     mu_assert("scanf a", a == 9);
     mu_assert("scanf b", b == 11);
     mu_assert("scanf str", strcmp(str, "end") == 0);
+
+    mu_assert("pipe", pipe(p) == 0);
+    write(p[1], "1a 17", 5);
+    close(p[1]);
+    old = stdin->fd;
+    stdin->fd = p[0];
+    a = b = 0;
+    r = scanf("%x %o", &a, &b);
+    stdin->fd = old;
+    close(p[0]);
+    mu_assert("scanf hex count", r == 2);
+    mu_assert("scanf hex val", a == 0x1a);
+    mu_assert("scanf oct val", b == 015);
+
+    r = sscanf("ff 12", "%x %o", &a, &b);
+    mu_assert("hex/octal count", r == 2);
+    mu_assert("hex value", a == 0xff);
+    mu_assert("oct value", b == 10u);
 
     return 0;
 }
@@ -774,6 +813,23 @@ static const char *test_vscanf_variants(void)
     mu_assert("vfscanf a", a == 6);
     mu_assert("vfscanf b", b == 7);
     mu_assert("vfscanf str", strcmp(str, "file") == 0);
+
+    r = call_vsscanf("1a 17", "%x %o", &a, &b);
+    mu_assert("vsscanf hex count", r == 2);
+    mu_assert("vsscanf hex val", a == 0x1a);
+    mu_assert("vsscanf oct val", b == 015);
+
+    f = fopen("tmp_vscan2", "w+");
+    mu_assert("vfopen2", f != NULL);
+    fputs("ff 12", f);
+    rewind(f);
+    a = b = 0;
+    r = call_vfscanf(f, "%x %o", &a, &b);
+    fclose(f);
+    unlink("tmp_vscan2");
+    mu_assert("vfscanf hex count", r == 2);
+    mu_assert("vfscanf hex val", a == 0xff);
+    mu_assert("vfscanf oct val", b == 10u);
 
     return 0;
 }

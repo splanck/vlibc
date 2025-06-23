@@ -48,6 +48,24 @@ static int vsscanf_impl(const char *str, const char *fmt, va_list ap)
             *va_arg(ap, unsigned *) = (unsigned)v;
             s = end;
             count++;
+        } else if (*fmt == 'x' || *fmt == 'X') {
+            s = skip_ws(s);
+            char *end;
+            unsigned long v = strtoul(s, &end, 16);
+            if (end == s)
+                return count;
+            *va_arg(ap, unsigned *) = (unsigned)v;
+            s = end;
+            count++;
+        } else if (*fmt == 'o') {
+            s = skip_ws(s);
+            char *end;
+            unsigned long v = strtoul(s, &end, 8);
+            if (end == s)
+                return count;
+            *va_arg(ap, unsigned *) = (unsigned)v;
+            s = end;
+            count++;
         } else if (*fmt == 's') {
             s = skip_ws(s);
             char *out = va_arg(ap, char *);
