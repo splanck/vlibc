@@ -12,6 +12,23 @@ FILE *stdin = NULL;
 FILE *stdout = NULL;
 FILE *stderr = NULL;
 
+static int flush_buffer(FILE *stream)
+{
+    if (!stream || !stream->buf || stream->buflen == 0)
+        return 0;
+    size_t off = 0;
+    while (off < stream->buflen) {
+        ssize_t w = write(stream->fd, stream->buf + off,
+                          stream->buflen - off);
+        if (w <= 0)
+            return -1;
+        off += (size_t)w;
+    }
+    stream->buflen = 0;
+    stream->bufpos = 0;
+    return 0;
+}
+
 FILE *fopen(const char *path, const char *mode)
 {
     int flags = -1;
@@ -41,6 +58,7 @@ FILE *fopen(const char *path, const char *mode)
         errno = ENOMEM;
         return NULL;
     }
+    memset(f, 0, sizeof(FILE));
     f->fd = fd;
     return f;
 }
@@ -50,10 +68,30 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
     if (!stream || size == 0 || nmemb == 0)
         return 0;
     size_t total = size * nmemb;
-    ssize_t r = read(stream->fd, ptr, total);
-    if (r <= 0)
-        return 0;
-    return (size_t)r / size;
+    size_t copied = 0;
+    unsigned char *out = ptr;
+    while (copied < total) {
+        if (stream->buf) {
+            if (stream->bufpos >= stream->buflen) {
+                ssize_t r = read(stream->fd, stream->buf, stream->bufsize);
+                if (r <= 0)
+                    break;
+                stream->buflen = (size_t)r;
+                stream->bufpos = 0;
+            }
+            size_t avail = stream->buflen - stream->bufpos;
+            size_t n = total - copied < avail ? total - copied : avail;
+            memcpy(out + copied, stream->buf + stream->bufpos, n);
+            stream->bufpos += n;
+            copied += n;
+        } else {
+            ssize_t r = read(stream->fd, out + copied, total - copied);
+            if (r <= 0)
+                break;
+            copied += (size_t)r;
+        }
+    }
+    return copied / size;
 }
 
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
@@ -61,17 +99,41 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
     if (!stream || size == 0 || nmemb == 0)
         return 0;
     size_t total = size * nmemb;
-    ssize_t w = write(stream->fd, ptr, total);
-    if (w <= 0)
-        return 0;
-    return (size_t)w / size;
+    size_t written = 0;
+    const unsigned char *in = ptr;
+    while (written < total) {
+        if (stream->buf) {
+            if (stream->buflen == stream->bufsize) {
+                if (flush_buffer(stream) < 0)
+                    break;
+            }
+            size_t avail = stream->bufsize - stream->buflen;
+            size_t n = total - written < avail ? total - written : avail;
+            memcpy(stream->buf + stream->buflen, in + written, n);
+            stream->buflen += n;
+            written += n;
+            if (stream->buflen == stream->bufsize) {
+                if (flush_buffer(stream) < 0)
+                    break;
+            }
+        } else {
+            ssize_t w = write(stream->fd, in + written, total - written);
+            if (w <= 0)
+                break;
+            written += (size_t)w;
+        }
+    }
+    return written / size;
 }
 
 int fclose(FILE *stream)
 {
     if (!stream)
         return -1;
+    flush_buffer(stream);
     int ret = close(stream->fd);
+    if (stream->buf && stream->buf_owned)
+        free(stream->buf);
     free(stream);
     return ret;
 }
@@ -80,13 +142,21 @@ int fseek(FILE *stream, long offset, int whence)
 {
     if (!stream)
         return -1;
+    if (flush_buffer(stream) < 0)
+        return -1;
     off_t r = lseek(stream->fd, (off_t)offset, whence);
-    return r == (off_t)-1 ? -1 : 0;
+    if (r == (off_t)-1)
+        return -1;
+    stream->bufpos = 0;
+    stream->buflen = 0;
+    return 0;
 }
 
 long ftell(FILE *stream)
 {
     if (!stream)
+        return -1L;
+    if (flush_buffer(stream) < 0)
         return -1L;
     off_t r = lseek(stream->fd, 0, SEEK_CUR);
     if (r == (off_t)-1)
@@ -98,7 +168,10 @@ void rewind(FILE *stream)
 {
     if (!stream)
         return;
+    flush_buffer(stream);
     lseek(stream->fd, 0, SEEK_SET);
+    stream->bufpos = 0;
+    stream->buflen = 0;
 }
 
 int fgetc(FILE *stream)
@@ -106,8 +179,7 @@ int fgetc(FILE *stream)
     if (!stream)
         return -1;
     unsigned char ch;
-    ssize_t r = read(stream->fd, &ch, 1);
-    if (r != 1)
+    if (fread(&ch, 1, 1, stream) != 1)
         return -1;
     return ch;
 }
@@ -117,8 +189,7 @@ int fputc(int c, FILE *stream)
     if (!stream)
         return -1;
     unsigned char ch = (unsigned char)c;
-    ssize_t w = write(stream->fd, &ch, 1);
-    if (w != 1)
+    if (fwrite(&ch, 1, 1, stream) != 1)
         return -1;
     return ch;
 }
@@ -129,15 +200,14 @@ char *fgets(char *s, int size, FILE *stream)
         return NULL;
     int i = 0;
     while (i < size - 1) {
-        unsigned char ch;
-        ssize_t r = read(stream->fd, &ch, 1);
-        if (r != 1) {
+        int c = fgetc(stream);
+        if (c == -1) {
             if (i == 0)
                 return NULL;
             break;
         }
-        s[i++] = (char)ch;
-        if (ch == '\n')
+        s[i++] = (char)c;
+        if (c == '\n')
             break;
     }
     s[i] = '\0';
@@ -149,16 +219,16 @@ int fputs(const char *s, FILE *stream)
     if (!stream || !s)
         return -1;
     size_t len = strlen(s);
-    ssize_t w = write(stream->fd, s, len);
-    if (w != (ssize_t)len)
-        return -1;
-    return (int)w;
+    size_t w = fwrite(s, 1, len, stream);
+    return (w == len) ? (int)w : -1;
 }
 
 int fflush(FILE *stream)
 {
     if (!stream)
         return 0;
+    if (flush_buffer(stream) < 0)
+        return -1;
 #if defined(__linux__) && defined(SYS_fsync)
     long ret = vlibc_syscall(SYS_fsync, stream->fd, 0, 0, 0, 0, 0);
     if (ret < 0) {
@@ -170,5 +240,42 @@ int fflush(FILE *stream)
         return -1;
 #endif
     return 0;
+}
+
+int setvbuf(FILE *stream, char *buf, int mode, size_t size)
+{
+    (void)mode; /* buffering mode not currently used */
+    if (!stream)
+        return -1;
+    if (stream->buf && stream->buf_owned)
+        free(stream->buf);
+    if (size == 0) {
+        stream->buf = NULL;
+        stream->bufsize = 0;
+        stream->bufpos = 0;
+        stream->buflen = 0;
+        stream->buf_owned = 0;
+        return 0;
+    }
+    if (buf) {
+        stream->buf = (unsigned char *)buf;
+        stream->buf_owned = 0;
+    } else {
+        stream->buf = malloc(size);
+        if (!stream->buf) {
+            errno = ENOMEM;
+            return -1;
+        }
+        stream->buf_owned = 1;
+    }
+    stream->bufsize = size;
+    stream->bufpos = 0;
+    stream->buflen = 0;
+    return 0;
+}
+
+void setbuf(FILE *stream, char *buf)
+{
+    setvbuf(stream, buf, _IOFBF, BUFSIZ);
 }
 

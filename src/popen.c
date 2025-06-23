@@ -54,6 +54,7 @@ FILE *popen(const char *command, const char *mode)
         close(pipefd[1]);
         return NULL;
     }
+    memset(&pf->file, 0, sizeof(FILE));
     pf->pid = pid;
     if (read_mode) {
         pf->file.fd = pipefd[0];
@@ -71,7 +72,10 @@ int pclose(FILE *stream)
         return -1;
     struct popen_file *pf = (struct popen_file *)stream;
     pid_t pid = pf->pid;
+    fflush(stream);
     close(stream->fd);
+    if (stream->buf && stream->buf_owned)
+        free(stream->buf);
     free(pf);
     int status = 0;
     if (waitpid(pid, &status, 0) < 0)
