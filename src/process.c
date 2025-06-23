@@ -8,6 +8,7 @@
 #include "syscall.h"
 #include "env.h"
 #include "memory.h"
+#include <stdarg.h>
 extern long syscall(long number, ...);
 
 /* from atexit.c */
@@ -84,6 +85,105 @@ int execvp(const char *file, char *const argv[])
 
     errno = last_errno;
     return -1;
+}
+
+int execv(const char *path, char *const argv[])
+{
+    return execve(path, argv, environ);
+}
+
+static int vlibc_build_argv(const char *arg, va_list ap, char ***out)
+{
+    va_list ap_copy;
+    va_copy(ap_copy, ap);
+    size_t count = 1;
+    const char *p = arg;
+    while (p) {
+        p = va_arg(ap_copy, char *);
+        if (p)
+            count++;
+    }
+    va_end(ap_copy);
+
+    char **argv = malloc(sizeof(char *) * (count + 1));
+    if (!argv)
+        return -1;
+
+    argv[0] = (char *)arg;
+    for (size_t i = 1; i <= count; i++) {
+        argv[i] = (char *)va_arg(ap, char *);
+        if (!argv[i]) {
+            argv[count] = NULL;
+            break;
+        }
+    }
+
+    *out = argv;
+    return 0;
+}
+
+int execl(const char *path, const char *arg, ...)
+{
+    va_list ap;
+    va_start(ap, arg);
+    char **argv;
+    if (vlibc_build_argv(arg, ap, &argv) < 0) {
+        va_end(ap);
+        return -1;
+    }
+    va_end(ap);
+    int r = execve(path, argv, environ);
+    free(argv);
+    return r;
+}
+
+int execlp(const char *file, const char *arg, ...)
+{
+    va_list ap;
+    va_start(ap, arg);
+    char **argv;
+    if (vlibc_build_argv(arg, ap, &argv) < 0) {
+        va_end(ap);
+        return -1;
+    }
+    va_end(ap);
+    int r = execvp(file, argv);
+    free(argv);
+    return r;
+}
+
+int execle(const char *path, const char *arg, ...)
+{
+    va_list ap;
+    va_start(ap, arg);
+    va_list ap_copy;
+    va_copy(ap_copy, ap);
+    size_t count = 1;
+    const char *p = arg;
+    while ((p = va_arg(ap_copy, char *)))
+        count++;
+    char **envp = va_arg(ap_copy, char **);
+    va_end(ap_copy);
+
+    char **argv = malloc(sizeof(char *) * (count + 1));
+    if (!argv) {
+        va_end(ap);
+        return -1;
+    }
+
+    argv[0] = (char *)arg;
+    for (size_t i = 1; i <= count; i++) {
+        argv[i] = (char *)va_arg(ap, char *);
+        if (!argv[i]) {
+            argv[count] = NULL;
+            break;
+        }
+    }
+    va_end(ap);
+
+    int r = execve(path, argv, envp);
+    free(argv);
+    return r;
 }
 
 pid_t waitpid(pid_t pid, int *status, int options)
