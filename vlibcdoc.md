@@ -386,6 +386,14 @@ and installing signal handlers.  The companion `signal.h` header offers
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 int execvp(const char *file, char *const argv[]);
+int posix_spawn(pid_t *pid, const char *path,
+                const posix_spawn_file_actions_t *file_actions,
+                const posix_spawnattr_t *attrp,
+                char *const argv[], char *const envp[]);
+int posix_spawnp(pid_t *pid, const char *file,
+                 const posix_spawn_file_actions_t *file_actions,
+                 const posix_spawnattr_t *attrp,
+                 char *const argv[], char *const envp[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 pid_t getpid(void);
@@ -403,11 +411,9 @@ void exit(int status);
 
 ```c
 /* Spawn a child that prints a message and wait for it to finish. */
-pid_t pid = fork();
-if (pid == 0) {
-    char *args[] = {"/bin/echo", "hello", NULL};
-    execve("/bin/echo", args, NULL);
-}
+pid_t pid;
+char *args[] = {"/bin/echo", "hello", NULL};
+posix_spawn(&pid, "/bin/echo", NULL, NULL, args, environ);
 waitpid(pid, NULL, 0);
 
 /* Install a handler and send the process an interrupt. */

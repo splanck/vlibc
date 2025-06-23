@@ -72,6 +72,15 @@ char word[16];
 sscanf("42 example", "%d %s", &num, word);
 ```
 
+Launching a program in a new process with `posix_spawn` is similarly easy:
+
+```c
+pid_t pid;
+char *args[] = {"/bin/echo", "spawn", NULL};
+posix_spawn(&pid, "/bin/echo", NULL, NULL, args, environ);
+waitpid(pid, NULL, 0);
+```
+
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
 ## Time Retrieval
