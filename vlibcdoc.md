@@ -470,6 +470,10 @@ pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 pid_t getpid(void);
 pid_t getppid(void);
+int setpgid(pid_t pid, pid_t pgid);
+pid_t getpgid(pid_t pid);
+pid_t setsid(void);
+pid_t getsid(pid_t pid);
 sighandler_t signal(int signum, sighandler_t handler);
 uid_t getuid(void);
 uid_t geteuid(void);
@@ -808,9 +812,9 @@ if (tcgetattr(STDIN_FILENO, &t) == 0) {
 
 `stdin`, `stdout`, and `stderr` are lightweight streams wrapping file
 descriptors 0, 1 and 2. They can be used with the provided `fread`,
-`fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`, `fputc`, `ungetc`, `fgets`,
+`fwrite`, `fseek`, `ftell`, `fseeko`, `ftello`, `rewind`, `fgetc`, `fputc`, `ungetc`, `fgets`,
 `fputs`, `sprintf`, `snprintf`, `asprintf`, `vasprintf`, `vsprintf`,
-`vsnprintf`, `fprintf`, `vfprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
+`vsnprintf`, `fprintf`, `vfprintf`, `dprintf`, `vdprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
 `sscanf`, `fscanf`, `scanf`, `getline`, and `getdelim` helpers.  Query
 stream state with `feof`, `ferror`, and `clearerr`, obtain the descriptor
 number via `fileno`, or wrap an existing descriptor with `fdopen`.

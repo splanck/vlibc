@@ -863,6 +863,46 @@ static const char *test_printf_functions(void)
     return 0;
 }
 
+static int call_vdprintf(int fd, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    int r = vdprintf(fd, fmt, ap);
+    va_end(ap);
+    return r;
+}
+
+static const char *test_dprintf_functions(void)
+{
+    int fd = open("tmp_dpr", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    mu_assert("open dprintf", fd >= 0);
+    dprintf(fd, "val=%d", 5);
+    close(fd);
+
+    char buf[16] = {0};
+    fd = open("tmp_dpr", O_RDONLY);
+    ssize_t r = read(fd, buf, sizeof(buf) - 1);
+    close(fd);
+    unlink("tmp_dpr");
+    mu_assert("dprintf read", r > 0);
+    mu_assert("dprintf content", strcmp(buf, "val=5") == 0);
+
+    fd = open("tmp_vdpr", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    mu_assert("open vdprintf", fd >= 0);
+    call_vdprintf(fd, "num=%u", 10u);
+    close(fd);
+
+    char buf2[16] = {0};
+    fd = open("tmp_vdpr", O_RDONLY);
+    r = read(fd, buf2, sizeof(buf2) - 1);
+    close(fd);
+    unlink("tmp_vdpr");
+    mu_assert("vdprintf read", r > 0);
+    mu_assert("vdprintf content", strcmp(buf2, "num=10") == 0);
+
+    return 0;
+}
+
 static const char *test_scanf_functions(void)
 {
     vlibc_init();
@@ -973,6 +1013,7 @@ static int call_vfscanf(FILE *f, const char *fmt, ...)
     va_end(ap);
     return r;
 }
+
 
 static const char *test_vscanf_variants(void)
 {
@@ -2268,6 +2309,7 @@ static const char *all_tests(void)
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_strsep_basic);
     mu_run_test(test_printf_functions);
+    mu_run_test(test_dprintf_functions);
     mu_run_test(test_scanf_functions);
     mu_run_test(test_vscanf_variants);
     mu_run_test(test_fseek_rewind);
