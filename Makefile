@@ -77,6 +77,7 @@ SRC := \
     src/socket.c \
     src/socketpair.c \
     src/setsockopt.c \
+    src/socket_msg.c \
     src/getsockopt.c \
     src/netdb.c \
     src/inet_pton.c \
