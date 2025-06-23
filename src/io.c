@@ -7,6 +7,11 @@
 #include "syscall.h"
 #include <fcntl.h>
 #include <stdarg.h>
+#include "sys/stat.h"
+
+#ifndef AT_FDCWD
+#define AT_FDCWD -100
+#endif
 
 
 int open(const char *path, int flags, ...)
@@ -162,4 +167,121 @@ int close(int fd)
         return -1;
     }
     return (int)ret;
+}
+
+int openat(int dirfd, const char *path, int flags, ...)
+{
+    mode_t mode = 0;
+    if (flags & O_CREAT) {
+        va_list ap;
+        va_start(ap, flags);
+        mode = va_arg(ap, mode_t);
+        va_end(ap);
+    }
+#ifdef SYS_openat
+    long ret = vlibc_syscall(SYS_openat, dirfd, (long)path, flags, mode, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_openat(int, const char *, int, ...) __asm__("openat");
+    return host_openat(dirfd, path, flags, mode);
+#else
+    (void)dirfd; (void)path; (void)flags; (void)mode;
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
+}
+
+int fstatat(int dirfd, const char *path, struct stat *buf, int flags)
+{
+#ifdef SYS_fstatat
+    long ret = vlibc_syscall(SYS_fstatat, dirfd, (long)path, (long)buf, flags, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_fstatat(int, const char *, struct stat *, int) __asm__("fstatat");
+    return host_fstatat(dirfd, path, buf, flags);
+#else
+    (void)dirfd; (void)path; (void)buf; (void)flags;
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
+}
+
+int unlinkat(int dirfd, const char *pathname, int flags)
+{
+#ifdef SYS_unlinkat
+    long ret = vlibc_syscall(SYS_unlinkat, dirfd, (long)pathname, flags, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_unlinkat(int, const char *, int) __asm__("unlinkat");
+    return host_unlinkat(dirfd, pathname, flags);
+#else
+    (void)dirfd; (void)pathname; (void)flags;
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
+}
+
+int mkdirat(int dirfd, const char *pathname, mode_t mode)
+{
+#ifdef SYS_mkdirat
+    long ret = vlibc_syscall(SYS_mkdirat, dirfd, (long)pathname, mode, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_mkdirat(int, const char *, mode_t) __asm__("mkdirat");
+    return host_mkdirat(dirfd, pathname, mode);
+#else
+    (void)dirfd; (void)pathname; (void)mode;
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
+}
+
+int symlinkat(const char *target, int dirfd, const char *linkpath)
+{
+#ifdef SYS_symlinkat
+    long ret = vlibc_syscall(SYS_symlinkat, (long)target, dirfd, (long)linkpath, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_symlinkat(const char *, int, const char *) __asm__("symlinkat");
+    return host_symlinkat(target, dirfd, linkpath);
+#else
+    (void)target; (void)dirfd; (void)linkpath;
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
 }

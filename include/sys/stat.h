@@ -15,6 +15,7 @@ struct stat;
 
 int stat(const char *path, struct stat *buf);
 int fstat(int fd, struct stat *buf);
+int fstatat(int dirfd, const char *path, struct stat *buf, int flags);
 int lstat(const char *path, struct stat *buf);
 
 #endif /* SYS_STAT_H */

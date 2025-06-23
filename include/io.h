@@ -4,6 +4,7 @@
 #include <sys/types.h>
 
 int open(const char *path, int flags, ...);
+int openat(int dirfd, const char *path, int flags, ...);
 ssize_t read(int fd, void *buf, size_t count);
 ssize_t write(int fd, const void *buf, size_t count);
 ssize_t pread(int fd, void *buf, size_t count, off_t offset);
@@ -18,11 +19,14 @@ int pipe2(int pipefd[2], int flags);
 int ftruncate(int fd, off_t length);
 int truncate(const char *path, off_t length);
 int unlink(const char *pathname);
+int unlinkat(int dirfd, const char *pathname, int flags);
 int rename(const char *oldpath, const char *newpath);
 int link(const char *oldpath, const char *newpath);
 int symlink(const char *target, const char *linkpath);
+int symlinkat(const char *target, int dirfd, const char *linkpath);
 ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
 int mkdir(const char *pathname, mode_t mode);
+int mkdirat(int dirfd, const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
 int chdir(const char *path);
 int access(const char *pathname, int mode);

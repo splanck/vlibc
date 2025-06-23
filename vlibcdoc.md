@@ -32,25 +32,26 @@ This document outlines the architecture, planned modules, and API design for **v
 26. [Networking](#networking)
 27. [I/O Multiplexing](#io-multiplexing)
 28. [File Permissions](#file-permissions)
-29. [File Status](#file-status)
-30. [Directory Iteration](#directory-iteration)
-31. [Path Canonicalization](#path-canonicalization)
-32. [Path Utilities](#path-utilities)
-33. [User Database](#user-database)
-34. [Group Database](#group-database)
-35. [Time Formatting](#time-formatting)
-36. [Locale Support](#locale-support)
-37. [Time Retrieval](#time-retrieval)
-38. [Sleep Functions](#sleep-functions)
-39. [Interval Timers](#interval-timers)
-40. [Raw System Calls](#raw-system-calls)
-41. [Non-local Jumps](#non-local-jumps)
-42. [Limitations](#limitations)
-43. [Conclusion](#conclusion)
-44. [Logging](#logging)
-45. [Path Expansion](#path-expansion)
-46. [Filesystem Statistics](#filesystem-statistics)
-47. [Resource Limits](#resource-limits)
+29. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+30. [File Status](#file-status)
+31. [Directory Iteration](#directory-iteration)
+32. [Path Canonicalization](#path-canonicalization)
+33. [Path Utilities](#path-utilities)
+34. [User Database](#user-database)
+35. [Group Database](#group-database)
+36. [Time Formatting](#time-formatting)
+37. [Locale Support](#locale-support)
+38. [Time Retrieval](#time-retrieval)
+39. [Sleep Functions](#sleep-functions)
+40. [Interval Timers](#interval-timers)
+41. [Raw System Calls](#raw-system-calls)
+42. [Non-local Jumps](#non-local-jumps)
+43. [Limitations](#limitations)
+44. [Conclusion](#conclusion)
+45. [Logging](#logging)
+46. [Path Expansion](#path-expansion)
+47. [Filesystem Statistics](#filesystem-statistics)
+48. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -899,6 +900,24 @@ lchown("symlink", 1000, 1000);
 ```
 `fchmodat` and `fchownat` perform the same operations relative to a directory
 file descriptor.
+
+## Filesystem *at Wrappers
+
+These helpers mirror the basic file operations but operate relative to a
+directory file descriptor.  `openat`, `unlinkat`, `mkdirat`, `symlinkat` and
+`fstatat` behave like their traditional counterparts and accept `AT_FDCWD` to
+use the current working directory.
+
+```c
+int dfd = open("/tmp", O_DIRECTORY);
+struct stat st;
+int fd = openat(dfd, "demo.txt", O_WRONLY | O_CREAT, 0644);
+fstatat(dfd, "demo.txt", &st, 0);
+unlinkat(dfd, "demo.txt", 0);
+```
+
+On BSD systems these wrappers forward to the host C library.  Otherwise they
+issue the corresponding syscalls when available.
 
 ## File Status
 
