@@ -22,6 +22,7 @@
 #include "../include/string.h"
 #include "../include/stdlib.h"
 #include "../include/wchar.h"
+#include "../include/wctype.h"
 #include "../include/env.h"
 #include "../include/sys/utsname.h"
 #include "../include/pwd.h"
@@ -719,6 +720,20 @@ static const char *test_widechar_width(void)
     mu_assert("wcwidth nul", wcwidth(L'\0') == 0);
     mu_assert("wcwidth ctrl", wcwidth(L'\n') == -1);
     mu_assert("wcswidth", wcswidth(L"hi", 2) == 2);
+    return 0;
+}
+
+static const char *test_wctype_checks(void)
+{
+    mu_assert("iswalpha", iswalpha(L'A'));
+    mu_assert("iswdigit", iswdigit(L'5'));
+    mu_assert("iswalnum", iswalnum(L'9'));
+    mu_assert("iswspace", iswspace(L' '));
+    mu_assert("iswupper", iswupper(L'A'));
+    mu_assert("iswlower", iswlower(L'z'));
+    mu_assert("iswxdigit", iswxdigit(L'F'));
+    mu_assert("towlower", towlower(L'A') == L'a');
+    mu_assert("towupper", towupper(L'a') == L'A');
     return 0;
 }
 
@@ -2008,6 +2023,7 @@ static const char *all_tests(void)
     mu_run_test(test_widechar_basic);
     mu_run_test(test_widechar_conv);
     mu_run_test(test_widechar_width);
+    mu_run_test(test_wctype_checks);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);

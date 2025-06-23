@@ -123,6 +123,7 @@ SRC := \
     src/locale.c \
     src/wchar.c \
     src/wchar_conv.c \
+    src/wctype.c \
     src/tempfile.c \
     src/syslog.c \
     src/getline.c \
