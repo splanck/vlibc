@@ -12,7 +12,7 @@ typedef struct {
     size_t bufpos;
     size_t buflen;
     int buf_owned;
-    int err;
+    int error;
     int eof;
     int have_ungot;
     unsigned char ungot_char;

@@ -721,6 +721,21 @@ both flags.  `fileno(stream)` exposes the underlying descriptor number and
 `ungetc(c, stream)` pushes a single byte back so the next `fgetc` returns
 it.
 
+```c
+FILE *f = fopen("data.txt", "r");
+char buf[16];
+while (f && !feof(f)) {
+    size_t n = fread(buf, 1, sizeof(buf), f);
+    if (ferror(f)) {
+        perror("read error");
+        break;
+    }
+    /* process n bytes */
+}
+clearerr(f);
+fclose(f);
+```
+
 ## File Descriptor Helpers
 
 Low-level descriptor routines perform simple tasks such as repositioning a file,

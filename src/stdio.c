@@ -21,7 +21,7 @@ static int flush_buffer(FILE *stream)
         ssize_t w = write(stream->fd, stream->buf + off,
                           stream->buflen - off);
         if (w <= 0) {
-            stream->err = 1;
+            stream->error = 1;
             return -1;
         }
         off += (size_t)w;
@@ -80,7 +80,7 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
                     if (r == 0)
                         stream->eof = 1;
                     else
-                        stream->err = 1;
+                        stream->error = 1;
                     break;
                 }
                 stream->buflen = (size_t)r;
@@ -97,7 +97,7 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
                 if (r == 0)
                     stream->eof = 1;
                 else
-                    stream->err = 1;
+                    stream->error = 1;
                 break;
             }
             copied += (size_t)r;
@@ -131,7 +131,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
         } else {
             ssize_t w = write(stream->fd, in + written, total - written);
             if (w <= 0) {
-                stream->err = 1;
+                stream->error = 1;
                 break;
             }
             written += (size_t)w;
@@ -160,7 +160,7 @@ int fseek(FILE *stream, long offset, int whence)
         return -1;
     off_t r = lseek(stream->fd, (off_t)offset, whence);
     if (r == (off_t)-1) {
-        stream->err = 1;
+        stream->error = 1;
         return -1;
     }
     stream->bufpos = 0;
@@ -178,7 +178,7 @@ long ftell(FILE *stream)
         return -1L;
     off_t r = lseek(stream->fd, 0, SEEK_CUR);
     if (r == (off_t)-1) {
-        stream->err = 1;
+        stream->error = 1;
         return -1L;
     }
     return (long)r;
@@ -190,11 +190,11 @@ void rewind(FILE *stream)
         return;
     flush_buffer(stream);
     if (lseek(stream->fd, 0, SEEK_SET) == (off_t)-1)
-        stream->err = 1;
+        stream->error = 1;
     stream->bufpos = 0;
     stream->buflen = 0;
     stream->eof = 0;
-    stream->err = 0;
+    stream->error = 0;
     stream->have_ungot = 0;
 }
 
@@ -324,13 +324,13 @@ int feof(FILE *stream)
 
 int ferror(FILE *stream)
 {
-    return stream ? stream->err : 1;
+    return stream ? stream->error : 1;
 }
 
 void clearerr(FILE *stream)
 {
     if (stream) {
-        stream->err = 0;
+        stream->error = 0;
         stream->eof = 0;
         stream->have_ungot = 0;
     }
