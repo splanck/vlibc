@@ -1292,6 +1292,20 @@ static const char *test_execvp_fn(void)
     return 0;
 }
 
+static const char *test_posix_spawn_fn(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    pid_t pid;
+    char *argv[] = {"/bin/echo", "spawn", NULL};
+    int r = posix_spawn(&pid, "/bin/echo", NULL, NULL, argv, __environ);
+    mu_assert("posix_spawn", r == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("spawn status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    return 0;
+}
+
 static const char *test_popen_fn(void)
 {
     FILE *f = popen("echo popen", "r");
@@ -1777,6 +1791,7 @@ static const char *all_tests(void)
     mu_run_test(test_strsignal_names);
     mu_run_test(test_system_fn);
     mu_run_test(test_execvp_fn);
+    mu_run_test(test_posix_spawn_fn);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_temp_files);

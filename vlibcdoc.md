@@ -32,15 +32,18 @@ This document outlines the architecture, planned modules, and API design for **v
 26. [File Status](#file-status)
 27. [Directory Iteration](#directory-iteration)
 28. [Path Canonicalization](#path-canonicalization)
-29. [User Database](#user-database)
-30. [Time Formatting](#time-formatting)
-31. [Locale Support](#locale-support)
-32. [Time Retrieval](#time-retrieval)
-33. [Sleep Functions](#sleep-functions)
-34. [Raw System Calls](#raw-system-calls)
-35. [Non-local Jumps](#non-local-jumps)
-36. [Limitations](#limitations)
-37. [Conclusion](#conclusion)
+29. [Path Utilities](#path-utilities)
+30. [User Database](#user-database)
+31. [Time Formatting](#time-formatting)
+32. [Locale Support](#locale-support)
+33. [Time Retrieval](#time-retrieval)
+34. [Sleep Functions](#sleep-functions)
+35. [Raw System Calls](#raw-system-calls)
+36. [Non-local Jumps](#non-local-jumps)
+37. [Limitations](#limitations)
+38. [Conclusion](#conclusion)
+39. [Logging](#logging)
+40. [Path Expansion](#path-expansion)
 
 ## Overview
 
@@ -164,6 +167,7 @@ stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
 regex.h     - simple regular expression matching
+unistd.h    - POSIX I/O and process helpers
 sys/file.h   - file permission helpers
 sys/mman.h   - memory mapping helpers
 sys/select.h - fd_set macros and select wrapper
@@ -387,6 +391,14 @@ and installing signal handlers.  The companion `signal.h` header offers
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 int execvp(const char *file, char *const argv[]);
+int posix_spawn(pid_t *pid, const char *path,
+                const posix_spawn_file_actions_t *file_actions,
+                const posix_spawnattr_t *attrp,
+                char *const argv[], char *const envp[]);
+int posix_spawnp(pid_t *pid, const char *file,
+                 const posix_spawn_file_actions_t *file_actions,
+                 const posix_spawnattr_t *attrp,
+                 char *const argv[], char *const envp[]);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 pid_t getpid(void);
@@ -404,11 +416,9 @@ void exit(int status);
 
 ```c
 /* Spawn a child that prints a message and wait for it to finish. */
-pid_t pid = fork();
-if (pid == 0) {
-    char *args[] = {"/bin/echo", "hello", NULL};
-    execve("/bin/echo", args, NULL);
-}
+pid_t pid;
+char *args[] = {"/bin/echo", "hello", NULL};
+posix_spawn(&pid, "/bin/echo", NULL, NULL, args, environ);
 waitpid(pid, NULL, 0);
 
 /* Install a handler and send the process an interrupt. */
@@ -757,6 +767,35 @@ char buf[256];
 realpath("tests/../", buf); // buf now holds the absolute path to the repository
 ```
 
+## Path Utilities
+
+`basename` returns the last component of a path while `dirname`
+removes the trailing element. Both functions allocate a new string
+for the result so the input remains untouched.
+
+```c
+char *b = basename("/usr/local/bin/tool");  // "tool"
+char *d = dirname("/usr/local/bin/tool");   // "/usr/local/bin"
+```
+
+## Path Expansion
+
+`glob` expands wildcard patterns like `*.c` into a list of matching
+paths. It iterates through directories using `opendir` and
+`readdir` and compares entries with `fnmatch`.
+
+```c
+glob_t g;
+if (glob("src/*.c", 0, NULL, &g) == 0) {
+    for (size_t i = 0; i < g.gl_pathc; i++)
+        printf("%s\n", g.gl_pathv[i]);
+    globfree(&g);
+}
+```
+
+Results are sorted by default; pass `GLOB_NOSORT` to preserve the
+filesystem order.
+
 ## User Database
 
 `pwd.h` exposes minimal lookup helpers for entries in `/etc/passwd`.
@@ -815,6 +854,21 @@ unsigned sleep(unsigned seconds);
 int usleep(useconds_t usec);
 int nanosleep(const struct timespec *req, struct timespec *rem);
 ```
+
+## Logging
+
+`syslog.h` provides simple helpers to send log messages to `/dev/log` on
+BSD-style systems. Call `openlog` once with an identifier then use `syslog`
+with a priority and `printf`-style format:
+
+```c
+openlog("myapp", LOG_PID, LOG_USER);
+syslog(LOG_INFO, "started with %d workers", workers);
+closelog();
+```
+
+Messages are written using a Unix datagram socket so applications can integrate
+with the host's syslog daemon.
 
 ## Raw System Calls
 

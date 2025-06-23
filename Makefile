@@ -87,6 +87,7 @@ SRC := \
     src/dir.c \
     src/getcwd.c \
     src/realpath.c \
+    src/path.c \
     $(SYS_SRC) \
     src/mmap.c \
     src/env.c \
@@ -114,11 +115,13 @@ SRC := \
     src/wchar.c \
     src/wchar_conv.c \
     src/tempfile.c \
+    src/syslog.c \
     src/getline.c \
     src/pwd.c \
     src/math.c \
     src/math_extra.c \
-    src/regex.c
+    src/regex.c \
+    src/glob.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
 SRC += $(if $(ARCH_SRC),$(ARCH_SRC),src/setjmp.c)
@@ -151,6 +154,8 @@ install: $(LIB)
 	install -m 644 $(LIB) $(DESTDIR)$(PREFIX)/lib
 	install -d $(DESTDIR)$(PREFIX)/include
 	install -m 644 include/*.h $(DESTDIR)$(PREFIX)/include
+	# ensure the new unistd.h header is installed
+	install -m 644 include/unistd.h $(DESTDIR)$(PREFIX)/include
 	install -d $(DESTDIR)$(PREFIX)/include/sys
 	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys
 

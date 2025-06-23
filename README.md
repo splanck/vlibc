@@ -15,6 +15,7 @@ programs. Key features include:
 - Dynamic loading
 - Environment variable handling
 - Host name queries and changes
+- Syslog-style logging
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD
@@ -72,6 +73,15 @@ char word[16];
 sscanf("42 example", "%d %s", &num, word);
 ```
 
+Launching a program in a new process with `posix_spawn` is similarly easy:
+
+```c
+pid_t pid;
+char *args[] = {"/bin/echo", "spawn", NULL};
+posix_spawn(&pid, "/bin/echo", NULL, NULL, args, environ);
+waitpid(pid, NULL, 0);
+```
+
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
 ## Time Retrieval
@@ -90,6 +100,16 @@ clock_gettime(CLOCK_MONOTONIC, &ts);
 Networking helpers such as `inet_pton`, `inet_ntop`, `getaddrinfo` and
 `getnameinfo` understand both IPv4 and IPv6 addresses. Use the standard
 `AF_INET6` family to work with IPv6 sockets and address resolution.
+
+## Path Utilities
+
+`basename` returns the final component of a path and `dirname` strips it
+to yield the parent directory.
+
+```c
+char *b = basename("/usr/local/bin/tool");  // "tool"
+char *d = dirname("/usr/local/bin/tool");   // "/usr/local/bin"
+```
 
 ## Platform Support
 
