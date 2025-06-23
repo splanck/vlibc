@@ -20,38 +20,39 @@ This document outlines the architecture, planned modules, and API design for **v
 14. [Error Reporting](#error-reporting)
 15. [Errno Access](#errno-access)
 16. [Threading](#threading)
-17. [Dynamic Loading](#dynamic-loading)
-18. [Environment Variables](#environment-variables)
-19. [System Information](#system-information)
-20. [Basic File I/O](#basic-file-io)
-21. [File Descriptor Helpers](#file-descriptor-helpers)
-22. [File Control](#file-control)
-23. [Terminal Attributes](#terminal-attributes)
-24. [Standard Streams](#standard-streams)
-25. [Temporary Files](#temporary-files)
-26. [Networking](#networking)
-27. [I/O Multiplexing](#io-multiplexing)
-28. [File Permissions](#file-permissions)
-29. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-30. [File Status](#file-status)
-31. [Directory Iteration](#directory-iteration)
-32. [Path Canonicalization](#path-canonicalization)
-33. [Path Utilities](#path-utilities)
-34. [User Database](#user-database)
-35. [Group Database](#group-database)
-36. [Time Formatting](#time-formatting)
-37. [Locale Support](#locale-support)
-38. [Time Retrieval](#time-retrieval)
-39. [Sleep Functions](#sleep-functions)
-40. [Interval Timers](#interval-timers)
-41. [Raw System Calls](#raw-system-calls)
-42. [Non-local Jumps](#non-local-jumps)
-43. [Limitations](#limitations)
-44. [Conclusion](#conclusion)
-45. [Logging](#logging)
-46. [Path Expansion](#path-expansion)
-47. [Filesystem Statistics](#filesystem-statistics)
-48. [Resource Limits](#resource-limits)
+17. [Semaphores](#semaphores)
+18. [Dynamic Loading](#dynamic-loading)
+19. [Environment Variables](#environment-variables)
+20. [System Information](#system-information)
+21. [Basic File I/O](#basic-file-io)
+22. [File Descriptor Helpers](#file-descriptor-helpers)
+23. [File Control](#file-control)
+24. [Terminal Attributes](#terminal-attributes)
+25. [Standard Streams](#standard-streams)
+26. [Temporary Files](#temporary-files)
+27. [Networking](#networking)
+28. [I/O Multiplexing](#io-multiplexing)
+29. [File Permissions](#file-permissions)
+30. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+31. [File Status](#file-status)
+32. [Directory Iteration](#directory-iteration)
+33. [Path Canonicalization](#path-canonicalization)
+34. [Path Utilities](#path-utilities)
+35. [User Database](#user-database)
+36. [Group Database](#group-database)
+37. [Time Formatting](#time-formatting)
+38. [Locale Support](#locale-support)
+39. [Time Retrieval](#time-retrieval)
+40. [Sleep Functions](#sleep-functions)
+41. [Interval Timers](#interval-timers)
+42. [Raw System Calls](#raw-system-calls)
+43. [Non-local Jumps](#non-local-jumps)
+44. [Limitations](#limitations)
+45. [Conclusion](#conclusion)
+46. [Logging](#logging)
+47. [Path Expansion](#path-expansion)
+48. [Filesystem Statistics](#filesystem-statistics)
+49. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -171,6 +172,7 @@ poll.h       - I/O multiplexing helpers
 signal.h    - signal handling helpers
 process.h    - process creation and control
 pthread.h    - minimal threading support
+semaphore.h - counting semaphore API
 setjmp.h     - non-local jump helpers
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
@@ -637,6 +639,23 @@ int main(void) {
     return 0;
 }
 ```
+
+## Semaphores
+
+Counting semaphores offer simple resource coordination between threads.
+Only unnamed, process-local semaphores are provided. The API mirrors
+POSIX:
+
+```c
+int sem_init(sem_t *sem, int pshared, unsigned value);
+int sem_destroy(sem_t *sem);
+int sem_wait(sem_t *sem);
+int sem_trywait(sem_t *sem);
+int sem_post(sem_t *sem);
+```
+
+On BSD systems these functions call the host implementation. Other
+platforms use a lightweight spin-based fallback.
 
 ## Dynamic Loading
 
@@ -1228,7 +1247,7 @@ state.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
    codes.
  - `perror` and `strerror` cover only common errors.
- - Thread support is limited to basic mutexes and join/detach.
+ - Thread support is limited to basic mutexes, semaphores and join/detach.
  - Locale handling falls back to the host implementation for values other
    than `"C"` or `"POSIX"`.
  - `setjmp`/`longjmp` rely on the host C library when available.

@@ -9,6 +9,7 @@
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
 #include "../include/pthread.h"
+#include "../include/semaphore.h"
 #include "../include/sys/select.h"
 #include "../include/poll.h"
 #include <dirent.h>
@@ -1258,6 +1259,26 @@ static const char *test_pthread_tls(void)
     return 0;
 }
 
+static void *sem_worker(void *arg)
+{
+    sem_t *s = arg;
+    sem_post(s);
+    return NULL;
+}
+
+static const char *test_semaphore_basic(void)
+{
+    sem_t s;
+    mu_assert("sem_init", sem_init(&s, 0, 0) == 0);
+    pthread_t t;
+    pthread_create(&t, NULL, sem_worker, &s);
+    mu_assert("sem_wait", sem_wait(&s) == 0);
+    mu_assert("sem_trywait", sem_trywait(&s) == -1);
+    pthread_join(t, NULL);
+    mu_assert("destroy", sem_destroy(&s) == 0);
+    return 0;
+}
+
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
@@ -2177,6 +2198,7 @@ static const char *all_tests(void)
     mu_run_test(test_pthread);
     mu_run_test(test_pthread_detach);
     mu_run_test(test_pthread_tls);
+    mu_run_test(test_semaphore_basic);
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);

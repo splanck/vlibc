@@ -101,6 +101,12 @@ Values are set with `pthread_setspecific` and retrieved with
 The `pthread_once` helper ensures an initializer runs only once across
 all threads.
 
+## Semaphores
+
+Counting semaphores coordinate work between threads. Call `sem_init`
+to create one, `sem_wait` to decrement and block when zero, and
+`sem_post` to increment the counter.
+
 ## Time Retrieval
 
 Use `clock_gettime` for precise timestamps.

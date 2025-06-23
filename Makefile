@@ -111,6 +111,7 @@ SRC := \
     src/statvfs.c \
     src/utime.c \
     src/pthread.c \
+    src/semaphore.c \
     src/dirent.c \
     src/default_shell.c \
     src/popen.c \
@@ -169,13 +170,16 @@ test: $(TEST_BIN)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+
 install: $(LIB)
 	install -d $(DESTDIR)$(PREFIX)/lib
 	install -m 644 $(LIB) $(DESTDIR)$(PREFIX)/lib
 	install -d $(DESTDIR)$(PREFIX)/include
 	install -m 644 include/*.h $(DESTDIR)$(PREFIX)/include
-	# ensure the new unistd.h header is installed
+# ensure the new unistd.h header is installed
 	install -m 644 include/unistd.h $(DESTDIR)$(PREFIX)/include
+# install semaphore header
+	install -m 644 include/semaphore.h $(DESTDIR)$(PREFIX)/include
 	install -d $(DESTDIR)$(PREFIX)/include/sys
 	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys
 
