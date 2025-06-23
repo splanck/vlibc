@@ -2,6 +2,7 @@
 #include "../include/memory.h"
 #include "../include/io.h"
 #include "../include/sys/socket.h"
+#include "../include/sys/uio.h"
 #include <netinet/in.h>
 #include "../include/arpa/inet.h"
 #include <stdint.h>
@@ -266,6 +267,37 @@ static const char *test_pread_pwrite(void)
     mu_assert("pread", r == 4);
     mu_assert("pread data", strncmp(buf, "bXYe", 4) == 0);
     mu_assert("offset still", lseek(fd, 0, SEEK_CUR) == pos);
+
+    close(fd);
+    unlink(fname);
+    return 0;
+}
+
+static const char *test_readv_writev(void)
+{
+    const char *fname = "tmp_vec_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+
+    struct iovec wv[2];
+    const char *a = "ab";
+    const char *b = "cd";
+    wv[0].iov_base = (void *)a;
+    wv[0].iov_len = 2;
+    wv[1].iov_base = (void *)b;
+    wv[1].iov_len = 2;
+    mu_assert("writev", writev(fd, wv, 2) == 4);
+
+    lseek(fd, 0, SEEK_SET);
+    char buf1[3] = {0};
+    char buf2[3] = {0};
+    struct iovec rv[2];
+    rv[0].iov_base = buf1;
+    rv[0].iov_len = 2;
+    rv[1].iov_base = buf2;
+    rv[1].iov_len = 2;
+    mu_assert("readv", readv(fd, rv, 2) == 4);
+    mu_assert("vec data", strcmp(buf1, "ab") == 0 && strcmp(buf2, "cd") == 0);
 
     close(fd);
     unlink(fname);
@@ -1747,6 +1779,7 @@ static const char *all_tests(void)
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
     mu_run_test(test_pread_pwrite);
+    mu_run_test(test_readv_writev);
     mu_run_test(test_dup3_cloexec);
     mu_run_test(test_pipe2_cloexec);
     mu_run_test(test_isatty_stdin);
