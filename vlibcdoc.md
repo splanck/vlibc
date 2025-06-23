@@ -881,6 +881,19 @@ if (d) {
 }
 ```
 
+`scandir` collects entries into an array and can sort them with
+`alphasort`:
+
+```c
+struct dirent **list;
+int n = scandir("/tmp", &list, NULL, alphasort);
+for (int i = 0; i < n; i++) {
+    puts(list[i]->d_name);
+    free(list[i]);
+}
+free(list);
+```
+
 ## Path Canonicalization
 
 `realpath` converts a pathname into an absolute canonical form. It

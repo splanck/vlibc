@@ -128,6 +128,7 @@ SRC := \
     src/math.c \
     src/math_extra.c \
     src/regex.c \
+    src/scandir.c \
     src/glob.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)

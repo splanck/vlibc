@@ -18,6 +18,7 @@ programs. Key features include:
 - Environment variable handling
 - Host name queries and changes
 - Syslog-style logging
+- Directory scanning helpers
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD
@@ -131,6 +132,21 @@ to yield the parent directory.
 ```c
 char *b = basename("/usr/local/bin/tool");  // "tool"
 char *d = dirname("/usr/local/bin/tool");   // "/usr/local/bin"
+```
+
+## Directory Scanning
+
+`scandir` loads directory entries into a list. Pass `alphasort` as the
+comparison function to sort results alphabetically.
+
+```c
+struct dirent **list;
+int n = scandir(".", &list, NULL, alphasort);
+for (int i = 0; i < n; i++) {
+    printf("%s\n", list[i]->d_name);
+    free(list[i]);
+}
+free(list);
 ```
 
 ## Display Width

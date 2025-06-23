@@ -16,6 +16,12 @@ DIR *vlibc_opendir(const char *name);
 struct dirent *vlibc_readdir(DIR *dirp);
 int vlibc_closedir(DIR *dirp);
 
+/* Directory scanning helpers */
+int scandir(const char *dirp, struct dirent ***namelist,
+            int (*filter)(const struct dirent *),
+            int (*compar)(const struct dirent **, const struct dirent **));
+int alphasort(const struct dirent **a, const struct dirent **b);
+
 #define opendir  vlibc_opendir
 #define readdir  vlibc_readdir
 #define closedir vlibc_closedir
