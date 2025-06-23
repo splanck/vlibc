@@ -318,6 +318,19 @@ static const char *test_pipe2_cloexec(void)
     return 0;
 }
 
+static const char *test_isatty_stdin(void)
+{
+    int fd = open("tmp_isatty_file", O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+    int stdin_tty = isatty(0);
+    int file_tty = isatty(fd);
+    close(fd);
+    unlink("tmp_isatty_file");
+    mu_assert("file not tty", file_tty == 0);
+    mu_assert("stdin result valid", stdin_tty == 0 || stdin_tty == 1);
+    return 0;
+}
+
 static const char *test_udp_send_recv(void)
 {
     int s1 = socket(AF_INET, SOCK_DGRAM, 0);
@@ -1736,6 +1749,7 @@ static const char *all_tests(void)
     mu_run_test(test_pread_pwrite);
     mu_run_test(test_dup3_cloexec);
     mu_run_test(test_pipe2_cloexec);
+    mu_run_test(test_isatty_stdin);
     mu_run_test(test_socket);
     mu_run_test(test_socketpair_basic);
     mu_run_test(test_udp_send_recv);

@@ -616,6 +616,8 @@ int pipefd[2];
 pipe(pipefd);
 ```
 
+Use `isatty(fd)` to query whether a descriptor refers to a terminal.
+
 ## Standard Streams
 
 `stdin`, `stdout`, and `stderr` are lightweight streams wrapping file
