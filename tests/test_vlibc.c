@@ -1050,6 +1050,14 @@ static const char *test_locale_from_env(void)
     return 0;
 }
 
+static const char *test_gethostname_fn(void)
+{
+    char buf[256];
+    mu_assert("gethostname", gethostname(buf, sizeof(buf)) == 0);
+    mu_assert("non-empty", buf[0] != '\0');
+    return 0;
+}
+
 static const char *test_error_reporting(void)
 {
     errno = ENOENT;
@@ -1529,6 +1537,7 @@ static const char *all_tests(void)
     mu_run_test(test_time_conversions);
     mu_run_test(test_environment);
     mu_run_test(test_locale_from_env);
+    mu_run_test(test_gethostname_fn);
     mu_run_test(test_error_reporting);
     mu_run_test(test_system_fn);
     mu_run_test(test_execvp_fn);

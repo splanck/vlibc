@@ -1,6 +1,8 @@
 #ifndef ENV_H
 #define ENV_H
 
+#include <stddef.h>
+
 /* Access to environment variables */
 
 /* global environment pointer */
@@ -12,5 +14,9 @@ void env_init(char **envp);
 char *getenv(const char *name);
 int setenv(const char *name, const char *value, int overwrite);
 int unsetenv(const char *name);
+
+/* Host name helpers */
+int gethostname(char *name, size_t len);
+int sethostname(const char *name, size_t len);
 
 #endif /* ENV_H */
