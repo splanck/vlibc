@@ -522,6 +522,11 @@ static const char *test_string_helpers(void)
     mu_assert("memchr", m == &mbuf[2]);
     mu_assert("memchr none", memchr(mbuf, 5, sizeof(mbuf)) == NULL);
 
+    mu_assert("strspn", strspn("abcde", "abc") == 3);
+    mu_assert("strcspn", strcspn("hello world", " ") == 5);
+    const char *bp = strpbrk("hello", "xol");
+    mu_assert("strpbrk", bp && bp - "hello" == 2);
+
     return 0;
 }
 

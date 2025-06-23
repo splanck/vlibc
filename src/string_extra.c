@@ -83,3 +83,59 @@ size_t strlcat(char *dst, const char *src, size_t size)
 
     return dlen + slen;
 }
+
+size_t strspn(const char *s, const char *accept)
+{
+    size_t count = 0;
+    while (*s) {
+        const char *a = accept;
+        int found = 0;
+        while (*a) {
+            if (*s == *a) {
+                found = 1;
+                break;
+            }
+            a++;
+        }
+        if (!found)
+            break;
+        ++count;
+        ++s;
+    }
+    return count;
+}
+
+size_t strcspn(const char *s, const char *reject)
+{
+    size_t count = 0;
+    while (*s) {
+        const char *r = reject;
+        int stop = 0;
+        while (*r) {
+            if (*s == *r) {
+                stop = 1;
+                break;
+            }
+            r++;
+        }
+        if (stop)
+            break;
+        ++count;
+        ++s;
+    }
+    return count;
+}
+
+char *strpbrk(const char *s, const char *accept)
+{
+    while (*s) {
+        const char *a = accept;
+        while (*a) {
+            if (*s == *a)
+                return (char *)s;
+            a++;
+        }
+        s++;
+    }
+    return NULL;
+}
