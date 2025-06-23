@@ -72,3 +72,83 @@ gid_t getegid(void)
     return (gid_t)ret;
 #endif
 }
+
+int setuid(uid_t uid)
+{
+#if defined(SYS_setuid)
+    long ret = vlibc_syscall(SYS_setuid, uid, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_setuid(uid_t) __asm("setuid");
+    return host_setuid(uid);
+#else
+    (void)uid;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int seteuid(uid_t euid)
+{
+#if defined(SYS_seteuid)
+    long ret = vlibc_syscall(SYS_seteuid, euid, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_seteuid(uid_t) __asm("seteuid");
+    return host_seteuid(euid);
+#else
+    (void)euid;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int setgid(gid_t gid)
+{
+#if defined(SYS_setgid)
+    long ret = vlibc_syscall(SYS_setgid, gid, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_setgid(gid_t) __asm("setgid");
+    return host_setgid(gid);
+#else
+    (void)gid;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int setegid(gid_t egid)
+{
+#if defined(SYS_setegid)
+    long ret = vlibc_syscall(SYS_setegid, egid, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_setegid(gid_t) __asm("setegid");
+    return host_setegid(egid);
+#else
+    (void)egid;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
