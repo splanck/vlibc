@@ -713,6 +713,13 @@ if (getcwd(path, sizeof(path)))
 chdir("/");
 ```
 
+Additional helpers inspect and reset a stream's state. `feof(stream)`
+returns non-zero once the end of input has been reached while
+`ferror(stream)` indicates an I/O error.  Call `clearerr(stream)` to reset
+both flags.  `fileno(stream)` exposes the underlying descriptor number and
+`ungetc(c, stream)` pushes a single byte back so the next `fgetc` returns
+it.
+
 ## File Descriptor Helpers
 
 Low-level descriptor routines perform simple tasks such as repositioning a file,

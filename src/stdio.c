@@ -165,6 +165,8 @@ int fseek(FILE *stream, long offset, int whence)
     }
     stream->bufpos = 0;
     stream->buflen = 0;
+    stream->eof = 0;
+    stream->have_ungot = 0;
     return 0;
 }
 
@@ -191,6 +193,9 @@ void rewind(FILE *stream)
         stream->err = 1;
     stream->bufpos = 0;
     stream->buflen = 0;
+    stream->eof = 0;
+    stream->err = 0;
+    stream->have_ungot = 0;
 }
 
 int fgetc(FILE *stream)
