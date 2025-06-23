@@ -164,6 +164,7 @@ io.h         - unbuffered I/O primitives
 locale.h     - locale helpers
 math.h       - basic math routines
 memory.h     - heap allocation
+assert.h     - runtime assertion checks
 netdb.h      - address resolution helpers
 arpa/inet.h  - IPv4/IPv6 presentation conversion helpers
 ftw.h        - directory tree traversal helpers
