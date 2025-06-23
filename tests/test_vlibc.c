@@ -1514,6 +1514,56 @@ static const char *test_getopt_long_basic(void)
     return 0;
 }
 
+static const char *test_getopt_long_only_missing(void)
+{
+    char *argv[] = {"prog", "-bar", NULL};
+    int argc = 2;
+    struct option longopts[] = {
+        {"bar", required_argument, NULL, 'b'},
+        {0, 0, 0, 0}
+    };
+    optind = 1;
+    opterr = 0;
+    int r = getopt_long_only(argc, argv, "b:", longopts, NULL);
+    mu_assert("missing ret", r == '?');
+    mu_assert("optopt", optopt == 'b');
+    mu_assert("index", optind == 2);
+    return 0;
+}
+
+static const char *test_getopt_long_only_basic(void)
+{
+    char *argv[] = {"prog", "-foo", "-bar=val", "rest", NULL};
+    int argc = 4;
+    int foo = 0;
+    char *bar = NULL;
+    struct option longopts[] = {
+        {"foo", no_argument, &foo, 1},
+        {"bar", required_argument, NULL, 'b'},
+        {0, 0, 0, 0}
+    };
+    optind = 1;
+    opterr = 0;
+    int c;
+    while ((c = getopt_long_only(argc, argv, "b:", longopts, NULL)) != -1) {
+        switch (c) {
+        case 0:
+            break;
+        case 'b':
+            bar = optarg;
+            break;
+        default:
+            return "unexpected long opt";
+        }
+    }
+    mu_assert("foo", foo == 1);
+    mu_assert("bar", bar && strcmp(bar, "val") == 0);
+    mu_assert("optind", optind == 3);
+    mu_assert("rest", strcmp(argv[optind], "rest") == 0);
+
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
@@ -1581,6 +1631,8 @@ static const char *all_tests(void)
     mu_run_test(test_dlopen_basic);
     mu_run_test(test_getopt_long_missing);
     mu_run_test(test_getopt_long_basic);
+    mu_run_test(test_getopt_long_only_missing);
+    mu_run_test(test_getopt_long_only_basic);
 
     return 0;
 }

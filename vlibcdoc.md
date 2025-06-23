@@ -305,10 +305,12 @@ returned unchanged by `tolower` and `toupper`.
 
 ## Option Parsing
 
-Command-line arguments can be processed with `getopt` or `getopt_long`. The
-former handles short options while the latter accepts an array of `struct
-option` describing long names. `getopt_long` returns the option's value field
-or sets a flag when supplied in the table.
+Command-line arguments can be processed with `getopt`, `getopt_long` or
+`getopt_long_only`. The former handles short options while the latter
+two accept an array of `struct option` describing long names. The
+`getopt_long_only` variant also recognizes long options when they are
+prefixed with a single dash. Both long parsing functions return the
+option's value field or set a flag when supplied in the table.
 
 ## Random Numbers
 

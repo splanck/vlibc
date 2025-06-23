@@ -103,6 +103,7 @@ SRC := \
     src/getopt.c \
     src/dlfcn.c \
     src/getopt_long.c \
+    src/getopt_long_only.c \
     src/locale.c \
     src/wchar.c \
     src/wchar_conv.c \
