@@ -19,6 +19,28 @@ uid_t geteuid(void);
 gid_t getgid(void);
 gid_t getegid(void);
 
+/* sysconf keys */
+#ifndef _SC_ARG_MAX
+#define _SC_ARG_MAX 1
+#endif
+#ifndef _SC_PAGESIZE
+#define _SC_PAGESIZE 2
+#endif
+#ifndef _SC_PAGE_SIZE
+#define _SC_PAGE_SIZE _SC_PAGESIZE
+#endif
+#ifndef _SC_OPEN_MAX
+#define _SC_OPEN_MAX 3
+#endif
+#ifndef _SC_NPROCESSORS_ONLN
+#define _SC_NPROCESSORS_ONLN 4
+#endif
+#ifndef _SC_CLK_TCK
+#define _SC_CLK_TCK 5
+#endif
+
+long sysconf(int name);
+
 #ifndef STDIN_FILENO
 #define STDIN_FILENO 0
 #endif

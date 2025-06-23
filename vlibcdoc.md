@@ -42,13 +42,14 @@ This document outlines the architecture, planned modules, and API design for **v
 36. [Time Retrieval](#time-retrieval)
 37. [Sleep Functions](#sleep-functions)
 38. [Interval Timers](#interval-timers)
-39. [Raw System Calls](#raw-system-calls)
-40. [Non-local Jumps](#non-local-jumps)
-41. [Limitations](#limitations)
-42. [Conclusion](#conclusion)
-43. [Logging](#logging)
-44. [Path Expansion](#path-expansion)
-45. [Filesystem Statistics](#filesystem-statistics)
+39. [Runtime Limits](#runtime-limits)
+40. [Raw System Calls](#raw-system-calls)
+41. [Non-local Jumps](#non-local-jumps)
+42. [Limitations](#limitations)
+43. [Conclusion](#conclusion)
+44. [Logging](#logging)
+45. [Path Expansion](#path-expansion)
+46. [Filesystem Statistics](#filesystem-statistics)
 
 ## Overview
 
@@ -1052,6 +1053,19 @@ returns the remaining time and interval.
 struct itimerval it = { {1, 0}, {1, 0} };
 setitimer(ITIMER_REAL, &it, NULL);
 ```
+
+## Runtime Limits
+
+`sysconf` queries runtime parameters such as page size and descriptor limits.
+Supported keys include:
+
+- `_SC_PAGESIZE` / `_SC_PAGE_SIZE` – size of a memory page
+- `_SC_OPEN_MAX` – maximum number of open files
+- `_SC_NPROCESSORS_ONLN` – number of available CPUs
+- `_SC_ARG_MAX` – maximum length of command line arguments
+- `_SC_CLK_TCK` – clock ticks per second
+
+The function returns the limit value or `-1` when the key is not supported.
 
 ## Logging
 

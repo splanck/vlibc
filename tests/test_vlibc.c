@@ -1720,6 +1720,17 @@ static const char *test_group_lookup(void)
     return 0;
 }
 
+static const char *test_sysconf_basic(void)
+{
+    long ps = sysconf(_SC_PAGESIZE);
+    mu_assert("pagesize", ps > 0);
+    long om = sysconf(_SC_OPEN_MAX);
+    mu_assert("openmax", om >= 0);
+    long cpu = sysconf(_SC_NPROCESSORS_ONLN);
+    mu_assert("ncpu", cpu >= 1);
+    return 0;
+}
+
 static int int_cmp(const void *a, const void *b)
 {
     int ia = *(const int *)a;
@@ -2021,6 +2032,7 @@ static const char *all_tests(void)
     mu_run_test(test_realpath_basic);
     mu_run_test(test_passwd_lookup);
     mu_run_test(test_group_lookup);
+    mu_run_test(test_sysconf_basic);
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);

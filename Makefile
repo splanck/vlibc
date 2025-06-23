@@ -123,6 +123,7 @@ SRC := \
     src/wchar_conv.c \
     src/tempfile.c \
     src/syslog.c \
+    src/sysconf.c \
     src/getline.c \
     src/pwd.c \
     src/grp.c \
