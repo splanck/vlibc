@@ -743,6 +743,25 @@ int fd = socket(AF_INET, SOCK_STREAM, 0);
 }
 ```
 
+### Legacy Lookup API
+
+Older programs may still rely on `gethostbyname` and `gethostbyaddr`.
+vlibc implements these wrappers by consulting `/etc/hosts` and falling
+back to `getaddrinfo` when no entry is found.
+
+```c
+struct hostent {
+    char *h_name;
+    char **h_aliases;
+    int h_addrtype;
+    int h_length;
+    char **h_addr_list;
+};
+
+struct hostent *gethostbyname(const char *name);
+struct hostent *gethostbyaddr(const void *addr, socklen_t len, int type);
+```
+
 Create a pair of connected sockets with `socketpair`:
 
 ```c

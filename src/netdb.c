@@ -132,6 +132,45 @@ static int hosts_lookup(const char *node, uint32_t *ip)
     return -1;
 }
 
+static int hosts_reverse_lookup(uint32_t ip, char *name, size_t len)
+{
+    int fd = open("/etc/hosts", O_RDONLY, 0);
+    if (fd < 0)
+        return -1;
+
+    char buf[2048];
+    ssize_t n = read(fd, buf, sizeof(buf) - 1);
+    close(fd);
+    if (n <= 0)
+        return -1;
+    buf[n] = '\0';
+
+    char *save1;
+    for (char *line = strtok_r(buf, "\n", &save1); line;
+         line = strtok_r(NULL, "\n", &save1)) {
+        while (*line == ' ' || *line == '\t')
+            line++;
+        if (*line == '#' || *line == '\0')
+            continue;
+        char *save2;
+        char *tok = strtok_r(line, " \t", &save2);
+        if (!tok)
+            continue;
+        uint32_t addr;
+        if (parse_ipv4(tok, &addr) != 0)
+            continue;
+        if (addr == ip) {
+            tok = strtok_r(NULL, " \t", &save2);
+            if (!tok)
+                return -1;
+            strncpy(name, tok, len - 1);
+            name[len - 1] = '\0';
+            return 0;
+        }
+    }
+    return -1;
+}
+
 static uint16_t htons16(uint16_t v)
 {
     return (uint16_t)(((v & 0xFF) << 8) | ((v >> 8) & 0xFF));
@@ -253,4 +292,99 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
         return 0;
     }
     return -1;
+}
+
+static struct hostent he;
+static char *he_aliases[1];
+static char *he_addr_list[2];
+static struct in_addr he_addr4;
+static struct in6_addr he_addr6;
+static char he_name[NI_MAXHOST];
+
+struct hostent *gethostbyname(const char *name)
+{
+    uint32_t ip4;
+    if (hosts_lookup(name, &ip4) == 0) {
+        he_addr4.s_addr = ip4;
+        he.h_name = (char *)name;
+        he.h_aliases = he_aliases;
+        he_aliases[0] = NULL;
+        he.h_addrtype = AF_INET;
+        he.h_length = sizeof(struct in_addr);
+        he_addr_list[0] = (char *)&he_addr4;
+        he_addr_list[1] = NULL;
+        he.h_addr_list = he_addr_list;
+        return &he;
+    }
+
+    struct addrinfo *ai;
+    if (getaddrinfo(name, NULL, NULL, &ai) != 0)
+        return NULL;
+
+    if (ai->ai_family == AF_INET) {
+        struct sockaddr_in *sa = (struct sockaddr_in *)ai->ai_addr;
+        he_addr4.s_addr = sa->sin_addr.s_addr;
+        he.h_addrtype = AF_INET;
+        he.h_length = sizeof(struct in_addr);
+        he_addr_list[0] = (char *)&he_addr4;
+    } else if (ai->ai_family == AF_INET6) {
+        struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)ai->ai_addr;
+        memcpy(&he_addr6, &sa6->sin6_addr, sizeof(struct in6_addr));
+        he.h_addrtype = AF_INET6;
+        he.h_length = sizeof(struct in6_addr);
+        he_addr_list[0] = (char *)&he_addr6;
+    } else {
+        freeaddrinfo(ai);
+        return NULL;
+    }
+    he_addr_list[1] = NULL;
+    he.h_name = (char *)name;
+    he.h_aliases = he_aliases;
+    he_aliases[0] = NULL;
+    he.h_addr_list = he_addr_list;
+    freeaddrinfo(ai);
+    return &he;
+}
+
+struct hostent *gethostbyaddr(const void *addr, socklen_t len, int type)
+{
+    he.h_aliases = he_aliases;
+    he_aliases[0] = NULL;
+    he.h_addr_list = he_addr_list;
+    he_addr_list[1] = NULL;
+
+    if (type == AF_INET && len == sizeof(struct in_addr)) {
+        uint32_t ip = *(const uint32_t *)addr;
+        if (hosts_reverse_lookup(ip, he_name, sizeof(he_name)) != 0) {
+            struct sockaddr_in sa;
+            sa.sin_family = AF_INET;
+            sa.sin_port = 0;
+            sa.sin_addr.s_addr = ip;
+            if (getnameinfo((struct sockaddr *)&sa, sizeof(sa),
+                            he_name, sizeof(he_name), NULL, 0, 0) != 0)
+                return NULL;
+        }
+        he_addr4.s_addr = ip;
+        he.h_name = he_name;
+        he.h_addrtype = AF_INET;
+        he.h_length = sizeof(struct in_addr);
+        he_addr_list[0] = (char *)&he_addr4;
+        return &he;
+    } else if (type == AF_INET6 && len == sizeof(struct in6_addr)) {
+        memcpy(&he_addr6, addr, sizeof(struct in6_addr));
+        struct sockaddr_in6 sa6;
+        memset(&sa6, 0, sizeof(sa6));
+        sa6.sin6_family = AF_INET6;
+        memcpy(&sa6.sin6_addr, addr, sizeof(struct in6_addr));
+        if (getnameinfo((struct sockaddr *)&sa6, sizeof(sa6),
+                        he_name, sizeof(he_name), NULL, 0, 0) != 0)
+            return NULL;
+        he.h_name = he_name;
+        he.h_addrtype = AF_INET6;
+        he.h_length = sizeof(struct in6_addr);
+        he_addr_list[0] = (char *)&he_addr6;
+        return &he;
+    }
+    errno = EAFNOSUPPORT;
+    return NULL;
 }
