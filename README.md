@@ -14,6 +14,7 @@ programs. Key features include:
 - Networking sockets
 - Dynamic loading
 - Environment variable handling
+- Host name queries and changes
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD

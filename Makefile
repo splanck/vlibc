@@ -88,6 +88,7 @@ SRC := \
     $(SYS_SRC) \
     src/mmap.c \
     src/env.c \
+    src/hostname.c \
     src/sleep.c \
     src/clock_gettime.c \
     src/time.c \
