@@ -76,6 +76,37 @@ int setenv(const char *name, const char *value, int overwrite)
     return 0;
 }
 
+int putenv(const char *str)
+{
+    if (!str)
+        return -1;
+    const char *eq = strchr(str, '=');
+    if (!eq)
+        return -1;
+
+    size_t nlen = (size_t)(eq - str);
+
+    int idx = find_env_index(str, nlen);
+    if (idx >= 0) {
+        environ[idx] = (char *)str;
+        return 0;
+    }
+
+    int count = 0;
+    if (environ) {
+        while (environ[count])
+            count++;
+    }
+
+    char **newenv = realloc(environ, sizeof(char *) * (count + 2));
+    if (!newenv)
+        return -1;
+    environ = newenv;
+    environ[count] = (char *)str;
+    environ[count + 1] = NULL;
+    return 0;
+}
+
 int unsetenv(const char *name)
 {
     if (!environ || !name || strchr(name, '='))

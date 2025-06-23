@@ -528,7 +528,8 @@ to load code at runtime.
 
 The environment module exposes a global pointer `environ` storing the
 process's `name=value` pairs. Programs with a custom entry point should
-call `env_init(envp)` before using `getenv`, `setenv`, or `unsetenv`.
+call `env_init(envp)` before using `getenv`, `setenv`, `putenv`, or
+`unsetenv`.
 
 ```c
 extern char **environ;
@@ -536,6 +537,7 @@ extern char **environ;
 int main(int argc, char **argv, char **envp) {
     env_init(envp);
     setenv("FOO", "BAR", 1);
+    putenv("BAR=BAZ");
     const char *v = getenv("FOO");
     unsetenv("FOO");
     return 0;
