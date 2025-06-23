@@ -32,6 +32,7 @@
 #include "../include/math.h"
 #include "../include/locale.h"
 #include "../include/regex.h"
+#include "../include/ftw.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -1713,6 +1714,56 @@ static const char *test_dirent(void)
     return 0;
 }
 
+static int walk_count;
+
+static int nftw_counter(const char *path, const struct stat *sb, int flag,
+                        struct FTW *info)
+{
+    (void)path; (void)sb; (void)flag; (void)info;
+    walk_count++;
+    return 0;
+}
+
+static int ftw_counter(const char *path, const struct stat *sb, int flag)
+{
+    return nftw_counter(path, sb, flag, NULL);
+}
+
+static const char *test_ftw_walk(void)
+{
+    char tmpl[] = "/tmp/ftwXXXXXX";
+    char *dir = mkdtemp(tmpl);
+    mu_assert("mkdtemp", dir != NULL);
+
+    char buf[256];
+    snprintf(buf, sizeof(buf), "%s/a", dir);
+    int fd = open(buf, O_WRONLY | O_CREAT, 0600);
+    mu_assert("file a", fd >= 0);
+    close(fd);
+
+    snprintf(buf, sizeof(buf), "%s/b", dir);
+    mu_assert("mkdir", mkdir(buf, 0700) == 0);
+
+    snprintf(buf, sizeof(buf), "%s/b/c", dir);
+    fd = open(buf, O_WRONLY | O_CREAT, 0600);
+    mu_assert("file c", fd >= 0);
+    close(fd);
+
+    walk_count = 0;
+    mu_assert("nftw", nftw(dir, nftw_counter, 8, FTW_PHYS | FTW_DEPTH) == 0);
+    mu_assert("count nftw", walk_count == 5);
+
+    walk_count = 0;
+    mu_assert("ftw", ftw(dir, ftw_counter, 8) == 0);
+    mu_assert("count ftw", walk_count == 5);
+
+    snprintf(buf, sizeof(buf), "%s/b/c", dir); unlink(buf);
+    snprintf(buf, sizeof(buf), "%s/b", dir); rmdir(buf);
+    snprintf(buf, sizeof(buf), "%s/a", dir); unlink(buf);
+    rmdir(dir);
+    return 0;
+}
+
 static const char *test_passwd_lookup(void)
 {
     char tmpl[] = "/tmp/pwtestXXXXXX";
@@ -2068,6 +2119,7 @@ static const char *all_tests(void)
     mu_run_test(test_passwd_lookup);
     mu_run_test(test_group_lookup);
     mu_run_test(test_dirent);
+    mu_run_test(test_ftw_walk);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
     mu_run_test(test_regex_backref_basic);

@@ -1,0 +1,113 @@
+#include "ftw.h"
+#include "dirent.h"
+#include "string.h"
+#include "stdlib.h"
+#include "errno.h"
+#include "unistd.h"
+#include "sys/stat.h"
+
+static int do_nftw(const char *path,
+                   nftw_func_t fn,
+                   int fdlimit, int flags, int level)
+{
+    struct stat st;
+    int r;
+
+    if (flags & FTW_PHYS)
+        r = lstat(path, &st);
+    else
+        r = stat(path, &st);
+
+    int type;
+    if (r < 0) {
+        type = FTW_NS;
+    } else if (S_ISDIR(st.st_mode)) {
+        type = FTW_D;
+    } else if (S_ISLNK(st.st_mode)) {
+        if (flags & FTW_PHYS) {
+            struct stat sb;
+            if (stat(path, &sb) < 0)
+                type = FTW_SLN;
+            else
+                type = FTW_SL;
+        } else {
+            type = FTW_SL;
+        }
+    } else {
+        type = FTW_F;
+    }
+
+    struct FTW info;
+    const char *base = strrchr(path, '/');
+    info.base = base ? (int)(base + 1 - path) : 0;
+    info.level = level;
+
+    if (!(flags & FTW_DEPTH) || type != FTW_D) {
+        r = fn(path, &st, type, &info);
+        if (r != 0)
+            return r;
+    }
+
+    if (type == FTW_D) {
+        DIR *d = opendir(path);
+        if (!d)
+            return fn(path, &st, FTW_DNR, &info);
+        struct dirent *e;
+        while ((e = readdir(d))) {
+            if (strcmp(e->d_name, ".") == 0 || strcmp(e->d_name, "..") == 0)
+                continue;
+            size_t len = strlen(path);
+            size_t add = len && path[len-1] != '/' ? 1 : 0;
+            char *child = malloc(len + add + strlen(e->d_name) + 1);
+            if (!child) {
+                closedir(d);
+                errno = ENOMEM;
+                return -1;
+            }
+            memcpy(child, path, len);
+            if (add)
+                child[len] = '/';
+            strcpy(child + len + add, e->d_name);
+            r = do_nftw(child, fn, fdlimit, flags, level + 1);
+            free(child);
+            if (r != 0) {
+                closedir(d);
+                return r;
+            }
+        }
+        closedir(d);
+    }
+
+    if ((flags & FTW_DEPTH) && type == FTW_D) {
+        r = fn(path, &st, FTW_DP, &info);
+        if (r != 0)
+            return r;
+    }
+    return 0;
+}
+
+static ftw_func_t ftw_cb;
+
+static int ftw_wrapper(const char *fpath, const struct stat *sb, int typeflag,
+                       struct FTW *info)
+{
+    (void)info;
+    return ftw_cb(fpath, sb, typeflag);
+}
+
+int nftw(const char *path, nftw_func_t fn, int fdlimit, int flags)
+{
+    if (!path || !fn) {
+        errno = EINVAL;
+        return -1;
+    }
+    (void)fdlimit;
+    return do_nftw(path, fn, fdlimit, flags, 0);
+}
+
+int ftw(const char *path, ftw_func_t fn, int fdlimit)
+{
+    ftw_cb = fn;
+    return nftw(path, ftw_wrapper, fdlimit, 0);
+}
+

@@ -165,6 +165,7 @@ math.h       - basic math routines
 memory.h     - heap allocation
 netdb.h      - address resolution helpers
 arpa/inet.h  - IPv4/IPv6 presentation conversion helpers
+ftw.h        - directory tree traversal helpers
 poll.h       - I/O multiplexing helpers
 signal.h    - signal handling helpers
 process.h    - process creation and control
@@ -945,6 +946,23 @@ for (int i = 0; i < n; i++) {
     free(list[i]);
 }
 free(list);
+```
+
+`ftw` and `nftw` walk an entire directory tree, calling a function for
+each entry. `nftw` provides additional flags such as `FTW_PHYS` to
+avoid following symbolic links and `FTW_DEPTH` to visit directories
+after their contents.
+
+```c
+static int cb(const char *path, const struct stat *st, int flag,
+              struct FTW *info)
+{
+    (void)st; (void)info;
+    printf("%d %s\n", flag, path);
+    return 0;
+}
+
+nftw("/tmp", cb, 8, FTW_PHYS);
 ```
 
 ## Path Canonicalization

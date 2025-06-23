@@ -149,6 +149,10 @@ for (int i = 0; i < n; i++) {
 free(list);
 ```
 
+`ftw` and `nftw` recursively walk a directory tree, invoking a callback
+for each entry. Use `FTW_PHYS` with `nftw` to avoid following symbolic
+links.
+
 ## Display Width
 
 `wcwidth` reports how many columns a single wide character occupies and
