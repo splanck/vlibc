@@ -89,6 +89,11 @@ time_t mktime(struct tm *tm)
     return t;
 }
 
+time_t timegm(struct tm *tm)
+{
+    return mktime(tm);
+}
+
 char *ctime(const time_t *timep)
 {
     static char buf[32];

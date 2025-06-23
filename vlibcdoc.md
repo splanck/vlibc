@@ -722,6 +722,7 @@ realpath("tests/../", buf); // buf now holds the absolute path to the repository
 ## Time Formatting
 
 A minimal `strftime` supports `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S`.
+`timegm` converts a `struct tm` in UTC back to `time_t` using the same logic as `mktime` but without timezone adjustments.
 
 ## Locale Support
 
