@@ -19,6 +19,10 @@ uid_t getuid(void);
 uid_t geteuid(void);
 gid_t getgid(void);
 gid_t getegid(void);
+int setuid(uid_t uid);
+int seteuid(uid_t euid);
+int setgid(gid_t gid);
+int setegid(gid_t egid);
 
 long sysconf(int name);
 int getpagesize(void);
