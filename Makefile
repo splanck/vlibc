@@ -132,6 +132,7 @@ SRC := \
     src/math.c \
     src/math_extra.c \
     src/regex.c \
+    src/fnmatch.c \
     src/scandir.c \
     src/glob.c
 

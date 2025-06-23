@@ -966,7 +966,10 @@ char *d = dirname("/usr/local/bin/tool");   // "/usr/local/bin"
 
 `glob` expands wildcard patterns like `*.c` into a list of matching
 paths. It iterates through directories using `opendir` and
-`readdir` and compares entries with `fnmatch`.
+`readdir` and compares entries with an internal `fnmatch` implementation.
+The matcher understands `*` and `?` wildcards as well as character classes
+like `[a-z]`. Special characters may be escaped with a backslash unless
+`FNM_NOESCAPE` is specified.
 
 ```c
 glob_t g;
