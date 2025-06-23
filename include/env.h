@@ -11,6 +11,7 @@ void env_init(char **envp);
 
 char *getenv(const char *name);
 int setenv(const char *name, const char *value, int overwrite);
+int putenv(const char *str);
 int unsetenv(const char *name);
 
 #endif /* ENV_H */
