@@ -34,3 +34,103 @@ mode_t umask(mode_t mask)
     }
     return (mode_t)ret;
 }
+
+int fchmod(int fd, mode_t mode)
+{
+#ifdef SYS_fchmod
+    long ret = vlibc_syscall(SYS_fchmod, fd, mode, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_fchmod(int, mode_t) __asm__("fchmod");
+    return host_fchmod(fd, mode);
+#else
+    (void)fd; (void)mode; errno = ENOSYS; return -1;
+#endif
+#endif
+}
+
+int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags)
+{
+#ifdef SYS_fchmodat
+    long ret = vlibc_syscall(SYS_fchmodat, dirfd, (long)pathname, mode, flags, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_fchmodat(int, const char *, mode_t, int) __asm__("fchmodat");
+    return host_fchmodat(dirfd, pathname, mode, flags);
+#else
+    (void)dirfd; (void)pathname; (void)mode; (void)flags; errno = ENOSYS; return -1;
+#endif
+#endif
+}
+
+int fchown(int fd, uid_t owner, gid_t group)
+{
+#ifdef SYS_fchown
+    long ret = vlibc_syscall(SYS_fchown, fd, owner, group, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_fchown(int, uid_t, gid_t) __asm__("fchown");
+    return host_fchown(fd, owner, group);
+#else
+    (void)fd; (void)owner; (void)group; errno = ENOSYS; return -1;
+#endif
+#endif
+}
+
+int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags)
+{
+#ifdef SYS_fchownat
+    long ret = vlibc_syscall(SYS_fchownat, dirfd, (long)pathname, owner, group, flags, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_fchownat(int, const char *, uid_t, gid_t, int) __asm__("fchownat");
+    return host_fchownat(dirfd, pathname, owner, group, flags);
+#else
+    (void)dirfd; (void)pathname; (void)owner; (void)group; (void)flags; errno = ENOSYS; return -1;
+#endif
+#endif
+}
+
+int lchown(const char *pathname, uid_t owner, gid_t group)
+{
+#ifdef SYS_lchown
+    long ret = vlibc_syscall(SYS_lchown, (long)pathname, owner, group, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_lchown(const char *, uid_t, gid_t) __asm__("lchown");
+    return host_lchown(pathname, owner, group);
+#else
+    (void)pathname; (void)owner; (void)group; errno = ENOSYS; return -1;
+#endif
+#endif
+}

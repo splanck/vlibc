@@ -15,6 +15,11 @@
 int chmod(const char *path, mode_t mode);
 int chown(const char *path, uid_t owner, gid_t group);
 mode_t umask(mode_t mask);
+int fchmod(int fd, mode_t mode);
+int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags);
+int fchown(int fd, uid_t owner, gid_t group);
+int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags);
+int lchown(const char *pathname, uid_t owner, gid_t group);
 
 struct utimbuf {
     time_t actime;
