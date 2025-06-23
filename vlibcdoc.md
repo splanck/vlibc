@@ -1186,6 +1186,7 @@ Delay helpers are available in `time.h`:
 unsigned sleep(unsigned seconds);
 int usleep(useconds_t usec);
 int nanosleep(const struct timespec *req, struct timespec *rem);
+unsigned int alarm(unsigned int seconds);
 ```
 
 ## Interval Timers

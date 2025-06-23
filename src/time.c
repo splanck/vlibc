@@ -75,3 +75,21 @@ int gettimeofday(struct timeval *tv, void *tz)
     return host_gettimeofday(tv, tz);
 #endif
 }
+
+unsigned int alarm(unsigned int seconds)
+{
+#ifdef SYS_alarm
+    long ret = vlibc_syscall(SYS_alarm, seconds, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return 0;
+    }
+    return (unsigned int)ret;
+#else
+    struct itimerval it = { {0, 0}, { (time_t)seconds, 0 } };
+    struct itimerval old;
+    if (setitimer(ITIMER_REAL, &it, &old) < 0)
+        return 0;
+    return (unsigned int)old.it_value.tv_sec;
+#endif
+}
