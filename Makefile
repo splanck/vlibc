@@ -86,6 +86,7 @@ SRC := \
     src/dir.c \
     src/getcwd.c \
     src/realpath.c \
+    src/path.c \
     $(SYS_SRC) \
     src/mmap.c \
     src/env.c \

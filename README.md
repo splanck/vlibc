@@ -101,6 +101,16 @@ Networking helpers such as `inet_pton`, `inet_ntop`, `getaddrinfo` and
 `getnameinfo` understand both IPv4 and IPv6 addresses. Use the standard
 `AF_INET6` family to work with IPv6 sockets and address resolution.
 
+## Path Utilities
+
+`basename` returns the final component of a path and `dirname` strips it
+to yield the parent directory.
+
+```c
+char *b = basename("/usr/local/bin/tool");  // "tool"
+char *d = dirname("/usr/local/bin/tool");   // "/usr/local/bin"
+```
+
 ## Platform Support
 
 The library currently targets Linux but aims to run on other POSIX systems as

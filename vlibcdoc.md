@@ -32,7 +32,7 @@ This document outlines the architecture, planned modules, and API design for **v
 26. [File Status](#file-status)
 27. [Directory Iteration](#directory-iteration)
 28. [Path Canonicalization](#path-canonicalization)
-29. [Path Expansion](#path-expansion)
+29. [Path Utilities](#path-utilities)
 30. [User Database](#user-database)
 31. [Time Formatting](#time-formatting)
 32. [Locale Support](#locale-support)
@@ -43,6 +43,7 @@ This document outlines the architecture, planned modules, and API design for **v
 37. [Limitations](#limitations)
 38. [Conclusion](#conclusion)
 39. [Logging](#logging)
+40. [Path Expansion](#path-expansion)
 
 ## Overview
 
@@ -761,6 +762,17 @@ directory.
 ```c
 char buf[256];
 realpath("tests/../", buf); // buf now holds the absolute path to the repository
+```
+
+## Path Utilities
+
+`basename` returns the last component of a path while `dirname`
+removes the trailing element. Both functions allocate a new string
+for the result so the input remains untouched.
+
+```c
+char *b = basename("/usr/local/bin/tool");  // "tool"
+char *d = dirname("/usr/local/bin/tool");   // "/usr/local/bin"
 ```
 
 ## Path Expansion
