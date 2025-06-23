@@ -245,6 +245,7 @@ The **string** module provides fundamental operations needed by most C programs:
 
 - `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat`, `strncat`, `strlcpy` and `strlcat` equivalents.
 - Search helpers `strstr`, `strrchr`, and `memchr` for locating substrings or bytes.
+- Prefix scanners `strspn` and `strcspn` along with `strpbrk` for finding any character from a set.
 - Case-insensitive comparisons `strcasecmp` and `strncasecmp`.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
@@ -263,6 +264,15 @@ The **string** module provides fundamental operations needed by most C programs:
   context and is safe for concurrent use.
   - Simple number conversion helpers `atoi`, `strtol`, `strtoul`, `strtoll`,
     `strtoull`, `strtod`, and `atof`.
+
+### Example
+
+```c
+const char *text = "hello world";
+size_t first_word = strcspn(text, " ");
+char *vowel = strpbrk(text, "aeiou");
+size_t prefix = strspn("abc123", "abc");
+```
 
 Basic time formatting is available via `strftime`. Only a small subset of
  conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
