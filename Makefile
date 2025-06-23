@@ -119,6 +119,7 @@ SRC := \
     src/syslog.c \
     src/getline.c \
     src/pwd.c \
+    src/grp.c \
     src/math.c \
     src/math_extra.c \
     src/regex.c \

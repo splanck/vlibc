@@ -35,16 +35,17 @@ This document outlines the architecture, planned modules, and API design for **v
 29. [Path Canonicalization](#path-canonicalization)
 30. [Path Utilities](#path-utilities)
 31. [User Database](#user-database)
-32. [Time Formatting](#time-formatting)
-33. [Locale Support](#locale-support)
-34. [Time Retrieval](#time-retrieval)
-35. [Sleep Functions](#sleep-functions)
-36. [Raw System Calls](#raw-system-calls)
-37. [Non-local Jumps](#non-local-jumps)
-38. [Limitations](#limitations)
-39. [Conclusion](#conclusion)
-40. [Logging](#logging)
-41. [Path Expansion](#path-expansion)
+32. [Group Database](#group-database)
+33. [Time Formatting](#time-formatting)
+34. [Locale Support](#locale-support)
+35. [Time Retrieval](#time-retrieval)
+36. [Sleep Functions](#sleep-functions)
+37. [Raw System Calls](#raw-system-calls)
+38. [Non-local Jumps](#non-local-jumps)
+39. [Limitations](#limitations)
+40. [Conclusion](#conclusion)
+41. [Logging](#logging)
+42. [Path Expansion](#path-expansion)
 
 ## Overview
 
@@ -835,6 +836,26 @@ struct passwd *getpwnam(const char *name);
 
 On BSD systems vlibc parses the file directly. The location can be
 overridden via the `VLIBC_PASSWD` environment variable for testing.
+
+## Group Database
+
+`grp.h` provides minimal helpers for `/etc/group` entries.
+
+```c
+struct group {
+    char *gr_name;
+    char *gr_passwd;
+    gid_t gr_gid;
+    char **gr_mem;
+};
+
+struct group *getgrgid(gid_t gid);
+struct group *getgrnam(const char *name);
+```
+
+As with the password file, BSD platforms parse the group database directly.
+The path can be overridden via the `VLIBC_GROUP` environment variable when
+running tests.
 
 ## Time Formatting
 

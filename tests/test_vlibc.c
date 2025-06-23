@@ -23,6 +23,7 @@
 #include "../include/wchar.h"
 #include "../include/env.h"
 #include "../include/pwd.h"
+#include "../include/grp.h"
 #include "../include/process.h"
 #include "../include/getopt.h"
 #include "../include/math.h"
@@ -1570,6 +1571,32 @@ static const char *test_passwd_lookup(void)
     return 0;
 }
 
+static const char *test_group_lookup(void)
+{
+    char tmpl[] = "/tmp/grptestXXXXXX";
+    int fd = mkstemp(tmpl);
+    mu_assert("mkstemp", fd >= 0);
+    const char data[] =
+        "root:x:0:\n"
+        "staff:x:50:alice,bob\n";
+    mu_assert("write", write(fd, data, sizeof(data) - 1) == (ssize_t)(sizeof(data) - 1));
+    close(fd);
+
+    setenv("VLIBC_GROUP", tmpl, 1);
+
+    struct group *gr = getgrnam("staff");
+    mu_assert("getgrnam", gr && gr->gr_gid == 50 && gr->gr_mem &&
+             gr->gr_mem[0] && strcmp(gr->gr_mem[0], "alice") == 0 &&
+             gr->gr_mem[1] && strcmp(gr->gr_mem[1], "bob") == 0);
+
+    gr = getgrgid(0);
+    mu_assert("getgrgid", gr && strcmp(gr->gr_name, "root") == 0);
+
+    unsetenv("VLIBC_GROUP");
+    unlink(tmpl);
+    return 0;
+}
+
 static int int_cmp(const void *a, const void *b)
 {
     int ia = *(const int *)a;
@@ -1841,6 +1868,7 @@ static const char *all_tests(void)
     mu_run_test(test_getcwd_chdir);
     mu_run_test(test_realpath_basic);
     mu_run_test(test_passwd_lookup);
+    mu_run_test(test_group_lookup);
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
