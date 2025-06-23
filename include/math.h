@@ -7,9 +7,14 @@ double tan(double x);
 double sqrt(double x);
 double pow(double base, double exp);
 double log(double x);
+double log10(double x);
 double exp(double x);
 double floor(double x);
 double ceil(double x);
 double fabs(double x);
+double atan2(double y, double x);
+double sinh(double x);
+double cosh(double x);
+double tanh(double x);
 
 #endif /* MATH_H */

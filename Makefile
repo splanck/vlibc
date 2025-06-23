@@ -108,6 +108,7 @@ SRC := \
     src/tempfile.c \
     src/getline.c \
     src/math.c \
+    src/math_extra.c \
     src/regex.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)

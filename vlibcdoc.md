@@ -112,7 +112,8 @@ live in `src/`, public headers in `include/`, and tests reside in `tests/`.
 - **io**: Simple wrappers around read/write system calls for file descriptors.
 - **string**: Common string operations such as length checks and copying.
 - **process**: Functions for spawning and waiting on child processes.
-- **math**: Elementary math routines like `sin` and `sqrt`.
+- **math**: Elementary math routines like `sin` and `sqrt` plus hyperbolic
+  helpers and `atan2`.
 
 ### API Design
 vlibc strives for a consistent API surface inspired by the C standard library.
@@ -338,8 +339,8 @@ and `^`/`$` anchor to the start or end of the string.
 
 ## Math Functions
 
-`sin`, `cos`, `tan`, `sqrt`, `pow`, `log`, `exp`, `floor`, `ceil`, and
-`fabs` are provided in `math.h`. These use simple series approximations
+`sin`, `cos`, `tan`, `sqrt`, `pow`, `log`, `log10`, `exp`, `floor`, `ceil`,
+`fabs`, `atan2`, `sinh`, `cosh`, and `tanh` are provided in `math.h`. These use simple series approximations
 and are suitable for basic calculations but may lack high precision.
 
 ## Process Control
