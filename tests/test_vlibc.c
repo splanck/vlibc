@@ -25,6 +25,7 @@
 #include "../include/pwd.h"
 #include "../include/process.h"
 #include "../include/getopt.h"
+#include "../include/fnmatch.h"
 #include "../include/math.h"
 #include "../include/locale.h"
 #include <unistd.h>
@@ -1612,6 +1613,16 @@ static const char *test_qsort_strings(void)
     return 0;
 }
 
+static const char *test_fnmatch_basic(void)
+{
+    mu_assert("star match", fnmatch("*.c", "foo.c", 0) == 0);
+    mu_assert("star miss", fnmatch("*.c", "foo.h", 0) == FNM_NOMATCH);
+    mu_assert("question", fnmatch("t?st", "test", 0) == 0);
+    mu_assert("range match", fnmatch("file.[ch]", "file.c", 0) == 0);
+    mu_assert("range miss", fnmatch("file.[ch]", "file.x", 0) == FNM_NOMATCH);
+    return 0;
+}
+
 static const char *test_math_functions(void)
 {
     mu_assert("fabs", fabs(-3.5) == 3.5);
@@ -1844,6 +1855,7 @@ static const char *all_tests(void)
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
+    mu_run_test(test_fnmatch_basic);
     mu_run_test(test_math_functions);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);

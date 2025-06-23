@@ -121,6 +121,7 @@ SRC := \
     src/pwd.c \
     src/math.c \
     src/math_extra.c \
+    src/fnmatch.c \
     src/regex.c \
     src/glob.c
 

@@ -45,6 +45,7 @@ This document outlines the architecture, planned modules, and API design for **v
 39. [Conclusion](#conclusion)
 40. [Logging](#logging)
 41. [Path Expansion](#path-expansion)
+42. [Filename Matching](#filename-matching)
 
 ## Overview
 
@@ -813,6 +814,18 @@ if (glob("src/*.c", 0, NULL, &g) == 0) {
 
 Results are sorted by default; pass `GLOB_NOSORT` to preserve the
 filesystem order.
+
+## Filename Matching
+
+`fnmatch` compares a filename against a pattern containing `*`, `?` and
+character classes. Backslashes escape special characters unless the
+`FNM_NOESCAPE` flag is provided.
+
+```c
+if (fnmatch("*.c", "example.c", 0) == 0) {
+    /* matched */
+}
+```
 
 ## User Database
 
