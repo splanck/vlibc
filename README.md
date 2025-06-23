@@ -124,6 +124,23 @@ Networking helpers such as `inet_pton`, `inet_ntop`, `getaddrinfo` and
 `getnameinfo` understand both IPv4 and IPv6 addresses. Use the standard
 `AF_INET6` family to work with IPv6 sockets and address resolution.
 
+## Socket Messaging
+
+`sendmsg` and `recvmsg` send or receive arrays of buffers described by
+`struct msghdr`.  This also enables passing ancillary data using
+`struct cmsghdr`.
+
+```c
+struct iovec iov[2] = {
+    { .iov_base = "he", .iov_len = 2 },
+    { .iov_base = "llo", .iov_len = 3 }
+};
+struct msghdr msg = {0};
+msg.msg_iov = iov;
+msg.msg_iovlen = 2;
+sendmsg(sock, &msg, 0);
+```
+
 ## Path Utilities
 
 `basename` returns the final component of a path and `dirname` strips it

@@ -427,6 +427,40 @@ static const char *test_udp_send_recv(void)
     return 0;
 }
 
+static const char *test_sendmsg_recvmsg(void)
+{
+    int sv[2];
+    mu_assert("socketpair", socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0);
+
+    struct iovec wiov[2];
+    wiov[0].iov_base = (void *)"he";
+    wiov[0].iov_len = 2;
+    wiov[1].iov_base = (void *)"llo";
+    wiov[1].iov_len = 3;
+    struct msghdr wmsg = {0};
+    wmsg.msg_iov = wiov;
+    wmsg.msg_iovlen = 2;
+    mu_assert("sendmsg", sendmsg(sv[0], &wmsg, 0) == 5);
+
+    char b1[3] = {0};
+    char b2[4] = {0};
+    struct iovec riov[2];
+    riov[0].iov_base = b1;
+    riov[0].iov_len = 2;
+    riov[1].iov_base = b2;
+    riov[1].iov_len = 3;
+    struct msghdr rmsg = {0};
+    rmsg.msg_iov = riov;
+    rmsg.msg_iovlen = 2;
+    ssize_t r = recvmsg(sv[1], &rmsg, 0);
+    mu_assert("recvmsg", r == 5);
+    mu_assert("content", strcmp(b1, "he") == 0 && strcmp(b2, "llo") == 0);
+
+    close(sv[0]);
+    close(sv[1]);
+    return 0;
+}
+
 static const char *test_inet_pton_ntop(void)
 {
     struct in_addr addr;
@@ -2008,6 +2042,7 @@ static const char *all_tests(void)
     mu_run_test(test_isatty_stdin);
     mu_run_test(test_socket);
     mu_run_test(test_socketpair_basic);
+    mu_run_test(test_sendmsg_recvmsg);
     mu_run_test(test_udp_send_recv);
     mu_run_test(test_inet_pton_ntop);
     mu_run_test(test_errno_open);
