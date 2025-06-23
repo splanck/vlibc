@@ -45,6 +45,7 @@ This document outlines the architecture, planned modules, and API design for **v
 39. [Conclusion](#conclusion)
 40. [Logging](#logging)
 41. [Path Expansion](#path-expansion)
+42. [Filesystem Statistics](#filesystem-statistics)
 
 ## Overview
 
@@ -175,6 +176,7 @@ sys/mman.h   - memory mapping helpers
 sys/select.h - fd_set macros and select wrapper
 sys/socket.h - networking wrappers
 sys/stat.h   - file status functions
+sys/statvfs.h - filesystem statistics
 syscall.h    - raw syscall interface
 time.h       - time related helpers
 vlibc.h      - library initialization
@@ -265,7 +267,8 @@ The **string** module provides fundamental operations needed by most C programs:
 - Utility functions for tokenizing and simple formatting.
 - `printf` style routines understand `%d`, `%u`, `%s`, `%x`, `%X`, `%o`, `%p`,
   and `%c` with basic field width and precision handling.
-- `scanf` style routines parse `%d`, `%u`, `%x`, `%o`, and `%s`.
+- `scanf` style routines parse `%d`, `%u`, `%x`, `%o`, `%s`, and floating
+  point formats such as `%f`, `%lf`, and `%g`.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
   delimiter characters. `strtok` stores its parsing state in static
   memory and is not thread-safe. `strtok_r` lets the caller maintain the
@@ -374,7 +377,21 @@ regfree(&re);
 
 Only simple features are implemented: `.` matches any character,
 `*`, `+` and `?` provide repetition, `[]` defines character classes
-and `^`/`$` anchor to the start or end of the string.
+and `^`/`$` anchor to the start or end of the string. Parentheses
+create capture groups which can be referenced later in the pattern
+using backreferences like `\1` and `\2`. Groups may not be used
+with repetition operators.
+
+Example with a backreference:
+
+```c
+regex_t r;
+regcomp(&r, "(foo)bar\\1", 0);
+if (regexec(&r, "foobarfoo", 0, NULL, 0) == 0) {
+    /* matches */
+}
+regfree(&r);
+```
 
 ## Math Functions
 
@@ -578,6 +595,8 @@ Thin wrappers around the kernel's file APIs live in `io.h`. Functions
 like `open`, `read`, `write`, `close`, `unlink`, `rename`, `symlink`,
 `mkdir`, `rmdir`, `chdir`, and the file size controls `truncate` and
 `ftruncate` simply pass their arguments to the corresponding syscalls.
+Vector I/O through `readv` and `writev` is available to gather or scatter
+multiple buffers in a single call.
 
 ```c
 int fd = open("log.txt", O_WRONLY | O_CREAT, 0644);
@@ -755,6 +774,21 @@ struct utimbuf t = { .actime = 1625097600, .modtime = 1625097600 };
 utime("data.txt", &t);
 ```
 
+## Filesystem Statistics
+
+`statvfs` and `fstatvfs` from `sys/statvfs.h` report details about the
+underlying filesystem such as block size and available space. On Linux
+the vlibc wrappers issue the `statfs`/`fstatfs` syscalls and translate the
+results. On BSD systems they simply call the host C library
+implementations.
+
+```c
+struct statvfs sv;
+if (statvfs("/", &sv) == 0) {
+    printf("%lu blocks free\n", (unsigned long)sv.f_bfree);
+}
+```
+
 ## Directory Iteration
 
 Use `opendir`, `readdir`, and `closedir` from `dirent.h` to traverse
@@ -920,8 +954,9 @@ state.
    than `"C"` or `"POSIX"`.
  - `setjmp`/`longjmp` rely on the host C library when available.
    Only an x86_64 fallback implementation is provided.
- - Regular expressions cover only a subset of POSIX syntax and do not
-   implement advanced constructs like backreferences.
+ - Regular expressions cover only a subset of POSIX syntax. Capture
+   groups and numeric backreferences are supported but more advanced
+   features remain unimplemented.
 
 ## Conclusion
 

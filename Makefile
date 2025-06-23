@@ -100,6 +100,7 @@ SRC := \
     src/time_r.c \
     src/strftime.c \
     src/stat.c \
+    src/statvfs.c \
     src/utime.c \
     src/pthread.c \
     src/dirent.c \

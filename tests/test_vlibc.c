@@ -2,6 +2,7 @@
 #include "../include/memory.h"
 #include "../include/io.h"
 #include "../include/sys/socket.h"
+#include "../include/sys/uio.h"
 #include <netinet/in.h>
 #include "../include/arpa/inet.h"
 #include <stdint.h>
@@ -27,6 +28,7 @@
 #include "../include/getopt.h"
 #include "../include/math.h"
 #include "../include/locale.h"
+#include "../include/regex.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -266,6 +268,37 @@ static const char *test_pread_pwrite(void)
     mu_assert("pread", r == 4);
     mu_assert("pread data", strncmp(buf, "bXYe", 4) == 0);
     mu_assert("offset still", lseek(fd, 0, SEEK_CUR) == pos);
+
+    close(fd);
+    unlink(fname);
+    return 0;
+}
+
+static const char *test_readv_writev(void)
+{
+    const char *fname = "tmp_vec_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+
+    struct iovec wv[2];
+    const char *a = "ab";
+    const char *b = "cd";
+    wv[0].iov_base = (void *)a;
+    wv[0].iov_len = 2;
+    wv[1].iov_base = (void *)b;
+    wv[1].iov_len = 2;
+    mu_assert("writev", writev(fd, wv, 2) == 4);
+
+    lseek(fd, 0, SEEK_SET);
+    char buf1[3] = {0};
+    char buf2[3] = {0};
+    struct iovec rv[2];
+    rv[0].iov_base = buf1;
+    rv[0].iov_len = 2;
+    rv[1].iov_base = buf2;
+    rv[1].iov_len = 2;
+    mu_assert("readv", readv(fd, rv, 2) == 4);
+    mu_assert("vec data", strcmp(buf1, "ab") == 0 && strcmp(buf2, "cd") == 0);
 
     close(fd);
     unlink(fname);
@@ -792,6 +825,25 @@ static const char *test_scanf_functions(void)
     mu_assert("hex value", a == 0xff);
     mu_assert("oct value", b == 10u);
 
+    float fv = 0.0f;
+    double dv = 0.0;
+    r = sscanf("3.5 4.25", "%f %lf", &fv, &dv);
+    mu_assert("sscanf float count", r == 2);
+    mu_assert("sscanf float val", fabs(fv - 3.5f) < 1e-6);
+    mu_assert("sscanf double val", fabs(dv - 4.25) < 1e-9);
+
+    f = fopen("tmp_fscan", "w+");
+    mu_assert("fopen float", f != NULL);
+    fputs("5.5 6.75", f);
+    rewind(f);
+    fv = 0.0f; dv = 0.0;
+    r = fscanf(f, "%f %lg", &fv, &dv);
+    fclose(f);
+    unlink("tmp_fscan");
+    mu_assert("fscanf float count", r == 2);
+    mu_assert("fscanf float val", fabs(fv - 5.5f) < 1e-6);
+    mu_assert("fscanf double val", fabs(dv - 6.75) < 1e-9);
+
     return 0;
 }
 
@@ -856,6 +908,25 @@ static const char *test_vscanf_variants(void)
     mu_assert("vfscanf hex count", r == 2);
     mu_assert("vfscanf hex val", a == 0xff);
     mu_assert("vfscanf oct val", b == 10u);
+
+    float fv = 0.0f;
+    double dv = 0.0;
+    r = call_vsscanf("8.5 9.5", "%f %lg", &fv, &dv);
+    mu_assert("vsscanf float count", r == 2);
+    mu_assert("vsscanf float val", fabs(fv - 8.5f) < 1e-6);
+    mu_assert("vsscanf double val", fabs(dv - 9.5) < 1e-9);
+
+    f = fopen("tmp_vscan3", "w+");
+    mu_assert("vfopen3", f != NULL);
+    fputs("1.25 2.75", f);
+    rewind(f);
+    fv = 0.0f; dv = 0.0;
+    r = call_vfscanf(f, "%f %lf", &fv, &dv);
+    fclose(f);
+    unlink("tmp_vscan3");
+    mu_assert("vfscanf float count", r == 2);
+    mu_assert("vfscanf float val", fabs(fv - 1.25f) < 1e-6);
+    mu_assert("vfscanf double val", fabs(dv - 2.75) < 1e-9);
 
     return 0;
 }
@@ -1574,6 +1645,28 @@ static const char *test_qsort_strings(void)
     return 0;
 }
 
+static const char *test_regex_backref_basic(void)
+{
+    regex_t re;
+    regmatch_t m[2];
+    regcomp(&re, "(ab)c\\1", 0);
+    int r = regexec(&re, "abcab", 2, m, 0);
+    regfree(&re);
+    mu_assert("regex match", r == 0);
+    mu_assert("group capture", m[1].rm_so == 0 && m[1].rm_eo == 2);
+    return 0;
+}
+
+static const char *test_regex_backref_fail(void)
+{
+    regex_t re;
+    regcomp(&re, "(ab)c\\1", 0);
+    int r = regexec(&re, "abcac", 0, NULL, 0);
+    regfree(&re);
+    mu_assert("regex nomatch", r == REG_NOMATCH);
+    return 0;
+}
+
 static const char *test_math_functions(void)
 {
     mu_assert("fabs", fabs(-3.5) == 3.5);
@@ -1747,6 +1840,7 @@ static const char *all_tests(void)
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
     mu_run_test(test_pread_pwrite);
+    mu_run_test(test_readv_writev);
     mu_run_test(test_dup3_cloexec);
     mu_run_test(test_pipe2_cloexec);
     mu_run_test(test_isatty_stdin);
@@ -1806,6 +1900,8 @@ static const char *all_tests(void)
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
+    mu_run_test(test_regex_backref_basic);
+    mu_run_test(test_regex_backref_fail);
     mu_run_test(test_math_functions);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
