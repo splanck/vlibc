@@ -569,6 +569,35 @@ static const char *test_widechar_basic(void)
     return 0;
 }
 
+static const char *test_widechar_conv(void)
+{
+    wchar_t wbuf[4];
+    size_t n = mbstowcs(wbuf, "abc", 4);
+    mu_assert("mbstowcs count", n == 3);
+    mu_assert("mbstowcs conv", wbuf[0] == L'a' && wbuf[1] == L'b' && wbuf[2] == L'c');
+
+    char mbuf[4];
+    n = wcstombs(mbuf, wbuf, 4);
+    mu_assert("wcstombs count", n == 3);
+    mu_assert("wcstombs conv", strcmp(mbuf, "abc") == 0);
+
+    mbstate_t st = {0};
+    n = mbrlen("z", 1, &st);
+    mu_assert("mbrlen", n == 1);
+
+    wchar_t wc = 0;
+    n = mbrtowc(&wc, "x", 1, &st);
+    mu_assert("mbrtowc", n == 1 && wc == L'x');
+
+    char out[2] = {0};
+    n = wcrtomb(out, wc, &st);
+    mu_assert("wcrtomb", n == 1 && out[0] == 'x');
+
+    mu_assert("mbsinit", mbsinit(&st));
+
+    return 0;
+}
+
 static const char *test_strtok_basic(void)
 {
     char buf[] = "a,b,c";
@@ -1509,6 +1538,7 @@ static const char *all_tests(void)
     mu_run_test(test_string_casecmp);
     mu_run_test(test_strlcpy_cat);
     mu_run_test(test_widechar_basic);
+    mu_run_test(test_widechar_conv);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);

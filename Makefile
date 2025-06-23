@@ -105,6 +105,7 @@ SRC := \
     src/getopt_long.c \
     src/locale.c \
     src/wchar.c \
+    src/wchar_conv.c \
     src/tempfile.c \
     src/getline.c \
     src/math.c \
