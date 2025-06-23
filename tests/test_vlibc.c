@@ -1144,6 +1144,14 @@ static const char *test_error_reporting(void)
     return 0;
 }
 
+static const char *test_strsignal_names(void)
+{
+    mu_assert("SIGHUP", strcmp(strsignal(SIGHUP), "Hangup") == 0);
+    mu_assert("SIGINT", strcmp(strsignal(SIGINT), "Interrupt") == 0);
+    mu_assert("unknown", strcmp(strsignal(9999), "Unknown signal") == 0);
+    return 0;
+}
+
 static const char *test_pid_functions(void)
 {
     pid_t pid = getpid();
@@ -1635,6 +1643,7 @@ static const char *all_tests(void)
     mu_run_test(test_locale_from_env);
     mu_run_test(test_gethostname_fn);
     mu_run_test(test_error_reporting);
+    mu_run_test(test_strsignal_names);
     mu_run_test(test_system_fn);
     mu_run_test(test_execvp_fn);
     mu_run_test(test_popen_fn);

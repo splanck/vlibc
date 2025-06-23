@@ -2,6 +2,7 @@
 #include "errno.h"
 #include <sys/syscall.h>
 #include "syscall.h"
+#include <stddef.h>
 
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 {
@@ -72,4 +73,43 @@ int sigismember(const sigset_t *set, int signo)
     if (signo <= 0 || signo > 8 * (int)sizeof(sigset_t))
         return 0;
     return (*set & ((sigset_t)1 << (signo - 1))) ? 1 : 0;
+}
+
+struct sig_name {
+    int num;
+    const char *name;
+};
+
+static const struct sig_name sig_names[] = {
+    { SIGHUP, "Hangup" },
+    { SIGINT, "Interrupt" },
+    { SIGQUIT, "Quit" },
+    { SIGILL, "Illegal instruction" },
+    { SIGTRAP, "Trace/breakpoint trap" },
+    { SIGABRT, "Aborted" },
+    { SIGBUS, "Bus error" },
+    { SIGFPE, "Floating point exception" },
+    { SIGKILL, "Killed" },
+    { SIGUSR1, "User signal 1" },
+    { SIGSEGV, "Segmentation fault" },
+    { SIGUSR2, "User signal 2" },
+    { SIGPIPE, "Broken pipe" },
+    { SIGALRM, "Alarm clock" },
+    { SIGTERM, "Terminated" },
+    { SIGCHLD, "Child exited" },
+    { SIGCONT, "Continued" },
+    { SIGSTOP, "Stopped (signal)" },
+    { SIGTSTP, "Stopped" },
+    { SIGTTIN, "Stopped (tty input)" },
+    { SIGTTOU, "Stopped (tty output)" },
+    { 0, NULL }
+};
+
+const char *strsignal(int signum)
+{
+    for (size_t i = 0; sig_names[i].name; ++i) {
+        if (sig_names[i].num == signum)
+            return sig_names[i].name;
+    }
+    return "Unknown signal";
 }
