@@ -28,3 +28,33 @@ size_t wcslen(const wchar_t *s)
         p++;
     return (size_t)(p - s);
 }
+
+int wcwidth(wchar_t wc)
+{
+    if (wc == 0)
+        return 0;
+    if (wc >= 0x20 && wc < 0x7f)
+        return 1;
+    if (wc < 0x20 || wc == 0x7f)
+        return -1;
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_wcwidth(wchar_t) __asm("wcwidth");
+    return host_wcwidth(wc);
+#else
+    (void)wc;
+    return -1;
+#endif
+}
+
+int wcswidth(const wchar_t *s, size_t n)
+{
+    int width = 0;
+    for (size_t i = 0; i < n && s[i]; i++) {
+        int w = wcwidth(s[i]);
+        if (w < 0)
+            return -1;
+        width += w;
+    }
+    return width;
+}

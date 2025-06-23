@@ -690,6 +690,15 @@ static const char *test_widechar_conv(void)
     return 0;
 }
 
+static const char *test_widechar_width(void)
+{
+    mu_assert("wcwidth ascii", wcwidth(L'A') == 1);
+    mu_assert("wcwidth nul", wcwidth(L'\0') == 0);
+    mu_assert("wcwidth ctrl", wcwidth(L'\n') == -1);
+    mu_assert("wcswidth", wcswidth(L"hi", 2) == 2);
+    return 0;
+}
+
 static const char *test_strtok_basic(void)
 {
     char buf[] = "a,b,c";
@@ -1946,6 +1955,7 @@ static const char *all_tests(void)
     mu_run_test(test_strcoll_xfrm);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_widechar_conv);
+    mu_run_test(test_widechar_width);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_printf_functions);

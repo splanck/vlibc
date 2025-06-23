@@ -311,6 +311,18 @@ strings.  These helpers handle ASCII directly and fall back to the host
 C library when encountering non-ASCII data.  `wcslen` returns the length
 of a wide string excluding the terminator.
 
+`wcwidth` reports the number of columns needed to display a single wide
+character while `wcswidth` sums the widths of up to `n` characters. ASCII
+codepoints have the expected width and on BSD systems non-ASCII values
+are delegated to the host implementation.
+
+### Example
+
+```c
+int c = wcwidth(L'A');               // 1
+int w = wcswidth(L"hello", 5);      // 5
+```
+
 ## Character Classification
 
 Character checks live in [include/ctype.h](include/ctype.h).  The macros
