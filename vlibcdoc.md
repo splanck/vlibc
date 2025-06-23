@@ -24,13 +24,13 @@ This document outlines the architecture, planned modules, and API design for **v
 18. [Environment Variables](#environment-variables)
 19. [Basic File I/O](#basic-file-io)
 20. [File Descriptor Helpers](#file-descriptor-helpers)
-21. [Standard Streams](#standard-streams)
-22. [Temporary Files](#temporary-files)
-23. [Networking](#networking)
-24. [I/O Multiplexing](#io-multiplexing)
-25. [File Permissions](#file-permissions)
-26. [File Status](#file-status)
-27. [Filesystem Statistics](#filesystem-statistics)
+21. [Terminal Attributes](#terminal-attributes)
+22. [Standard Streams](#standard-streams)
+23. [Temporary Files](#temporary-files)
+24. [Networking](#networking)
+25. [I/O Multiplexing](#io-multiplexing)
+26. [File Permissions](#file-permissions)
+27. [File Status](#file-status)
 28. [Directory Iteration](#directory-iteration)
 29. [Path Canonicalization](#path-canonicalization)
 30. [Path Utilities](#path-utilities)
@@ -46,6 +46,7 @@ This document outlines the architecture, planned modules, and API design for **v
 40. [Conclusion](#conclusion)
 41. [Logging](#logging)
 42. [Path Expansion](#path-expansion)
+43. [Filesystem Statistics](#filesystem-statistics)
 
 ## Overview
 
@@ -169,6 +170,7 @@ stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
 regex.h     - simple regular expression matching
+termios.h   - terminal attribute helpers
 unistd.h    - POSIX I/O and process helpers
 sys/file.h   - file permission helpers
 sys/mman.h   - memory mapping helpers
@@ -376,7 +378,21 @@ regfree(&re);
 
 Only simple features are implemented: `.` matches any character,
 `*`, `+` and `?` provide repetition, `[]` defines character classes
-and `^`/`$` anchor to the start or end of the string.
+and `^`/`$` anchor to the start or end of the string. Parentheses
+create capture groups which can be referenced later in the pattern
+using backreferences like `\1` and `\2`. Groups may not be used
+with repetition operators.
+
+Example with a backreference:
+
+```c
+regex_t r;
+regcomp(&r, "(foo)bar\\1", 0);
+if (regexec(&r, "foobarfoo", 0, NULL, 0) == 0) {
+    /* matches */
+}
+regfree(&r);
+```
 
 ## Math Functions
 
@@ -580,6 +596,8 @@ Thin wrappers around the kernel's file APIs live in `io.h`. Functions
 like `open`, `read`, `write`, `close`, `unlink`, `rename`, `symlink`,
 `mkdir`, `rmdir`, `chdir`, and the file size controls `truncate` and
 `ftruncate` simply pass their arguments to the corresponding syscalls.
+Vector I/O through `readv` and `writev` is available to gather or scatter
+multiple buffers in a single call.
 
 ```c
 int fd = open("log.txt", O_WRONLY | O_CREAT, 0644);
@@ -621,6 +639,20 @@ pipe(pipefd);
 ```
 
 Use `isatty(fd)` to query whether a descriptor refers to a terminal.
+
+## Terminal Attributes
+
+`tcgetattr` reads the settings for a terminal and `tcsetattr` modifies
+them. `cfmakeraw` adjusts a `struct termios` to raw mode for interactive
+programs:
+
+```c
+struct termios t;
+if (tcgetattr(STDIN_FILENO, &t) == 0) {
+    cfmakeraw(&t);
+    tcsetattr(STDIN_FILENO, TCSANOW, &t);
+}
+```
 
 ## Standard Streams
 
@@ -943,8 +975,9 @@ state.
    than `"C"` or `"POSIX"`.
  - `setjmp`/`longjmp` rely on the host C library when available.
    Only an x86_64 fallback implementation is provided.
- - Regular expressions cover only a subset of POSIX syntax and do not
-   implement advanced constructs like backreferences.
+ - Regular expressions cover only a subset of POSIX syntax. Capture
+   groups and numeric backreferences are supported but more advanced
+   features remain unimplemented.
 
 ## Conclusion
 

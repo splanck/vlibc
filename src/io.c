@@ -1,6 +1,7 @@
 #include "io.h"
 #include "errno.h"
 #include <sys/types.h>
+#include "sys/uio.h"
 #include <sys/syscall.h>
 #include <unistd.h>
 #include "syscall.h"
@@ -47,6 +48,76 @@ ssize_t write(int fd, const void *buf, size_t count)
         return -1;
     }
     return (ssize_t)ret;
+}
+
+ssize_t readv(int fd, const struct iovec *iov, int iovcnt)
+{
+#ifdef SYS_readv
+    long ret = vlibc_syscall(SYS_readv, fd, (long)iov, iovcnt, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern ssize_t host_readv(int, const struct iovec *, int) __asm__("readv");
+    return host_readv(fd, iov, iovcnt);
+#else
+    ssize_t total = 0;
+    for (int i = 0; i < iovcnt; i++) {
+        const char *base = (const char *)iov[i].iov_base;
+        size_t len = iov[i].iov_len;
+        size_t off = 0;
+        while (off < len) {
+            ssize_t r = read(fd, (void *)(base + off), len - off);
+            if (r < 0)
+                return total ? total : -1;
+            if (r == 0)
+                return total;
+            off += (size_t)r;
+            total += r;
+        }
+    }
+    return total;
+#endif
+#endif
+}
+
+ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
+{
+#ifdef SYS_writev
+    long ret = vlibc_syscall(SYS_writev, fd, (long)iov, iovcnt, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern ssize_t host_writev(int, const struct iovec *, int) __asm__("writev");
+    return host_writev(fd, iov, iovcnt);
+#else
+    ssize_t total = 0;
+    for (int i = 0; i < iovcnt; i++) {
+        const char *base = (const char *)iov[i].iov_base;
+        size_t len = iov[i].iov_len;
+        size_t off = 0;
+        while (off < len) {
+            ssize_t w = write(fd, base + off, len - off);
+            if (w < 0)
+                return total ? total : -1;
+            off += (size_t)w;
+            total += w;
+            if ((size_t)w < len - off)
+                break;
+        }
+    }
+    return total;
+#endif
+#endif
 }
 
 ssize_t pread(int fd, void *buf, size_t count, off_t offset)
