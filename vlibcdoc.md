@@ -22,33 +22,34 @@ This document outlines the architecture, planned modules, and API design for **v
 16. [Threading](#threading)
 17. [Dynamic Loading](#dynamic-loading)
 18. [Environment Variables](#environment-variables)
-19. [Basic File I/O](#basic-file-io)
-20. [File Descriptor Helpers](#file-descriptor-helpers)
-21. [File Control](#file-control)
-22. [Terminal Attributes](#terminal-attributes)
-23. [Standard Streams](#standard-streams)
-24. [Temporary Files](#temporary-files)
-25. [Networking](#networking)
-26. [I/O Multiplexing](#io-multiplexing)
-27. [File Permissions](#file-permissions)
-28. [File Status](#file-status)
-29. [Directory Iteration](#directory-iteration)
-30. [Path Canonicalization](#path-canonicalization)
-31. [Path Utilities](#path-utilities)
-32. [User Database](#user-database)
-33. [Group Database](#group-database)
-34. [Time Formatting](#time-formatting)
-35. [Locale Support](#locale-support)
-36. [Time Retrieval](#time-retrieval)
-37. [Sleep Functions](#sleep-functions)
-38. [Interval Timers](#interval-timers)
-39. [Raw System Calls](#raw-system-calls)
-40. [Non-local Jumps](#non-local-jumps)
-41. [Limitations](#limitations)
-42. [Conclusion](#conclusion)
-43. [Logging](#logging)
-44. [Path Expansion](#path-expansion)
-45. [Filesystem Statistics](#filesystem-statistics)
+19. [System Information](#system-information)
+20. [Basic File I/O](#basic-file-io)
+21. [File Descriptor Helpers](#file-descriptor-helpers)
+22. [File Control](#file-control)
+23. [Terminal Attributes](#terminal-attributes)
+24. [Standard Streams](#standard-streams)
+25. [Temporary Files](#temporary-files)
+26. [Networking](#networking)
+27. [I/O Multiplexing](#io-multiplexing)
+28. [File Permissions](#file-permissions)
+29. [File Status](#file-status)
+30. [Directory Iteration](#directory-iteration)
+31. [Path Canonicalization](#path-canonicalization)
+32. [Path Utilities](#path-utilities)
+33. [User Database](#user-database)
+34. [Group Database](#group-database)
+35. [Time Formatting](#time-formatting)
+36. [Locale Support](#locale-support)
+37. [Time Retrieval](#time-retrieval)
+38. [Sleep Functions](#sleep-functions)
+39. [Interval Timers](#interval-timers)
+40. [Raw System Calls](#raw-system-calls)
+41. [Non-local Jumps](#non-local-jumps)
+42. [Limitations](#limitations)
+43. [Conclusion](#conclusion)
+44. [Logging](#logging)
+45. [Path Expansion](#path-expansion)
+46. [Filesystem Statistics](#filesystem-statistics)
 
 ## Overview
 
@@ -648,6 +649,17 @@ int main(int argc, char **argv, char **envp) {
     const char *v = getenv("FOO");
     unsetenv("FOO");
     return 0;
+}
+```
+
+## System Information
+
+Use `uname` from `sys/utsname.h` to query the running operating system:
+
+```c
+struct utsname u;
+if (uname(&u) == 0) {
+    printf("%s %s\n", u.sysname, u.release);
 }
 ```
 

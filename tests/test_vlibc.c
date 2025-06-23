@@ -23,6 +23,7 @@
 #include "../include/stdlib.h"
 #include "../include/wchar.h"
 #include "../include/env.h"
+#include "../include/sys/utsname.h"
 #include "../include/pwd.h"
 #include "../include/grp.h"
 #include "../include/process.h"
@@ -1368,6 +1369,15 @@ static const char *test_gethostname_fn(void)
     return 0;
 }
 
+static const char *test_uname_fn(void)
+{
+    struct utsname u;
+    mu_assert("uname", uname(&u) == 0);
+    mu_assert("sysname", u.sysname[0] != '\0');
+    mu_assert("release", u.release[0] != '\0');
+    return 0;
+}
+
 static const char *test_error_reporting(void)
 {
     errno = ENOENT;
@@ -2004,6 +2014,7 @@ static const char *all_tests(void)
     mu_run_test(test_environment);
     mu_run_test(test_locale_from_env);
     mu_run_test(test_gethostname_fn);
+    mu_run_test(test_uname_fn);
     mu_run_test(test_error_reporting);
     mu_run_test(test_strsignal_names);
     mu_run_test(test_system_fn);
