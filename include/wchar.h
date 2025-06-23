@@ -13,6 +13,8 @@ typedef struct { int __dummy; } mbstate_t;
 int mbtowc(wchar_t *pwc, const char *s, size_t n);
 int wctomb(char *s, wchar_t wc);
 size_t wcslen(const wchar_t *s);
+int wcwidth(wchar_t wc);
+int wcswidth(const wchar_t *s, size_t n);
 size_t mbrtowc(wchar_t *pwc, const char *s, size_t n, mbstate_t *ps);
 size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps);
 size_t mbstowcs(wchar_t *dst, const char *src, size_t n);

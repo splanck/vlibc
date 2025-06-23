@@ -133,6 +133,17 @@ char *b = basename("/usr/local/bin/tool");  // "tool"
 char *d = dirname("/usr/local/bin/tool");   // "/usr/local/bin"
 ```
 
+## Display Width
+
+`wcwidth` reports how many columns a single wide character occupies and
+`wcswidth` sums the widths of up to `n` characters. This is useful when
+laying out simple text UIs.
+
+```c
+int c = wcwidth(L'A');                // 1
+int w = wcswidth(L"hello", 5);       // 5
+```
+
 ## Platform Support
 
 The library currently targets Linux but aims to run on other POSIX systems as
