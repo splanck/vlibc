@@ -296,10 +296,12 @@ size_t prefix = strspn("abc123", "abc");
 ```
 
 Basic time formatting is available via `strftime` and the matching
-`strptime` parser. Only a small subset of conversions is implemented
-(`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
- output uses the current locale. Non-`"C"` locales work when the host
- `setlocale(3)` accepts them (primarily on BSD systems).
+`strptime` parser. `strftime` handles common conversions like
+`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`, `%a`, `%b`, `%Z`, `%z`, and weekday
+numbers (`%w`/`%u`). The parser continues to accept the numeric
+fields (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`). The output uses the current
+locale. Non-`"C"` locales work when the host `setlocale(3)` accepts them
+(primarily on BSD systems).
 
 The library also includes simple conversion routines `gmtime`, `localtime`,
 `mktime`, and `ctime`. They convert between `time_t` and `struct tm` or
@@ -1027,8 +1029,25 @@ running tests.
 
 ## Time Formatting
 
-A minimal `strftime` supports `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S`.
-The `strptime` helper parses those same fields back into a `struct tm` and returns a pointer to the first unparsed character or `NULL` on failure.
+`strftime` understands `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S` along with `%a`, `%b`, `%Z`, `%z`, and weekday numbers (`%w`/`%u`).
+`strptime` still parses the numeric fields (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) back into a `struct tm` and returns a pointer to the first unparsed character or `NULL` on failure.
+
+Example:
+
+```c
+struct tm tm = {
+    .tm_year = 123, // 2023
+    .tm_mon  = 4,   // May
+    .tm_mday = 6,
+    .tm_wday = 6,
+    .tm_hour = 7,
+    .tm_min  = 8,
+    .tm_sec  = 9
+};
+char buf[64];
+strftime(buf, sizeof(buf), "%a %b %d %Y %H:%M:%S %Z %z", &tm);
+// "Sat May 06 2023 07:08:09 UTC +0000"
+```
 `timegm` converts a `struct tm` in UTC back to `time_t` using the same logic as `mktime` but without timezone adjustments.
 
 ## Locale Support

@@ -1,6 +1,15 @@
 #include "time.h"
 #include "string.h"
 
+static const char *wd_short[7] = {
+    "Sun","Mon","Tue","Wed","Thu","Fri","Sat"
+};
+
+static const char *mon_short[12] = {
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+};
+
 static int fmt_int(char *buf, size_t size, int val, int width)
 {
     char tmp[16];
@@ -43,6 +52,26 @@ size_t strftime(char *s, size_t max, const char *format, const struct tm *tm)
                 return 0;
             s[pos++] = '%';
             break;
+        case 'a': {
+            const char *wd = (tm->tm_wday >= 0 && tm->tm_wday < 7) ?
+                wd_short[tm->tm_wday] : "";
+            len = (int)strlen(wd);
+            if (pos + (size_t)len >= max)
+                return 0;
+            memcpy(s + pos, wd, (size_t)len);
+            pos += (size_t)len;
+            break;
+        }
+        case 'b': {
+            const char *mn = (tm->tm_mon >= 0 && tm->tm_mon < 12) ?
+                mon_short[tm->tm_mon] : "";
+            len = (int)strlen(mn);
+            if (pos + (size_t)len >= max)
+                return 0;
+            memcpy(s + pos, mn, (size_t)len);
+            pos += (size_t)len;
+            break;
+        }
         case 'Y':
             len = fmt_int(buf, sizeof(buf), tm->tm_year + 1900, 4);
             if (pos + (size_t)len >= max)
@@ -80,6 +109,33 @@ size_t strftime(char *s, size_t max, const char *format, const struct tm *tm)
             break;
         case 'S':
             len = fmt_int(buf, sizeof(buf), tm->tm_sec, 2);
+            if (pos + (size_t)len >= max)
+                return 0;
+            memcpy(s + pos, buf, (size_t)len);
+            pos += (size_t)len;
+            break;
+        case 'Z':
+            len = 3;
+            if (pos + (size_t)len >= max)
+                return 0;
+            memcpy(s + pos, "UTC", (size_t)len);
+            pos += (size_t)len;
+            break;
+        case 'z':
+            if (pos + 5 >= max)
+                return 0;
+            memcpy(s + pos, "+0000", 5);
+            pos += 5;
+            break;
+        case 'w':
+            len = fmt_int(buf, sizeof(buf), tm->tm_wday, 1);
+            if (pos + (size_t)len >= max)
+                return 0;
+            memcpy(s + pos, buf, (size_t)len);
+            pos += (size_t)len;
+            break;
+        case 'u':
+            len = fmt_int(buf, sizeof(buf), tm->tm_wday == 0 ? 7 : tm->tm_wday, 1);
             if (pos + (size_t)len >= max)
                 return 0;
             memcpy(s + pos, buf, (size_t)len);

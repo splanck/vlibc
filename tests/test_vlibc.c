@@ -1257,6 +1257,24 @@ static const char *test_strftime_basic(void)
     return 0;
 }
 
+static const char *test_strftime_extended(void)
+{
+    struct tm tm = {
+        .tm_year = 123,
+        .tm_mon = 4,
+        .tm_mday = 6,
+        .tm_wday = 6,
+        .tm_hour = 7,
+        .tm_min = 8,
+        .tm_sec = 9
+    };
+    char buf[64];
+    size_t n = strftime(buf, sizeof(buf), "%a %b %d %Y %H:%M:%S %Z %z %w %u", &tm);
+    mu_assert("strftime len2", n == strlen("Sat May 06 2023 07:08:09 UTC +0000 6 6"));
+    mu_assert("strftime str2", strcmp(buf, "Sat May 06 2023 07:08:09 UTC +0000 6 6") == 0);
+    return 0;
+}
+
 static const char *test_strptime_basic(void)
 {
     struct tm tm;
@@ -2008,6 +2026,7 @@ static const char *all_tests(void)
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
+    mu_run_test(test_strftime_extended);
     mu_run_test(test_strptime_basic);
     mu_run_test(test_time_conversions);
     mu_run_test(test_time_r_conversions);
