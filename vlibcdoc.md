@@ -226,7 +226,7 @@ their access protections.
 
 The **string** module provides fundamental operations needed by most C programs:
 
-- `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat` and `strncat` equivalents.
+- `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat`, `strncat`, `strlcpy` and `strlcat` equivalents.
 - Search helpers `strstr`, `strrchr`, and `memchr` for locating substrings or bytes.
 - Case-insensitive comparisons `strcasecmp` and `strncasecmp`.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
