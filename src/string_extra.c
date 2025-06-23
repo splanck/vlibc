@@ -58,3 +58,28 @@ int strcasecmp(const char *s1, const char *s2)
 {
     return strncasecmp(s1, s2, (size_t)-1);
 }
+
+size_t strlcpy(char *dst, const char *src, size_t size)
+{
+    size_t len = vstrlen(src);
+    if (size) {
+        size_t copy = len >= size ? size - 1 : len;
+        vmemcpy(dst, src, copy);
+        dst[copy] = '\0';
+    }
+    return len;
+}
+
+size_t strlcat(char *dst, const char *src, size_t size)
+{
+    size_t dlen = vstrlen(dst);
+    size_t slen = vstrlen(src);
+
+    if (dlen < size) {
+        size_t copy = slen >= size - dlen ? size - dlen - 1 : slen;
+        vmemcpy(dst + dlen, src, copy);
+        dst[dlen + copy] = '\0';
+    }
+
+    return dlen + slen;
+}

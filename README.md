@@ -73,6 +73,17 @@ sscanf("42 example", "%d %s", &num, word);
 
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
+## Time Retrieval
+
+Use `clock_gettime` for precise timestamps.
+
+```c
+struct timespec ts;
+clock_gettime(CLOCK_MONOTONIC, &ts);
+```
+
+`CLOCK_REALTIME` returns the wall-clock time.
+
 ## IPv6 Support
 
 Networking helpers such as `inet_pton`, `inet_ntop`, `getaddrinfo` and

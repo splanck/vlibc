@@ -86,6 +86,7 @@ SRC := \
     src/mmap.c \
     src/env.c \
     src/sleep.c \
+    src/clock_gettime.c \
     src/time.c \
     src/time_conv.c \
     src/strftime.c \
@@ -104,7 +105,8 @@ SRC := \
     src/wchar.c \
     src/tempfile.c \
     src/getline.c \
-    src/math.c
+    src/math.c \
+    src/regex.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
 SRC += $(if $(ARCH_SRC),$(ARCH_SRC),src/setjmp.c)

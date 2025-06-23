@@ -482,6 +482,31 @@ static const char *test_string_casecmp(void)
     return 0;
 }
 
+static const char *test_strlcpy_cat(void)
+{
+    char buf[16];
+    size_t r = strlcpy(buf, "abc", sizeof(buf));
+    mu_assert("strlcpy ret", r == 3);
+    mu_assert("strlcpy copy", strcmp(buf, "abc") == 0);
+
+    char t[4];
+    r = strlcpy(t, "abcdef", sizeof(t));
+    mu_assert("strlcpy trunc ret", r == 6);
+    mu_assert("strlcpy trunc", strcmp(t, "abc") == 0);
+
+    char cbuf[10] = "foo";
+    r = strlcat(cbuf, "bar", sizeof(cbuf));
+    mu_assert("strlcat ret", r == 6);
+    mu_assert("strlcat copy", strcmp(cbuf, "foobar") == 0);
+
+    char c2[7] = "hello";
+    r = strlcat(c2, "world", sizeof(c2));
+    mu_assert("strlcat trunc ret", r == 10);
+    mu_assert("strlcat trunc", strcmp(c2, "hellow") == 0);
+
+    return 0;
+}
+
 static const char *test_widechar_basic(void)
 {
     wchar_t wc = 0;
@@ -1415,6 +1440,7 @@ static const char *all_tests(void)
     mu_run_test(test_link_readlink);
     mu_run_test(test_string_helpers);
     mu_run_test(test_string_casecmp);
+    mu_run_test(test_strlcpy_cat);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
