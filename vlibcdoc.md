@@ -679,12 +679,12 @@ convert between `time_t` and `struct tm` or human readable strings.
 
 ## Time Retrieval
 
-Use `time` or `gettimeofday` to obtain the current time of day.
+Use `time`, `gettimeofday`, or `clock_gettime` to obtain the current time of day.
 
 ```c
 time_t now = time(NULL);
-struct timeval tv;
-gettimeofday(&tv, NULL);
+struct timespec ts;
+clock_gettime(CLOCK_REALTIME, &ts);
 ```
 
 ## Sleep Functions

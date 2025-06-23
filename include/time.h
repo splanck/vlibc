@@ -36,6 +36,15 @@ struct tm {
     int tm_isdst; /* daylight savings time flag */
 };
 
+#ifndef CLOCK_REALTIME
+#define CLOCK_REALTIME 0
+#endif
+#ifndef CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC 1
+#endif
+
+int clock_gettime(int clk_id, struct timespec *ts);
+
 time_t time(time_t *t);
 int gettimeofday(struct timeval *tv, void *tz);
 

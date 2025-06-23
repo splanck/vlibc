@@ -86,6 +86,7 @@ SRC := \
     src/mmap.c \
     src/env.c \
     src/sleep.c \
+    src/clock_gettime.c \
     src/time.c \
     src/time_conv.c \
     src/strftime.c \
