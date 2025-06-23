@@ -21,6 +21,7 @@ programs. Key features include:
 - Directory scanning helpers
 - Standard `assert` macro for runtime checks
 - Extended math helpers
+- Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Large-file aware seeks
 
 **Note**: vlibc provides only a small subset of the standard C library. Some

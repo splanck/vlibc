@@ -205,6 +205,20 @@ static int vfdprintf(int fd, const char *format, va_list ap)
     return len;
 }
 
+int vdprintf(int fd, const char *format, va_list ap)
+{
+    return vfdprintf(fd, format, ap);
+}
+
+int dprintf(int fd, const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    int r = vdprintf(fd, format, ap);
+    va_end(ap);
+    return r;
+}
+
 int vfprintf(FILE *stream, const char *format, va_list ap)
 {
     return vfdprintf(stream ? stream->fd : -1, format, ap);
