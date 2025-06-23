@@ -15,6 +15,7 @@ programs. Key features include:
 - Dynamic loading
 - Environment variable handling
 - Host name queries and changes
+- Syslog-style logging
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD
@@ -70,6 +71,15 @@ Parsing strings is similarly straightforward using `sscanf`:
 int num;
 char word[16];
 sscanf("42 example", "%d %s", &num, word);
+```
+
+Launching a program in a new process with `posix_spawn` is similarly easy:
+
+```c
+pid_t pid;
+char *args[] = {"/bin/echo", "spawn", NULL};
+posix_spawn(&pid, "/bin/echo", NULL, NULL, args, environ);
+waitpid(pid, NULL, 0);
 ```
 
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).

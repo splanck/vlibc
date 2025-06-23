@@ -68,6 +68,7 @@ SRC := \
     src/system.c \
     src/string.c \
     src/string_extra.c \
+    src/strndup.c \
     src/strerror_r.c \
     src/strto.c \
     src/rand.c \
@@ -94,6 +95,7 @@ SRC := \
     src/clock_gettime.c \
     src/time.c \
     src/time_conv.c \
+    src/time_r.c \
     src/strftime.c \
     src/stat.c \
     src/utime.c \
@@ -112,11 +114,13 @@ SRC := \
     src/wchar.c \
     src/wchar_conv.c \
     src/tempfile.c \
+    src/syslog.c \
     src/getline.c \
     src/pwd.c \
     src/math.c \
     src/math_extra.c \
-    src/regex.c
+    src/regex.c \
+    src/glob.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
 SRC += $(if $(ARCH_SRC),$(ARCH_SRC),src/setjmp.c)

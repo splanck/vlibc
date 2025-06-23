@@ -579,6 +579,19 @@ static const char *test_strlcpy_cat(void)
     return 0;
 }
 
+static const char *test_strndup_basic(void)
+{
+    char *p = strndup("hello", 10);
+    mu_assert("strndup copy", p && strcmp(p, "hello") == 0);
+    free(p);
+
+    p = strndup("truncate", 4);
+    mu_assert("strndup trunc", p && strcmp(p, "trun") == 0);
+    free(p);
+
+    return 0;
+}
+
 static const char *test_widechar_basic(void)
 {
     wchar_t wc = 0;
@@ -1111,6 +1124,18 @@ static const char *test_time_conversions(void)
     return 0;
 }
 
+static const char *test_time_r_conversions(void)
+{
+    time_t t = 1700000000;
+    struct tm tm1;
+    struct tm tm2;
+    tzset();
+    mu_assert("gmtime_r", gmtime_r(&t, &tm1) != NULL);
+    mu_assert("localtime_r", localtime_r(&t, &tm2) != NULL);
+    mu_assert("match", tm1.tm_yday == tm2.tm_yday && tm1.tm_mon == tm2.tm_mon);
+    return 0;
+}
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -1251,6 +1276,20 @@ static const char *test_execvp_fn(void)
     int status = 0;
     waitpid(pid, &status, 0);
     mu_assert("execvp status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    return 0;
+}
+
+static const char *test_posix_spawn_fn(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    pid_t pid;
+    char *argv[] = {"/bin/echo", "spawn", NULL};
+    int r = posix_spawn(&pid, "/bin/echo", NULL, NULL, argv, __environ);
+    mu_assert("posix_spawn", r == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("spawn status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
     return 0;
 }
 
@@ -1709,6 +1748,7 @@ static const char *all_tests(void)
     mu_run_test(test_string_helpers);
     mu_run_test(test_string_casecmp);
     mu_run_test(test_strlcpy_cat);
+    mu_run_test(test_strndup_basic);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_widechar_conv);
     mu_run_test(test_strtok_basic);
@@ -1729,6 +1769,7 @@ static const char *all_tests(void)
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_time_conversions);
+    mu_run_test(test_time_r_conversions);
     mu_run_test(test_environment);
     mu_run_test(test_locale_from_env);
     mu_run_test(test_gethostname_fn);
@@ -1736,6 +1777,7 @@ static const char *all_tests(void)
     mu_run_test(test_strsignal_names);
     mu_run_test(test_system_fn);
     mu_run_test(test_execvp_fn);
+    mu_run_test(test_posix_spawn_fn);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_temp_files);
