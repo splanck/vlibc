@@ -616,7 +616,8 @@ FILE *anon = tmpfile();
 
 The socket layer exposes thin wrappers around the kernel's networking
 syscalls including `socket`, `bind`, `listen`, `accept`, `connect`,
-`send`, `recv`, `sendto`, and `recvfrom`. Address resolution is handled
+`send`, `recv`, `sendto`, `recvfrom`, `setsockopt`, and `getsockopt`.
+Address resolution is handled
 via `getaddrinfo`, `freeaddrinfo`, and `getnameinfo`.
 
 Utilities `inet_pton` and `inet_ntop` convert between IPv4 or IPv6
