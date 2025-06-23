@@ -1046,6 +1046,10 @@ static const char *test_time_conversions(void)
     time_t r = mktime(&tmp);
     mu_assert("mktime", r == 1700000000);
 
+    tmp = *gm;
+    r = timegm(&tmp);
+    mu_assert("timegm", r == 1700000000);
+
     char *s = ctime(&t);
     mu_assert("ctime", strcmp(s, "Tue Nov 14 22:13:20 2023\n") == 0);
     return 0;

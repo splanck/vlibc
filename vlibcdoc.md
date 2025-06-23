@@ -775,6 +775,7 @@ overridden via the `VLIBC_PASSWD` environment variable for testing.
 ## Time Formatting
 
 A minimal `strftime` supports `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S`.
+`timegm` converts a `struct tm` in UTC back to `time_t` using the same logic as `mktime` but without timezone adjustments.
 
 ## Locale Support
 
