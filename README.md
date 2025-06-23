@@ -19,6 +19,7 @@ programs. Key features include:
 - Host name queries and changes
 - Syslog-style logging
 - Directory scanning helpers
+- Standard `assert` macro for runtime checks
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD

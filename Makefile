@@ -176,6 +176,8 @@ install: $(LIB)
 	install -m 644 include/*.h $(DESTDIR)$(PREFIX)/include
 	# ensure the new unistd.h header is installed
 	install -m 644 include/unistd.h $(DESTDIR)$(PREFIX)/include
+	# ensure the new assert.h header is installed
+	install -m 644 include/assert.h $(DESTDIR)$(PREFIX)/include
 	install -d $(DESTDIR)$(PREFIX)/include/sys
 	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys
 
