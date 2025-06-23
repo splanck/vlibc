@@ -1055,6 +1055,18 @@ static const char *test_time_conversions(void)
     return 0;
 }
 
+static const char *test_time_r_conversions(void)
+{
+    time_t t = 1700000000;
+    struct tm tm1;
+    struct tm tm2;
+    tzset();
+    mu_assert("gmtime_r", gmtime_r(&t, &tm1) != NULL);
+    mu_assert("localtime_r", localtime_r(&t, &tm2) != NULL);
+    mu_assert("match", tm1.tm_yday == tm2.tm_yday && tm1.tm_mon == tm2.tm_mon);
+    return 0;
+}
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -1673,6 +1685,7 @@ static const char *all_tests(void)
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_time_conversions);
+    mu_run_test(test_time_r_conversions);
     mu_run_test(test_environment);
     mu_run_test(test_locale_from_env);
     mu_run_test(test_gethostname_fn);

@@ -19,51 +19,12 @@ static struct tm tm_buf;
 
 struct tm *gmtime(const time_t *timep)
 {
-    time_t t = timep ? *timep : time(NULL);
-    if (t < 0)
-        t = 0;
-
-    int sec = t % 60; t /= 60;
-    int min = t % 60; t /= 60;
-    int hour = t % 24; t /= 24;
-    int days = (int)t;
-
-    int wday = (days + 4) % 7; /* 1970-01-01 was Thursday */
-    int year = 1970;
-    while (1) {
-        int ydays = is_leap(year) ? 366 : 365;
-        if (days >= ydays) {
-            days -= ydays;
-            year++;
-        } else {
-            break;
-        }
-    }
-    int yday = days;
-    const int *month_lengths = days_per_month[is_leap(year)];
-    int mon = 0;
-    while (days >= month_lengths[mon]) {
-        days -= month_lengths[mon];
-        mon++;
-    }
-    int mday = days + 1;
-
-    tm_buf.tm_sec = sec;
-    tm_buf.tm_min = min;
-    tm_buf.tm_hour = hour;
-    tm_buf.tm_mday = mday;
-    tm_buf.tm_mon = mon;
-    tm_buf.tm_year = year - 1900;
-    tm_buf.tm_wday = wday;
-    tm_buf.tm_yday = yday;
-    tm_buf.tm_isdst = 0;
-    return &tm_buf;
+    return gmtime_r(timep, &tm_buf);
 }
 
 struct tm *localtime(const time_t *timep)
 {
-    /* no timezone handling, just use gmtime */
-    return gmtime(timep);
+    return localtime_r(timep, &tm_buf);
 }
 
 time_t mktime(struct tm *tm)

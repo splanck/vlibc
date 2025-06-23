@@ -795,6 +795,10 @@ struct timespec ts;
 clock_gettime(CLOCK_REALTIME, &ts);
 ```
 
+Thread-safe variants `gmtime_r` and `localtime_r` fill a user-provided
+`struct tm` using the same conversion logic.  `tzset` updates the active
+timezone by reading the `TZ` environment variable on BSD systems.
+
 ## Sleep Functions
 
 Delay helpers are available in `time.h`:

@@ -93,6 +93,7 @@ SRC := \
     src/clock_gettime.c \
     src/time.c \
     src/time_conv.c \
+    src/time_r.c \
     src/strftime.c \
     src/stat.c \
     src/utime.c \
