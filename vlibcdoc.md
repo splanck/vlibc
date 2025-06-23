@@ -555,11 +555,13 @@ chdir("/");
 
 ## File Descriptor Helpers
 
-Low-level descriptor routines perform simple tasks such as repositioning a file
-or duplicating handles.
+Low-level descriptor routines perform simple tasks such as repositioning a file,
+reading or writing at a specific offset, or duplicating handles.
 
 ```c
 off_t pos = lseek(fd, 0, SEEK_SET);
+ssize_t n = pread(fd, buf, 16, 4);
+pwrite(fd, buf, n, 32);
 int duped = dup(fd);
 int pipefd[2];
 pipe(pipefd);

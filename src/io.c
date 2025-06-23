@@ -49,6 +49,40 @@ ssize_t write(int fd, const void *buf, size_t count)
     return (ssize_t)ret;
 }
 
+ssize_t pread(int fd, void *buf, size_t count, off_t offset)
+{
+#ifdef SYS_pread
+    long ret = vlibc_syscall(SYS_pread, fd, (long)buf, count, offset, 0, 0);
+#elif defined(SYS_pread64)
+    long ret = vlibc_syscall(SYS_pread64, fd, (long)buf, count, offset, 0, 0);
+#else
+    extern ssize_t host_pread(int, void *, size_t, off_t) __asm__("pread");
+    return host_pread(fd, buf, count, offset);
+#endif
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+}
+
+ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset)
+{
+#ifdef SYS_pwrite
+    long ret = vlibc_syscall(SYS_pwrite, fd, (long)buf, count, offset, 0, 0);
+#elif defined(SYS_pwrite64)
+    long ret = vlibc_syscall(SYS_pwrite64, fd, (long)buf, count, offset, 0, 0);
+#else
+    extern ssize_t host_pwrite(int, const void *, size_t, off_t) __asm__("pwrite");
+    return host_pwrite(fd, buf, count, offset);
+#endif
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+}
+
 int close(int fd)
 {
     long ret = vlibc_syscall(SYS_close, fd, 0, 0, 0, 0, 0);
