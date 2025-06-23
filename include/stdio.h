@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdarg.h>
+#include <sys/types.h>
 
 typedef struct {
     int fd;
@@ -66,5 +67,8 @@ int mkstemp(char *template);
 FILE *tmpfile(void);
 char *tmpnam(char *s);
 char *tempnam(const char *dir, const char *pfx);
+
+ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream);
+ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 
 #endif /* STDIO_H */

@@ -104,6 +104,7 @@ SRC := \
     src/locale.c \
     src/wchar.c \
     src/tempfile.c \
+    src/getline.c \
     src/math.c \
     src/regex.c
 

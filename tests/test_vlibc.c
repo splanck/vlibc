@@ -722,6 +722,52 @@ static const char *test_fgets_fputs(void)
     return 0;
 }
 
+static const char *test_getline_various(void)
+{
+    FILE *f = fopen("tmp_getline", "w+");
+    mu_assert("fopen", f != NULL);
+    const char *content = "short\nlonger line here\nlast";
+    mu_assert("write", fwrite(content, 1, strlen(content), f) == (ssize_t)strlen(content));
+    rewind(f);
+    char *line = NULL;
+    size_t cap = 0;
+    ssize_t len = getline(&line, &cap, f);
+    mu_assert("line1", len == 6 && strcmp(line, "short\n") == 0);
+    len = getline(&line, &cap, f);
+    mu_assert("line2", len == 17 && strcmp(line, "longer line here\n") == 0);
+    len = getline(&line, &cap, f);
+    mu_assert("line3", len == 4 && strcmp(line, "last") == 0);
+    len = getline(&line, &cap, f);
+    mu_assert("eof", len == -1);
+    free(line);
+    fclose(f);
+    unlink("tmp_getline");
+    return 0;
+}
+
+static const char *test_getdelim_various(void)
+{
+    FILE *f = fopen("tmp_getdelim", "w+");
+    mu_assert("fopen", f != NULL);
+    const char *content = "aa,bbb,cccc,";
+    mu_assert("write", fwrite(content, 1, strlen(content), f) == (ssize_t)strlen(content));
+    rewind(f);
+    char *line = NULL;
+    size_t cap = 0;
+    ssize_t len = getdelim(&line, &cap, ',', f);
+    mu_assert("tok1", len == 3 && strcmp(line, "aa,") == 0);
+    len = getdelim(&line, &cap, ',', f);
+    mu_assert("tok2", len == 4 && strcmp(line, "bbb,") == 0);
+    len = getdelim(&line, &cap, ',', f);
+    mu_assert("tok3", len == 5 && strcmp(line, "cccc,") == 0);
+    len = getdelim(&line, &cap, ',', f);
+    mu_assert("eof", len == -1);
+    free(line);
+    fclose(f);
+    unlink("tmp_getdelim");
+    return 0;
+}
+
 static const char *test_fflush(void)
 {
     FILE *f = fopen("tmp_flush", "w");
@@ -1404,6 +1450,8 @@ static const char *all_tests(void)
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
     mu_run_test(test_fgets_fputs);
+    mu_run_test(test_getline_various);
+    mu_run_test(test_getdelim_various);
     mu_run_test(test_fflush);
     mu_run_test(test_pthread);
     mu_run_test(test_pthread_detach);
