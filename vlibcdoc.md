@@ -819,7 +819,12 @@ Simple helpers adjust permissions and ownership:
 umask(022);
 chmod("data.txt", 0644);
 chown("data.txt", 1000, 1000);
+fchmod(fd, 0644);
+fchown(fd, 1000, 1000);
+lchown("symlink", 1000, 1000);
 ```
+`fchmodat` and `fchownat` perform the same operations relative to a directory
+file descriptor.
 
 ## File Status
 
