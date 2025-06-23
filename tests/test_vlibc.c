@@ -1161,6 +1161,41 @@ static const char *test_fflush(void)
     return 0;
 }
 
+static const char *test_feof_flag(void)
+{
+    FILE *f = fopen("tmp_feof", "w+");
+    mu_assert("fopen", f != NULL);
+    fwrite("abc", 1, 3, f);
+    rewind(f);
+    char buf[8];
+    size_t n = fread(buf, 1, sizeof(buf), f);
+    mu_assert("read count", n == 3);
+    mu_assert("feof set", feof(f));
+    mu_assert("no error", !ferror(f));
+    n = fread(buf, 1, 1, f);
+    mu_assert("read after eof", n == 0 && feof(f));
+    fclose(f);
+    unlink("tmp_feof");
+    return 0;
+}
+
+static const char *test_ferror_flag(void)
+{
+    FILE *f = fopen("tmp_ferr", "w");
+    mu_assert("create", f != NULL);
+    fclose(f);
+    f = fopen("tmp_ferr", "r");
+    mu_assert("open", f != NULL);
+    size_t w = fwrite("x", 1, 1, f);
+    mu_assert("write fail", w == 0);
+    mu_assert("ferror set", ferror(f));
+    clearerr(f);
+    mu_assert("clearerr", !ferror(f) && !feof(f));
+    fclose(f);
+    unlink("tmp_ferr");
+    return 0;
+}
+
 
 static const char *test_pthread(void)
 {
@@ -2137,6 +2172,8 @@ static const char *all_tests(void)
     mu_run_test(test_getline_various);
     mu_run_test(test_getdelim_various);
     mu_run_test(test_fflush);
+    mu_run_test(test_feof_flag);
+    mu_run_test(test_ferror_flag);
     mu_run_test(test_pthread);
     mu_run_test(test_pthread_detach);
     mu_run_test(test_pthread_tls);
