@@ -71,6 +71,7 @@ int nanosleep(const struct timespec *req, struct timespec *rem);
 int setitimer(int which, const struct itimerval *new,
               struct itimerval *old);
 int getitimer(int which, struct itimerval *curr);
+unsigned int alarm(unsigned int seconds);
 
 size_t strftime(char *s, size_t max, const char *format, const struct tm *tm);
 char *strptime(const char *s, const char *format, struct tm *tm);
