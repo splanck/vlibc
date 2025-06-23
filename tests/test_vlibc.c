@@ -792,6 +792,25 @@ static const char *test_scanf_functions(void)
     mu_assert("hex value", a == 0xff);
     mu_assert("oct value", b == 10u);
 
+    float fv = 0.0f;
+    double dv = 0.0;
+    r = sscanf("3.5 4.25", "%f %lf", &fv, &dv);
+    mu_assert("sscanf float count", r == 2);
+    mu_assert("sscanf float val", fabs(fv - 3.5f) < 1e-6);
+    mu_assert("sscanf double val", fabs(dv - 4.25) < 1e-9);
+
+    f = fopen("tmp_fscan", "w+");
+    mu_assert("fopen float", f != NULL);
+    fputs("5.5 6.75", f);
+    rewind(f);
+    fv = 0.0f; dv = 0.0;
+    r = fscanf(f, "%f %lg", &fv, &dv);
+    fclose(f);
+    unlink("tmp_fscan");
+    mu_assert("fscanf float count", r == 2);
+    mu_assert("fscanf float val", fabs(fv - 5.5f) < 1e-6);
+    mu_assert("fscanf double val", fabs(dv - 6.75) < 1e-9);
+
     return 0;
 }
 
@@ -856,6 +875,25 @@ static const char *test_vscanf_variants(void)
     mu_assert("vfscanf hex count", r == 2);
     mu_assert("vfscanf hex val", a == 0xff);
     mu_assert("vfscanf oct val", b == 10u);
+
+    float fv = 0.0f;
+    double dv = 0.0;
+    r = call_vsscanf("8.5 9.5", "%f %lg", &fv, &dv);
+    mu_assert("vsscanf float count", r == 2);
+    mu_assert("vsscanf float val", fabs(fv - 8.5f) < 1e-6);
+    mu_assert("vsscanf double val", fabs(dv - 9.5) < 1e-9);
+
+    f = fopen("tmp_vscan3", "w+");
+    mu_assert("vfopen3", f != NULL);
+    fputs("1.25 2.75", f);
+    rewind(f);
+    fv = 0.0f; dv = 0.0;
+    r = call_vfscanf(f, "%f %lf", &fv, &dv);
+    fclose(f);
+    unlink("tmp_vscan3");
+    mu_assert("vfscanf float count", r == 2);
+    mu_assert("vfscanf float val", fabs(fv - 1.25f) < 1e-6);
+    mu_assert("vfscanf double val", fabs(dv - 2.75) < 1e-9);
 
     return 0;
 }
