@@ -427,6 +427,10 @@ int kill(pid_t pid, int sig);
 pid_t getpid(void);
 pid_t getppid(void);
 sighandler_t signal(int signum, sighandler_t handler);
+uid_t getuid(void);
+uid_t geteuid(void);
+gid_t getgid(void);
+gid_t getegid(void);
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 int system(const char *command);
@@ -434,6 +438,10 @@ int atexit(void (*fn)(void));
 void abort(void);
 void exit(int status);
 ```
+
+These wrappers retrieve and manipulate process information. `getuid`,
+`geteuid`, `getgid`, and `getegid` return the real and effective user and
+group IDs.
 
 ### Example
 

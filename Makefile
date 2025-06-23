@@ -122,6 +122,7 @@ SRC := \
     src/getline.c \
     src/pwd.c \
     src/grp.c \
+    src/uid.c \
     src/math.c \
     src/math_extra.c \
     src/regex.c \

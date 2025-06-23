@@ -7,12 +7,17 @@
 #  endif
 #endif
 
-int isatty(int fd);
-
 #include <sys/types.h>
 #include "io.h"
 #include "process.h"
 #include "env.h"
+
+int isatty(int fd);
+
+uid_t getuid(void);
+uid_t geteuid(void);
+gid_t getgid(void);
+gid_t getegid(void);
 
 #ifndef STDIN_FILENO
 #define STDIN_FILENO 0
