@@ -39,6 +39,7 @@ char *strrchr(const char *s, int c);
 char *strstr(const char *haystack, const char *needle);
 char *strtok(char *str, const char *delim);
 char *strtok_r(char *str, const char *delim, char **saveptr);
+char *strsep(char **stringp, const char *delim);
 int strcasecmp(const char *s1, const char *s2);
 int strncasecmp(const char *s1, const char *s2, size_t n);
 int strcoll(const char *s1, const char *s2);

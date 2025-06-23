@@ -766,6 +766,21 @@ static const char *test_strtok_r_basic(void)
     return 0;
 }
 
+static const char *test_strsep_basic(void)
+{
+    char buf[] = "x:y:z";
+    char *p = buf;
+    char *tok = strsep(&p, ":");
+    mu_assert("sep1", tok && strcmp(tok, "x") == 0);
+    tok = strsep(&p, ":");
+    mu_assert("sep2", tok && strcmp(tok, "y") == 0);
+    tok = strsep(&p, ":");
+    mu_assert("sep3", tok && strcmp(tok, "z") == 0);
+    tok = strsep(&p, ":");
+    mu_assert("sep end", tok == NULL);
+    return 0;
+}
+
 static const char *test_printf_functions(void)
 {
     char buf[64];
@@ -2026,6 +2041,7 @@ static const char *all_tests(void)
     mu_run_test(test_wctype_checks);
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
+    mu_run_test(test_strsep_basic);
     mu_run_test(test_printf_functions);
     mu_run_test(test_scanf_functions);
     mu_run_test(test_vscanf_variants);
