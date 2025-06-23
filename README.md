@@ -21,6 +21,7 @@ programs. Key features include:
 - Directory scanning helpers
 - Standard `assert` macro for runtime checks
 - Extended math helpers
+- Large-file aware seeks
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD
