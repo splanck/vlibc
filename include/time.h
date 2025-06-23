@@ -54,6 +54,7 @@ int usleep(useconds_t usec);
 int nanosleep(const struct timespec *req, struct timespec *rem);
 
 size_t strftime(char *s, size_t max, const char *format, const struct tm *tm);
+char *strptime(const char *s, const char *format, struct tm *tm);
 
 /* basic time conversion helpers */
 struct tm *gmtime(const time_t *timep);
