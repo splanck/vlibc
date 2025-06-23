@@ -48,16 +48,16 @@ void closelog(void)
     }
 }
 
-void syslog(int priority, const char *format, ...)
+void vsyslog(int priority, const char *format, va_list ap)
 {
     if (log_fd == -1)
         openlog(NULL, 0, LOG_USER);
 
     char msg[256];
-    va_list ap;
-    va_start(ap, format);
-    int len = vsnprintf(msg, sizeof(msg), format, ap);
-    va_end(ap);
+    va_list aq;
+    va_copy(aq, ap);
+    int len = vsnprintf(msg, sizeof(msg), format, aq);
+    va_end(aq);
     if (len < 0)
         return;
     if (len >= (int)sizeof(msg))
@@ -78,4 +78,12 @@ void syslog(int priority, const char *format, ...)
 
     if (log_fd != -1)
         send(log_fd, buf, n, 0);
+}
+
+void syslog(int priority, const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    vsyslog(priority, format, ap);
+    va_end(ap);
 }

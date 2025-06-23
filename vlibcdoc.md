@@ -1124,6 +1124,19 @@ syslog(LOG_INFO, "started with %d workers", workers);
 closelog();
 ```
 
+The underlying function `vsyslog` accepts a `va_list` so you can wrap the
+logger with custom helpers:
+
+```c
+static void debug(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vsyslog(LOG_DEBUG, fmt, ap);
+    va_end(ap);
+}
+```
+
 Messages are written using a Unix datagram socket so applications can integrate
 with the host's syslog daemon.
 
