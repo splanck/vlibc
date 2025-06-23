@@ -11,7 +11,7 @@ programs. Key features include:
 - File I/O wrappers
 - Permission checks with `access()` and `faccessat()`
 - Process creation and control
-- Threading primitives
+- Threading primitives and simple read-write locks
 - Thread-local storage helpers
 - Networking sockets
 - Dynamic loading

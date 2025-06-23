@@ -1258,6 +1258,44 @@ static const char *test_pthread_tls(void)
     return 0;
 }
 
+static pthread_rwlock_t rwlock;
+static int rwval;
+
+static void *rwreader(void *arg)
+{
+    (void)arg;
+    pthread_rwlock_rdlock(&rwlock);
+    int v = rwval;
+    pthread_rwlock_unlock(&rwlock);
+    return (void *)(long)v;
+}
+
+static void *rwwriter(void *arg)
+{
+    int inc = *(int *)arg;
+    pthread_rwlock_wrlock(&rwlock);
+    rwval += inc;
+    pthread_rwlock_unlock(&rwlock);
+    return NULL;
+}
+
+static const char *test_pthread_rwlock(void)
+{
+    pthread_rwlock_init(&rwlock, NULL);
+    rwval = 0;
+    int inc = 5;
+    pthread_t tw, tr;
+    pthread_create(&tw, NULL, rwwriter, &inc);
+    pthread_create(&tr, NULL, rwreader, NULL);
+    void *r = NULL;
+    pthread_join(tw, NULL);
+    pthread_join(tr, &r);
+    pthread_rwlock_destroy(&rwlock);
+    mu_assert("rw value", rwval == 5);
+    mu_assert("rw read", (long)r == 5);
+    return 0;
+}
+
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
@@ -2243,6 +2281,7 @@ static const char *all_tests(void)
     mu_run_test(test_pthread);
     mu_run_test(test_pthread_detach);
     mu_run_test(test_pthread_tls);
+    mu_run_test(test_pthread_rwlock);
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
