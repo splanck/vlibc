@@ -436,6 +436,9 @@ static const char *test_string_helpers(void)
     char *end;
     mu_assert("strtol hex", strtol("ff", &end, 16) == 255 && *end == '\0');
     mu_assert("strtol partial", strtol("12xy", &end, 10) == 12 && strcmp(end, "xy") == 0);
+    mu_assert("strtoul basic", strtoul("123", &end, 10) == 123ul && *end == '\0');
+    mu_assert("strtoll neg", strtoll("-321", &end, 10) == -321ll && *end == '\0');
+    mu_assert("strtoull big", strtoull("1234567890123", &end, 10) == 1234567890123ull && *end == '\0');
     mu_assert("strtod basic", strtod("2.5", &end) == 2.5 && *end == '\0');
     mu_assert("strtod exp", strtod("1e2", &end) == 100.0 && *end == '\0');
     mu_assert("atof", atof("-3.0") == -3.0);
