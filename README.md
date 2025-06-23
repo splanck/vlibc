@@ -12,6 +12,7 @@ programs. Key features include:
 - Permission checks with `access()` and `faccessat()`
 - Process creation and control
 - Threading primitives
+- Thread-local storage helpers
 - Networking sockets
 - Dynamic loading
 - Environment variable handling
@@ -84,6 +85,14 @@ waitpid(pid, NULL, 0);
 ```
 
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
+
+## Thread-Local Storage
+
+Use `pthread_key_create` to allocate keys for storing per-thread data.
+Values are set with `pthread_setspecific` and retrieved with
+`pthread_getspecific`.  Keys can be removed using `pthread_key_delete`.
+The `pthread_once` helper ensures an initializer runs only once across
+all threads.
 
 ## Time Retrieval
 

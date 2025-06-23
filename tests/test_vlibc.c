@@ -1093,6 +1093,39 @@ static const char *test_pthread_detach(void)
     return 0;
 }
 
+static pthread_key_t tls_key;
+static pthread_once_t once_ctl = PTHREAD_ONCE_INIT;
+static int once_count;
+
+static void inc_once(void)
+{
+    once_count++;
+}
+
+static void *tls_worker(void *arg)
+{
+    pthread_once(&once_ctl, inc_once);
+    pthread_setspecific(tls_key, arg);
+    return pthread_getspecific(tls_key);
+}
+
+static const char *test_pthread_tls(void)
+{
+    pthread_key_create(&tls_key, NULL);
+    int a = 1, b = 2;
+    pthread_t t1, t2;
+    pthread_create(&t1, NULL, tls_worker, &a);
+    pthread_create(&t2, NULL, tls_worker, &b);
+    void *r1 = NULL, *r2 = NULL;
+    pthread_join(t1, &r1);
+    pthread_join(t2, &r2);
+    pthread_key_delete(tls_key);
+    mu_assert("tls 1", r1 == &a);
+    mu_assert("tls 2", r2 == &b);
+    mu_assert("once", once_count == 1);
+    return 0;
+}
+
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
@@ -1911,6 +1944,7 @@ static const char *all_tests(void)
     mu_run_test(test_fflush);
     mu_run_test(test_pthread);
     mu_run_test(test_pthread_detach);
+    mu_run_test(test_pthread_tls);
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
