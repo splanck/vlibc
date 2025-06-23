@@ -1049,6 +1049,46 @@ static const char *test_abort_fn(void)
     return 0;
 }
 
+static volatile sig_atomic_t got_signal;
+
+static void handle_usr1(int signo)
+{
+    (void)signo;
+    got_signal = 1;
+}
+
+static const char *test_sigaction_install(void)
+{
+    got_signal = 0;
+    struct sigaction sa;
+    sa.sa_handler = handle_usr1;
+    sa.sa_mask = 0;
+    sa.sa_flags = 0;
+    mu_assert("sigaction", sigaction(SIGUSR1, &sa, NULL) == 0);
+    kill(getpid(), SIGUSR1);
+    mu_assert("handler", got_signal == 1);
+    return 0;
+}
+
+static const char *test_sigprocmask_block(void)
+{
+    got_signal = 0;
+    struct sigaction sa;
+    sa.sa_handler = handle_usr1;
+    sa.sa_mask = 0;
+    sa.sa_flags = 0;
+    sigaction(SIGUSR1, &sa, NULL);
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGUSR1);
+    mu_assert("block", sigprocmask(SIG_BLOCK, &mask, NULL) == 0);
+    kill(getpid(), SIGUSR1);
+    mu_assert("blocked", got_signal == 0);
+    mu_assert("unblock", sigprocmask(SIG_UNBLOCK, &mask, NULL) == 0);
+    mu_assert("delivered", got_signal == 1);
+    return 0;
+}
+
 static const char *test_mprotect_anon(void)
 {
     size_t len = 4096;
@@ -1345,6 +1385,8 @@ static const char *all_tests(void)
     mu_run_test(test_rand_fn);
     mu_run_test(test_temp_files);
     mu_run_test(test_abort_fn);
+    mu_run_test(test_sigaction_install);
+    mu_run_test(test_sigprocmask_block);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_getcwd_chdir);
