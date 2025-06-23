@@ -24,6 +24,7 @@ programs. Key features include:
 - Extended math helpers
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Large-file aware seeks
+- Basic character set conversion with `iconv`
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD
