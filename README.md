@@ -73,6 +73,12 @@ sscanf("42 example", "%d %s", &num, word);
 
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
+## IPv6 Support
+
+Networking helpers such as `inet_pton`, `inet_ntop`, `getaddrinfo` and
+`getnameinfo` understand both IPv4 and IPv6 addresses. Use the standard
+`AF_INET6` family to work with IPv6 sockets and address resolution.
+
 ## Platform Support
 
 The library currently targets Linux but aims to run on other POSIX systems as
