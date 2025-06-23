@@ -436,8 +436,10 @@ regfree(&r);
 
 ## Math Functions
 
-`sin`, `cos`, `tan`, `sqrt`, `pow`, `log`, `log10`, `exp`, `floor`, `ceil`,
-`fabs`, `atan2`, `sinh`, `cosh`, and `tanh` are provided in `math.h`. These use simple series approximations
+`sin`, `cos`, `tan`, `sqrt`, `pow`, `log`, `log2`, `log10`, `exp`, `ldexp`,
+`floor`, `ceil`, `fmod`, `fabs`, `fabsf`, `fmin`, `fmax`, `copysign`,
+`atan2`, `sinh`, `cosh`, and `tanh` are provided in `math.h`. These use simple
+series approximations
 and are suitable for basic calculations but may lack high precision.
 
 ## Process Control
