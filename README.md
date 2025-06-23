@@ -187,6 +187,12 @@ int c = wcwidth(L'A');                // 1
 int w = wcswidth(L"hello", 5);       // 5
 ```
 
+## Wide-Character I/O
+
+Basic wide-character formatting and scanning are available through
+`wprintf` and `wscanf`. Only the subset of conversion specifiers handled
+by the regular `printf` implementation is currently recognized.
+
 ## Platform Support
 
 The library currently targets Linux but aims to run on other POSIX systems as

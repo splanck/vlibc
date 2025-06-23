@@ -139,7 +139,9 @@ SRC := \
     src/fnmatch.c \
     src/scandir.c \
     src/ftw.c \
-    src/glob.c
+    src/glob.c \
+    src/wprintf.c \
+    src/wscanf.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
 SRC += $(if $(ARCH_SRC),$(ARCH_SRC),src/setjmp.c)
