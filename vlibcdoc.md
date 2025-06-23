@@ -230,9 +230,11 @@ The **string** module provides fundamental operations needed by most C programs:
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
 - The low-level memory helpers `vmemcpy`, `vmemmove`, `vmemset`, and `vmemcmp` operate on raw byte buffers. `vmemcpy` copies bytes from a source to a destination, `vmemmove` handles overlaps safely, `vmemset` fills a region with a byte value, and `vmemcmp` compares two buffers. The standard `memcpy`, `memmove`, `memset`, and `memcmp` functions simply call these implementations.
-- Basic locale handling is limited to the built-in `"C"` and `"POSIX"` locales.
-   `setlocale` switches between them and `localeconv` exposes formatting data.
-   All strings are treated as byte sequences.
+- Basic locale handling reads the `LC_ALL` and `LANG` environment variables.
+  `setlocale` defaults to those values and, on BSD systems, falls back to the
+  host `setlocale(3)` when a locale other than `"C"` or `"POSIX"` is
+  requested. `localeconv` exposes formatting data. All strings are treated as
+  byte sequences.
 - Utility functions for tokenizing and simple formatting.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
   delimiter characters. `strtok` stores its parsing state in static
@@ -243,7 +245,8 @@ The **string** module provides fundamental operations needed by most C programs:
 
 Basic time formatting is available via `strftime`. Only a small subset of
  conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
- output uses the current locale (only `"C"`/`"POSIX"` are available).
+ output uses the current locale. Non-`"C"` locales work when the host
+ `setlocale(3)` accepts them (primarily on BSD systems).
 
 The library also includes simple conversion routines `gmtime`, `localtime`,
 `mktime`, and `ctime`. They convert between `time_t` and `struct tm` or
@@ -651,10 +654,11 @@ A minimal `strftime` supports `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S`.
 
 ## Locale Support
 
-`setlocale` switches between the built-in `"C"` and `"POSIX"` locales and
-`localeconv` returns formatting information. `gmtime`, `localtime`,
-`mktime`, and `ctime` convert between `time_t` and `struct tm` or human
-readable strings.
+`setlocale` reads `LC_ALL` and `LANG` and sets the active locale
+accordingly. For non-`"C"` locales the function defers to the host
+`setlocale(3)` implementation on BSD systems. `localeconv` returns
+formatting information. `gmtime`, `localtime`, `mktime`, and `ctime`
+convert between `time_t` and `struct tm` or human readable strings.
 
 ## Time Retrieval
 
@@ -706,7 +710,8 @@ state.
    codes.
  - `perror` and `strerror` cover only common errors.
  - Thread support is limited to basic mutexes and join/detach.
- - Only the `"C"` and `"POSIX"` locales are built in.
+ - Locale handling falls back to the host implementation for values other
+   than `"C"` or `"POSIX"`.
  - `setjmp`/`longjmp` rely on the host C library when available.
    Only an x86_64 fallback implementation is provided.
 

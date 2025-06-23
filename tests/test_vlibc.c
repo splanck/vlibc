@@ -25,6 +25,7 @@
 #include "../include/process.h"
 #include "../include/getopt.h"
 #include "../include/math.h"
+#include "../include/locale.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -880,6 +881,30 @@ static const char *test_environment(void)
     return 0;
 }
 
+static const char *test_locale_from_env(void)
+{
+    env_init(NULL);
+    unsetenv("LC_ALL");
+    unsetenv("LANG");
+
+    mu_assert("default C", strcmp(setlocale(LC_ALL, ""), "C") == 0);
+
+    setenv("LANG", "C.UTF-8", 1);
+    char *r = setlocale(LC_ALL, "");
+#ifdef __linux__
+    mu_assert("unsupported locale", r == NULL);
+#else
+    mu_assert("system locale", r && strcmp(r, "C.UTF-8") == 0);
+#endif
+    unsetenv("LANG");
+
+    setenv("LC_ALL", "POSIX", 1);
+    mu_assert("LC_ALL", strcmp(setlocale(LC_ALL, ""), "POSIX") == 0);
+    unsetenv("LC_ALL");
+
+    return 0;
+}
+
 static const char *test_error_reporting(void)
 {
     errno = ENOENT;
@@ -1279,6 +1304,7 @@ static const char *all_tests(void)
     mu_run_test(test_strftime_basic);
     mu_run_test(test_time_conversions);
     mu_run_test(test_environment);
+    mu_run_test(test_locale_from_env);
     mu_run_test(test_error_reporting);
     mu_run_test(test_system_fn);
     mu_run_test(test_execvp_fn);
