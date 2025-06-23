@@ -16,6 +16,7 @@ int vstrncmp(const char *s1, const char *s2, size_t n);
 int strcmp(const char *s1, const char *s2);
 char *strchr(const char *s, int c);
 char *strdup(const char *s);
+char *strndup(const char *s, size_t n);
 char *strncpy(char *dest, const char *src, size_t n);
 char *strcat(char *dest, const char *src);
 char *strncat(char *dest, const char *src, size_t n);

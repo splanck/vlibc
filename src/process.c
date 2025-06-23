@@ -165,3 +165,90 @@ sighandler_t signal(int signum, sighandler_t handler)
     return (sighandler_t)ret;
 #endif
 }
+
+static pid_t vlibc_vfork(void)
+{
+#ifdef SYS_vfork
+    long ret = vlibc_syscall(SYS_vfork, 0, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (pid_t)ret;
+#else
+    return fork();
+#endif
+}
+
+int posix_spawn(pid_t *pid, const char *path,
+                const posix_spawn_file_actions_t *file_actions,
+                const posix_spawnattr_t *attrp,
+                char *const argv[], char *const envp[])
+{
+    (void)file_actions;
+    (void)attrp;
+    pid_t cpid = vlibc_vfork();
+    if (cpid < 0)
+        return errno;
+    if (cpid == 0) {
+        execve(path, argv, envp ? envp : environ);
+        _exit(127);
+    }
+    if (pid)
+        *pid = cpid;
+    return 0;
+}
+
+int posix_spawnp(pid_t *pid, const char *file,
+                 const posix_spawn_file_actions_t *file_actions,
+                 const posix_spawnattr_t *attrp,
+                 char *const argv[], char *const envp[])
+{
+    if (!file)
+        return EINVAL;
+
+    if (strchr(file, '/'))
+        return posix_spawn(pid, file, file_actions, attrp, argv, envp);
+
+    const char *path = getenv("PATH");
+    if (!path)
+        return posix_spawn(pid, file, file_actions, attrp, argv, envp);
+
+    size_t flen = strlen(file);
+    const char *p = path;
+    int last_error = ENOENT;
+
+    while (1) {
+        const char *end = strchr(p, ':');
+        size_t len = end ? (size_t)(end - p) : strlen(p);
+
+        size_t tlen = len ? len : 1;
+        char *buf = malloc(tlen + 1 + flen + 1);
+        if (!buf)
+            return ENOMEM;
+
+        if (len) {
+            memcpy(buf, p, len);
+            buf[len] = '/';
+            memcpy(buf + len + 1, file, flen);
+            buf[len + 1 + flen] = '\0';
+        } else {
+            memcpy(buf, file, flen);
+            buf[flen] = '\0';
+        }
+
+        int r = posix_spawn(pid, buf, file_actions, attrp, argv, envp);
+        if (r == 0) {
+            free(buf);
+            return 0;
+        }
+        last_error = r;
+        free(buf);
+
+        if (!end)
+            break;
+        p = end + 1;
+    }
+
+    return last_error;
+}
