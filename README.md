@@ -9,6 +9,7 @@ packs only the most essential runtime components needed by portable C
 programs. Key features include:
 
 - File I/O wrappers
+- Permission checks with `access()` and `faccessat()`
 - Process creation and control
 - Threading primitives
 - Networking sockets

@@ -25,5 +25,7 @@ ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
 int mkdir(const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
 int chdir(const char *path);
+int access(const char *pathname, int mode);
+int faccessat(int dirfd, const char *pathname, int mode, int flags);
 
 #endif /* IO_H */

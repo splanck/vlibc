@@ -86,6 +86,7 @@ SRC := \
     src/file_perm.c \
     src/truncate.c \
     src/dir.c \
+    src/access.c \
     src/getcwd.c \
     src/realpath.c \
     src/path.c \
