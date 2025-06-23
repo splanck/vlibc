@@ -2,6 +2,8 @@
 #define WCHAR_H
 
 #include <stddef.h>
+#include <stdarg.h>
+#include "stdio.h"
 
 #ifndef __wchar_t_defined
 typedef int wchar_t;
@@ -21,5 +23,21 @@ size_t mbstowcs(wchar_t *dst, const char *src, size_t n);
 size_t wcstombs(char *dst, const wchar_t *src, size_t n);
 size_t mbrlen(const char *s, size_t n, mbstate_t *ps);
 int mbsinit(const mbstate_t *ps);
+
+/* Wide-character formatted output */
+int wprintf(const wchar_t *format, ...);
+int fwprintf(FILE *stream, const wchar_t *format, ...);
+int swprintf(wchar_t *str, size_t size, const wchar_t *format, ...);
+int vwprintf(const wchar_t *format, va_list ap);
+int vfwprintf(FILE *stream, const wchar_t *format, va_list ap);
+int vswprintf(wchar_t *str, size_t size, const wchar_t *format, va_list ap);
+
+/* Wide-character formatted input */
+int wscanf(const wchar_t *format, ...);
+int fwscanf(FILE *stream, const wchar_t *format, ...);
+int swscanf(const wchar_t *str, const wchar_t *format, ...);
+int vwscanf(const wchar_t *format, va_list ap);
+int vfwscanf(FILE *stream, const wchar_t *format, va_list ap);
+int vswscanf(const wchar_t *str, const wchar_t *format, va_list ap);
 
 #endif /* WCHAR_H */
