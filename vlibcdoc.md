@@ -451,6 +451,7 @@ gid_t getegid(void);
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 int system(const char *command);
+int daemon(int nochdir, int noclose);
 int atexit(void (*fn)(void));
 void abort(void);
 void exit(int status);
@@ -473,6 +474,10 @@ waitpid(pid, NULL, 0);
 void on_int(int signo) { (void)signo; }
 signal(SIGINT, on_int);
 kill(getpid(), SIGINT);
+
+/* Detach and run in the background. */
+if (daemon(0, 0) < 0)
+    perror("daemon");
 ```
 
 `execvp` performs the same operation as `execve` but searches the directories in the `PATH` environment variable when the program name does not contain a slash.
