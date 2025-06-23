@@ -262,8 +262,11 @@ The goal is to offer just enough functionality for common tasks without the comp
 ### Wide Character Conversion
 
 `mbtowc` converts a multibyte sequence to a single `wchar_t` and `wctomb`
-performs the opposite conversion. `wcslen` returns the length of a wide
-string excluding the terminator.
+performs the opposite conversion.  `mbrtowc`/`wcrtomb` are stateful
+variants used by `mbstowcs` and `wcstombs` for converting entire
+strings.  These helpers handle ASCII directly and fall back to the host
+C library when encountering non-ASCII data.  `wcslen` returns the length
+of a wide string excluding the terminator.
 
 ## Character Classification
 
