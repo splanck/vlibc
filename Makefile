@@ -137,6 +137,7 @@ SRC := \
     src/regex.c \
     src/fnmatch.c \
     src/scandir.c \
+    src/ftw.c \
     src/glob.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
