@@ -152,6 +152,7 @@ memory.h     - heap allocation
 netdb.h      - address resolution helpers
 arpa/inet.h  - IPv4 presentation conversion helpers
 poll.h       - I/O multiplexing helpers
+signal.h    - signal handling helpers
 process.h    - process creation and control
 pthread.h    - minimal threading support
 setjmp.h     - non-local jump helpers
@@ -320,7 +321,8 @@ and are suitable for basic calculations but may lack high precision.
 
 Process-related functionality resides in the **process** module. It provides
 minimal wrappers for creating and managing processes, querying process IDs,
-and installing signal handlers:
+and installing signal handlers.  The companion `signal.h` header offers
+`sigaction`, `sigprocmask` and helpers for manipulating signal sets:
 
 ```c
 pid_t fork(void);
@@ -331,6 +333,8 @@ int kill(pid_t pid, int sig);
 pid_t getpid(void);
 pid_t getppid(void);
 sighandler_t signal(int signum, sighandler_t handler);
+int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
+int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 int system(const char *command);
 int atexit(void (*fn)(void));
 void abort(void);
