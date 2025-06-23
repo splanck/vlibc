@@ -15,13 +15,15 @@ struct token {
     union {
         unsigned char ch;
         unsigned char *ccl;
+        int group;
     } u;
 };
 
 /* token types */
 enum {
     UNUSED, DOT, BEGIN, END, QUESTION, STAR, PLUS, CHAR, CHAR_CLASS, INV_CHAR_CLASS,
-    DIGIT, NOT_DIGIT, ALPHA, NOT_ALPHA, SPACE, NOT_SPACE
+    DIGIT, NOT_DIGIT, ALPHA, NOT_ALPHA, SPACE, NOT_SPACE,
+    CAP_OPEN, CAP_CLOSE, BACKREF
 };
 
 struct regex_impl {
@@ -30,7 +32,8 @@ struct regex_impl {
 };
 
 /* helper prototypes */
-static int matchpattern(struct token *pat, const char *text, int *matchlen);
+static int matchpattern(struct token *pat, const char *text, int *matchlen,
+                        const char *string, regmatch_t *caps);
 
 static int matchdigit(char c) { return isdigit((unsigned char)c); }
 static int matchalpha(char c) { return isalnum((unsigned char)c) || c == '_'; }
@@ -105,14 +108,15 @@ static int matchone(struct token t, char c)
     }
 }
 
-static int matchstar(struct token p, struct token *pat, const char *text, int *ml)
+static int matchstar(struct token p, struct token *pat, const char *text, int *ml,
+                     const char *string, regmatch_t *caps)
 {
     int pre = *ml;
     const char *save = text;
     while (*text && matchone(p, *text)) {
         text++; (*ml)++; }
     while (text >= save) {
-        if (matchpattern(pat, text, ml))
+        if (matchpattern(pat, text, ml, string, caps))
             return 1;
         text--; (*ml)--;
     }
@@ -120,42 +124,71 @@ static int matchstar(struct token p, struct token *pat, const char *text, int *m
     return 0;
 }
 
-static int matchplus(struct token p, struct token *pat, const char *text, int *ml)
+static int matchplus(struct token p, struct token *pat, const char *text, int *ml,
+                     const char *string, regmatch_t *caps)
 {
     const char *save = text;
     while (*text && matchone(p, *text)) { text++; (*ml)++; }
     while (text > save) {
-        if (matchpattern(pat, text, ml))
+        if (matchpattern(pat, text, ml, string, caps))
             return 1;
         text--; (*ml)--;
     }
     return 0;
 }
 
-static int matchquestion(struct token p, struct token *pat, const char *text, int *ml)
+static int matchquestion(struct token p, struct token *pat, const char *text, int *ml,
+                         const char *string, regmatch_t *caps)
 {
     if (p.type == UNUSED)
         return 1;
-    if (matchpattern(pat, text, ml))
+    if (matchpattern(pat, text, ml, string, caps))
         return 1;
     if (*text && matchone(p, *text++)) {
-        if (matchpattern(pat, text, ml)) {
+        if (matchpattern(pat, text, ml, string, caps)) {
             (*ml)++; return 1; }
     }
     return 0;
 }
 
 /* iterative matcher */
-static int matchpattern(struct token *pat, const char *text, int *matchlen)
+static int matchpattern(struct token *pat, const char *text, int *matchlen,
+                        const char *string, regmatch_t *caps)
 {
     int pre = *matchlen;
     do {
+        if (pat[0].type == CAP_OPEN) {
+            if (caps)
+                caps[pat[0].u.group].rm_so = text - string;
+            pat++;
+            continue;
+        } else if (pat[0].type == CAP_CLOSE) {
+            if (caps)
+                caps[pat[0].u.group].rm_eo = text - string;
+            pat++;
+            continue;
+        } else if (pat[0].type == BACKREF) {
+            int id = pat[0].u.group;
+            if (!caps || caps[id].rm_so < 0 || caps[id].rm_eo < 0) {
+                *matchlen = pre;
+                return 0;
+            }
+            int blen = caps[id].rm_eo - caps[id].rm_so;
+            if (strncmp(string + caps[id].rm_so, text, blen) != 0) {
+                *matchlen = pre;
+                return 0;
+            }
+            text += blen;
+            *matchlen += blen;
+            pat++;
+            continue;
+        }
         if (pat[0].type == UNUSED || pat[1].type == QUESTION)
-            return matchquestion(pat[0], &pat[2], text, matchlen);
+            return matchquestion(pat[0], &pat[2], text, matchlen, string, caps);
         else if (pat[1].type == STAR)
-            return matchstar(pat[0], &pat[2], text, matchlen);
+            return matchstar(pat[0], &pat[2], text, matchlen, string, caps);
         else if (pat[1].type == PLUS)
-            return matchplus(pat[0], &pat[2], text, matchlen);
+            return matchplus(pat[0], &pat[2], text, matchlen, string, caps);
         else if (pat[0].type == END && pat[1].type == UNUSED)
             return *text == '\0';
         *matchlen += 1;
@@ -177,6 +210,9 @@ int regcomp(regex_t *preg, const char *pattern, int cflags)
         free(ri->pat); free(ri->ccl); free(ri); return -1; }
     size_t ccl_idx = 1; /* first byte reserved */
     size_t i = 0, j = 0;
+    int stack[10];
+    int depth = 0;
+    size_t groups = 0;
     while (pattern[i] && j + 1 < len) {
         char c = pattern[i];
         switch (c) {
@@ -189,7 +225,10 @@ int regcomp(regex_t *preg, const char *pattern, int cflags)
         case '\\':
             if (pattern[i+1]) {
                 i++;
-                switch (pattern[i]) {
+                if (pattern[i] >= '1' && pattern[i] <= '9') {
+                    ri->pat[j].type = BACKREF;
+                    ri->pat[j].u.group = pattern[i] - '0';
+                } else switch (pattern[i]) {
                 case 'd': ri->pat[j].type = DIGIT; break;
                 case 'D': ri->pat[j].type = NOT_DIGIT; break;
                 case 'w': ri->pat[j].type = ALPHA; break;
@@ -200,6 +239,24 @@ int regcomp(regex_t *preg, const char *pattern, int cflags)
                 }
             }
             break;
+        case '(': {
+            if (groups < 9) {
+                groups++; depth++; stack[depth-1] = groups;
+                ri->pat[j].type = CAP_OPEN;
+                ri->pat[j].u.group = groups;
+            } else {
+                ri->pat[j].type = CHAR; ri->pat[j].u.ch = c;
+            }
+            break; }
+        case ')': {
+            if (depth > 0) {
+                int id = stack[--depth];
+                ri->pat[j].type = CAP_CLOSE;
+                ri->pat[j].u.group = id;
+            } else {
+                ri->pat[j].type = CHAR; ri->pat[j].u.ch = c;
+            }
+            break; }
         case '[': {
             size_t start = ccl_idx;
             if (pattern[i+1] == '^') { ri->pat[j].type = INV_CHAR_CLASS; i++; }
@@ -220,7 +277,7 @@ int regcomp(regex_t *preg, const char *pattern, int cflags)
     }
     ri->pat[j].type = UNUSED;
     preg->impl = ri;
-    preg->re_nsub = 0;
+    preg->re_nsub = groups;
     return 0;
 }
 
@@ -233,22 +290,36 @@ int regexec(const regex_t *preg, const char *string,
     struct regex_impl *ri = (struct regex_impl *)preg->impl;
     int len = 0;
     int pos = -1;
+    regmatch_t *caps = NULL;
+    if (preg->re_nsub) {
+        caps = calloc(preg->re_nsub + 1, sizeof(regmatch_t));
+        if (caps)
+            memset(caps, -1, (preg->re_nsub + 1) * sizeof(regmatch_t));
+    }
     if (ri->pat[0].type == BEGIN) {
-        if (matchpattern(&ri->pat[1], string, &len))
+        if (matchpattern(&ri->pat[1], string, &len, string, caps))
             pos = 0;
     } else {
         const char *t = string; int idx = -1;
         do {
             idx++; len = 0;
-            if (matchpattern(ri->pat, t, &len)) { pos = idx; break; }
+            if (caps)
+                memset(caps, -1, (preg->re_nsub + 1) * sizeof(regmatch_t));
+            if (matchpattern(ri->pat, t, &len, string, caps)) { pos = idx; break; }
         } while (*t++);
     }
     if (pos < 0)
+    {
+        free(caps);
         return REG_NOMATCH;
+    }
     if (nmatch > 0) {
         pmatch[0].rm_so = pos;
         pmatch[0].rm_eo = pos + len;
+        for (size_t i = 1; i <= preg->re_nsub && i < nmatch; i++)
+            pmatch[i] = caps[i];
     }
+    free(caps);
     return 0;
 }
 
