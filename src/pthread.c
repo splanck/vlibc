@@ -61,3 +61,67 @@ int pthread_cond_broadcast(pthread_cond_t *cond)
 {
     return pthread_cond_signal(cond);
 }
+
+#define KEY_MAX 64
+
+static pthread_mutex_t key_lock;
+static void (*key_destructors[KEY_MAX])(void *);
+static __thread void *key_values[KEY_MAX];
+
+int pthread_key_create(pthread_key_t *key, void (*destructor)(void *))
+{
+    if (!key)
+        return EINVAL;
+    pthread_mutex_lock(&key_lock);
+    for (unsigned i = 0; i < KEY_MAX; ++i) {
+        if (!key_destructors[i]) {
+            key_destructors[i] = destructor ? destructor : (void *)1;
+            *key = i;
+            pthread_mutex_unlock(&key_lock);
+            return 0;
+        }
+    }
+    pthread_mutex_unlock(&key_lock);
+    return EAGAIN;
+}
+
+int pthread_key_delete(pthread_key_t key)
+{
+    if (key >= KEY_MAX)
+        return EINVAL;
+    pthread_mutex_lock(&key_lock);
+    key_destructors[key] = NULL;
+    key_values[key] = NULL;
+    pthread_mutex_unlock(&key_lock);
+    return 0;
+}
+
+int pthread_setspecific(pthread_key_t key, const void *value)
+{
+    if (key >= KEY_MAX || !key_destructors[key])
+        return EINVAL;
+    key_values[key] = (void *)value;
+    return 0;
+}
+
+void *pthread_getspecific(pthread_key_t key)
+{
+    if (key >= KEY_MAX || !key_destructors[key])
+        return NULL;
+    return key_values[key];
+}
+
+static pthread_mutex_t once_lock;
+
+int pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
+{
+    if (atomic_load_explicit(&once_control->done, memory_order_acquire))
+        return 0;
+    pthread_mutex_lock(&once_lock);
+    if (!atomic_load_explicit(&once_control->done, memory_order_acquire)) {
+        init_routine();
+        atomic_store_explicit(&once_control->done, 1, memory_order_release);
+    }
+    pthread_mutex_unlock(&once_lock);
+    return 0;
+}

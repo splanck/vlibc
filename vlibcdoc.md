@@ -547,6 +547,20 @@ Condition variables provide simple waiting semantics. A thread calls
 signals the condition. `pthread_cond_signal()` wakes a single waiter while
 `pthread_cond_broadcast()` wakes all waiters.
 
+Thread-local storage is available through key objects:
+
+```c
+int pthread_key_create(pthread_key_t *key, void (*destructor)(void *));
+int pthread_key_delete(pthread_key_t key);
+int pthread_setspecific(pthread_key_t key, const void *value);
+void *pthread_getspecific(pthread_key_t key);
+
+int pthread_once(pthread_once_t *control, void (*init)(void));
+```
+
+`pthread_once` guarantees that `init` runs just once even if multiple
+threads call it concurrently.
+
 ### Example
 
 ```c
