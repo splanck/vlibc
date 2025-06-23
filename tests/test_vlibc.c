@@ -280,6 +280,21 @@ static const char *test_socket(void)
     return 0;
 }
 
+static const char *test_socketpair_basic(void)
+{
+    int sv[2];
+    mu_assert("socketpair", socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0);
+    const char *msg = "ok";
+    ssize_t w = write(sv[0], msg, 2);
+    mu_assert("write", w == 2);
+    char buf[3] = {0};
+    ssize_t r = read(sv[1], buf, 2);
+    mu_assert("read", r == 2 && strcmp(buf, msg) == 0);
+    close(sv[0]);
+    close(sv[1]);
+    return 0;
+}
+
 static const char *test_dup3_cloexec(void)
 {
     const char *fname = "tmp_dup3_file";
@@ -1498,6 +1513,7 @@ static const char *all_tests(void)
     mu_run_test(test_dup3_cloexec);
     mu_run_test(test_pipe2_cloexec);
     mu_run_test(test_socket);
+    mu_run_test(test_socketpair_basic);
     mu_run_test(test_udp_send_recv);
     mu_run_test(test_inet_pton_ntop);
     mu_run_test(test_errno_open);
