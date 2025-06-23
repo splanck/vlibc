@@ -244,6 +244,33 @@ static const char *test_lseek_dup(void)
     return 0;
 }
 
+static const char *test_pread_pwrite(void)
+{
+    const char *fname = "tmp_pread_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+
+    const char *msg = "abcdef";
+    mu_assert("init write", write(fd, msg, 6) == 6);
+    off_t pos = lseek(fd, 0, SEEK_CUR);
+    mu_assert("pos", pos == 6);
+
+    const char *patch = "XY";
+    ssize_t w = pwrite(fd, patch, 2, 2);
+    mu_assert("pwrite", w == 2);
+    mu_assert("offset unchanged", lseek(fd, 0, SEEK_CUR) == pos);
+
+    char buf[5] = {0};
+    ssize_t r = pread(fd, buf, 4, 1);
+    mu_assert("pread", r == 4);
+    mu_assert("pread data", strncmp(buf, "bXYe", 4) == 0);
+    mu_assert("offset still", lseek(fd, 0, SEEK_CUR) == pos);
+
+    close(fd);
+    unlink(fname);
+    return 0;
+}
+
 static const char *test_socket(void)
 {
     int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -1467,6 +1494,7 @@ static const char *all_tests(void)
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
+    mu_run_test(test_pread_pwrite);
     mu_run_test(test_dup3_cloexec);
     mu_run_test(test_pipe2_cloexec);
     mu_run_test(test_socket);
