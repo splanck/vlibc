@@ -677,7 +677,14 @@ chown("data.txt", 1000, 1000);
 
 ## File Status
 
-`stat`, `fstat`, and `lstat` from `sys/stat.h` query file metadata.
+`stat`, `fstat`, and `lstat` from `sys/stat.h` query file metadata. The
+`utime` and `utimes` helpers adjust the access and modification times of a
+file:
+
+```c
+struct utimbuf t = { .actime = 1625097600, .modtime = 1625097600 };
+utime("data.txt", &t);
+```
 
 ## Directory Iteration
 
