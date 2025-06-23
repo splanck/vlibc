@@ -257,6 +257,9 @@ The **string** module provides fundamental operations needed by most C programs:
 - Search helpers `strstr`, `strrchr`, and `memchr` for locating substrings or bytes.
 - Prefix scanners `strspn` and `strcspn` along with `strpbrk` for finding any character from a set.
 - Case-insensitive comparisons `strcasecmp` and `strncasecmp`.
+- Basic collation helpers `strcoll` and `strxfrm` act on ASCII strings. On
+  BSD systems they defer to the host implementations when the active locale is
+  not `"C"` or `"POSIX"`.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
 - The low-level memory helpers `vmemcpy`, `vmemmove`, `vmemset`, and `vmemcmp` operate on raw byte buffers. `vmemcpy` copies bytes from a source to a destination, `vmemmove` handles overlaps safely, `vmemset` fills a region with a byte value, and `vmemcmp` compares two buffers. The standard `memcpy`, `memmove`, `memset`, and `memcmp` functions simply call these implementations.
