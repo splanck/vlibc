@@ -1225,6 +1225,21 @@ static const char *test_strftime_basic(void)
     return 0;
 }
 
+static const char *test_strptime_basic(void)
+{
+    struct tm tm;
+    memset(&tm, 0, sizeof(tm));
+    char *r = strptime("2023-05-06 07:08:09", "%Y-%m-%d %H:%M:%S", &tm);
+    mu_assert("strptime ret", r && *r == '\0');
+    mu_assert("tm year", tm.tm_year == 123);
+    mu_assert("tm mon", tm.tm_mon == 4);
+    mu_assert("tm mday", tm.tm_mday == 6);
+    mu_assert("tm hour", tm.tm_hour == 7);
+    mu_assert("tm min", tm.tm_min == 8);
+    mu_assert("tm sec", tm.tm_sec == 9);
+    return 0;
+}
+
 static const char *test_time_conversions(void)
 {
     time_t t = 1700000000;
@@ -1949,6 +1964,7 @@ static const char *all_tests(void)
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_strftime_basic);
+    mu_run_test(test_strptime_basic);
     mu_run_test(test_time_conversions);
     mu_run_test(test_time_r_conversions);
     mu_run_test(test_environment);

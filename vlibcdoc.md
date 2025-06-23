@@ -289,8 +289,9 @@ char *vowel = strpbrk(text, "aeiou");
 size_t prefix = strspn("abc123", "abc");
 ```
 
-Basic time formatting is available via `strftime`. Only a small subset of
- conversions is implemented (`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
+Basic time formatting is available via `strftime` and the matching
+`strptime` parser. Only a small subset of conversions is implemented
+(`%Y`, `%m`, `%d`, `%H`, `%M`, `%S`) and the
  output uses the current locale. Non-`"C"` locales work when the host
  `setlocale(3)` accepts them (primarily on BSD systems).
 
@@ -948,6 +949,7 @@ running tests.
 ## Time Formatting
 
 A minimal `strftime` supports `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S`.
+The `strptime` helper parses those same fields back into a `struct tm` and returns a pointer to the first unparsed character or `NULL` on failure.
 `timegm` converts a `struct tm` in UTC back to `time_t` using the same logic as `mktime` but without timezone adjustments.
 
 ## Locale Support

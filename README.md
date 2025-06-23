@@ -105,6 +105,18 @@ clock_gettime(CLOCK_MONOTONIC, &ts);
 
 `CLOCK_REALTIME` returns the wall-clock time.
 
+## Time Formatting
+
+`strftime` converts a `struct tm` to a human readable string. The
+complementary `strptime` can parse the same fields back into a `struct tm`:
+
+```c
+struct tm tm = {0};
+strptime("2023-05-06 07:08:09", "%Y-%m-%d %H:%M:%S", &tm);
+```
+
+Only `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S` are understood.
+
 ## IPv6 Support
 
 Networking helpers such as `inet_pton`, `inet_ntop`, `getaddrinfo` and
