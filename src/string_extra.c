@@ -174,3 +174,25 @@ size_t strxfrm(char *dest, const char *src, size_t n)
     return len;
 }
 
+char *strsep(char **stringp, const char *delim)
+{
+    if (!stringp || !*stringp)
+        return NULL;
+    char *s = *stringp;
+    char *tok = s;
+    while (*s) {
+        const char *d = delim;
+        while (*d) {
+            if (*s == *d) {
+                *s = '\0';
+                *stringp = s + 1;
+                return tok;
+            }
+            d++;
+        }
+        s++;
+    }
+    *stringp = NULL;
+    return tok;
+}
+
