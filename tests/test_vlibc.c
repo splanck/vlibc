@@ -27,6 +27,7 @@
 #include "../include/getopt.h"
 #include "../include/math.h"
 #include "../include/locale.h"
+#include "../include/regex.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -1574,6 +1575,28 @@ static const char *test_qsort_strings(void)
     return 0;
 }
 
+static const char *test_regex_backref_basic(void)
+{
+    regex_t re;
+    regmatch_t m[2];
+    regcomp(&re, "(ab)c\\1", 0);
+    int r = regexec(&re, "abcab", 2, m, 0);
+    regfree(&re);
+    mu_assert("regex match", r == 0);
+    mu_assert("group capture", m[1].rm_so == 0 && m[1].rm_eo == 2);
+    return 0;
+}
+
+static const char *test_regex_backref_fail(void)
+{
+    regex_t re;
+    regcomp(&re, "(ab)c\\1", 0);
+    int r = regexec(&re, "abcac", 0, NULL, 0);
+    regfree(&re);
+    mu_assert("regex nomatch", r == REG_NOMATCH);
+    return 0;
+}
+
 static const char *test_math_functions(void)
 {
     mu_assert("fabs", fabs(-3.5) == 3.5);
@@ -1806,6 +1829,8 @@ static const char *all_tests(void)
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
+    mu_run_test(test_regex_backref_basic);
+    mu_run_test(test_regex_backref_fail);
     mu_run_test(test_math_functions);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);

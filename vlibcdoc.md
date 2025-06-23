@@ -372,7 +372,21 @@ regfree(&re);
 
 Only simple features are implemented: `.` matches any character,
 `*`, `+` and `?` provide repetition, `[]` defines character classes
-and `^`/`$` anchor to the start or end of the string.
+and `^`/`$` anchor to the start or end of the string. Parentheses
+create capture groups which can be referenced later in the pattern
+using backreferences like `\1` and `\2`. Groups may not be used
+with repetition operators.
+
+Example with a backreference:
+
+```c
+regex_t r;
+regcomp(&r, "(foo)bar\\1", 0);
+if (regexec(&r, "foobarfoo", 0, NULL, 0) == 0) {
+    /* matches */
+}
+regfree(&r);
+```
 
 ## Math Functions
 
@@ -904,8 +918,9 @@ state.
    than `"C"` or `"POSIX"`.
  - `setjmp`/`longjmp` rely on the host C library when available.
    Only an x86_64 fallback implementation is provided.
- - Regular expressions cover only a subset of POSIX syntax and do not
-   implement advanced constructs like backreferences.
+ - Regular expressions cover only a subset of POSIX syntax. Capture
+   groups and numeric backreferences are supported but more advanced
+   features remain unimplemented.
 
 ## Conclusion
 
