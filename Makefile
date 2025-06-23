@@ -110,6 +110,7 @@ SRC := \
     src/wchar_conv.c \
     src/tempfile.c \
     src/getline.c \
+    src/pwd.c \
     src/math.c \
     src/math_extra.c \
     src/regex.c

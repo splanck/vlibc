@@ -22,6 +22,7 @@
 #include "../include/stdlib.h"
 #include "../include/wchar.h"
 #include "../include/env.h"
+#include "../include/pwd.h"
 #include "../include/process.h"
 #include "../include/getopt.h"
 #include "../include/math.h"
@@ -1359,6 +1360,30 @@ static const char *test_dirent(void)
     return 0;
 }
 
+static const char *test_passwd_lookup(void)
+{
+    char tmpl[] = "/tmp/pwtestXXXXXX";
+    int fd = mkstemp(tmpl);
+    mu_assert("mkstemp", fd >= 0);
+    const char data[] =
+        "root:x:0:0:root:/root:/bin/sh\n"
+        "alice:x:1000:1000:Alice:/home/alice:/bin/sh\n";
+    mu_assert("write", write(fd, data, sizeof(data) - 1) == (ssize_t)(sizeof(data) - 1));
+    close(fd);
+
+    setenv("VLIBC_PASSWD", tmpl, 1);
+
+    struct passwd *pw = getpwnam("alice");
+    mu_assert("getpwnam", pw && pw->pw_uid == 1000 && strcmp(pw->pw_dir, "/home/alice") == 0);
+
+    pw = getpwuid(0);
+    mu_assert("getpwuid", pw && strcmp(pw->pw_name, "root") == 0);
+
+    unsetenv("VLIBC_PASSWD");
+    unlink(tmpl);
+    return 0;
+}
+
 static int int_cmp(const void *a, const void *b)
 {
     int ia = *(const int *)a;
@@ -1622,6 +1647,7 @@ static const char *all_tests(void)
     mu_run_test(test_atexit_handler);
     mu_run_test(test_getcwd_chdir);
     mu_run_test(test_realpath_basic);
+    mu_run_test(test_passwd_lookup);
     mu_run_test(test_dirent);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
