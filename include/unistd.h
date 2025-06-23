@@ -20,6 +20,9 @@ uid_t geteuid(void);
 gid_t getgid(void);
 gid_t getegid(void);
 
+long sysconf(int name);
+int getpagesize(void);
+
 #ifndef STDIN_FILENO
 #define STDIN_FILENO 0
 #endif

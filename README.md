@@ -164,8 +164,9 @@ int w = wcswidth(L"hello", 5);       // 5
 
 The library currently targets Linux but aims to run on other POSIX systems as
 well. BSD compatibility has been tested on FreeBSD, though some modules still
-rely on Linux-only system calls. Non-Linux builds may therefore require
-additional work.
+rely on Linux-only system calls. Portable helpers like `sysconf()` and
+`getpagesize()` ease porting, but non-Linux builds may still require additional
+work.
 
 ## Running Tests
 
