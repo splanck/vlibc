@@ -639,6 +639,17 @@ static const char *test_strndup_basic(void)
     return 0;
 }
 
+static const char *test_strcoll_xfrm(void)
+{
+    mu_assert("strcoll eq", strcoll("abc", "abc") == 0);
+    mu_assert("strcoll lt", strcoll("abc", "abd") < 0);
+    char buf[8];
+    size_t n = strxfrm(buf, "abc", sizeof(buf));
+    mu_assert("strxfrm len", n == 3);
+    mu_assert("strxfrm copy", strcmp(buf, "abc") == 0);
+    return 0;
+}
+
 static const char *test_widechar_basic(void)
 {
     wchar_t wc = 0;
@@ -1884,6 +1895,7 @@ static const char *all_tests(void)
     mu_run_test(test_string_casecmp);
     mu_run_test(test_strlcpy_cat);
     mu_run_test(test_strndup_basic);
+    mu_run_test(test_strcoll_xfrm);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_widechar_conv);
     mu_run_test(test_strtok_basic);

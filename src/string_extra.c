@@ -139,3 +139,38 @@ char *strpbrk(const char *s, const char *accept)
     }
     return NULL;
 }
+
+int strcoll(const char *s1, const char *s2)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    const char *loc = setlocale(LC_COLLATE, NULL);
+    if (loc && strcmp(loc, "C") != 0 && strcmp(loc, "POSIX") != 0) {
+        extern int host_strcoll(const char *, const char *) __asm("strcoll");
+        return host_strcoll(s1, s2);
+    }
+#endif
+    return strcmp(s1, s2);
+}
+
+size_t strxfrm(char *dest, const char *src, size_t n)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    const char *loc = setlocale(LC_COLLATE, NULL);
+    if (loc && strcmp(loc, "C") != 0 && strcmp(loc, "POSIX") != 0) {
+        extern size_t host_strxfrm(char *, const char *, size_t) __asm("strxfrm");
+        return host_strxfrm(dest, src, n);
+    }
+#endif
+    size_t len = vstrlen(src);
+    if (n) {
+        size_t copy = len >= n ? n - 1 : len;
+        if (dest) {
+            vmemcpy(dest, src, copy);
+            dest[copy] = '\0';
+        }
+    }
+    return len;
+}
+
