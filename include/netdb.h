@@ -4,6 +4,14 @@
 #include "sys/socket.h"
 #include <stddef.h>
 
+#ifndef NI_MAXHOST
+#define NI_MAXHOST 1025
+#endif
+
+#ifndef NI_MAXSERV
+#define NI_MAXSERV 32
+#endif
+
 struct addrinfo {
     int ai_flags;
     int ai_family;

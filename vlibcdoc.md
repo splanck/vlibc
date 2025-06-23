@@ -151,7 +151,7 @@ locale.h     - locale helpers
 math.h       - basic math routines
 memory.h     - heap allocation
 netdb.h      - address resolution helpers
-arpa/inet.h  - IPv4 presentation conversion helpers
+arpa/inet.h  - IPv4/IPv6 presentation conversion helpers
 poll.h       - I/O multiplexing helpers
 signal.h    - signal handling helpers
 process.h    - process creation and control
@@ -596,8 +596,8 @@ syscalls including `socket`, `bind`, `listen`, `accept`, `connect`,
 `send`, `recv`, `sendto`, and `recvfrom`. Address resolution is handled
 via `getaddrinfo`, `freeaddrinfo`, and `getnameinfo`.
 
-Utilities `inet_pton` and `inet_ntop` convert between dotted IPv4 strings
-and binary network format.
+Utilities `inet_pton` and `inet_ntop` convert between IPv4 or IPv6
+presentation strings and binary network format.
 
 ```c
 struct addrinfo *ai;

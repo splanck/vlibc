@@ -300,6 +300,16 @@ static const char *test_inet_pton_ntop(void)
     struct in_addr back;
     r = inet_pton(AF_INET, buf, &back);
     mu_assert("inet_pton round", r == 1 && back.s_addr == addr.s_addr);
+
+    struct in6_addr addr6;
+    r = inet_pton(AF_INET6, "2001:db8::1", &addr6);
+    mu_assert("inet_pton6", r == 1);
+    char buf6[INET6_ADDRSTRLEN];
+    p = inet_ntop(AF_INET6, &addr6, buf6, sizeof(buf6));
+    mu_assert("inet_ntop6", p && strcmp(buf6, "2001:db8::1") == 0);
+    struct in6_addr back6;
+    r = inet_pton(AF_INET6, buf6, &back6);
+    mu_assert("inet_pton6 round", r == 1 && memcmp(&back6, &addr6, sizeof(addr6)) == 0);
     return 0;
 }
 
