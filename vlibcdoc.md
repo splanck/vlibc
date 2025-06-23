@@ -24,13 +24,13 @@ This document outlines the architecture, planned modules, and API design for **v
 18. [Environment Variables](#environment-variables)
 19. [Basic File I/O](#basic-file-io)
 20. [File Descriptor Helpers](#file-descriptor-helpers)
-21. [Standard Streams](#standard-streams)
-22. [Temporary Files](#temporary-files)
-23. [Networking](#networking)
-24. [I/O Multiplexing](#io-multiplexing)
-25. [File Permissions](#file-permissions)
-26. [File Status](#file-status)
-27. [Filesystem Statistics](#filesystem-statistics)
+21. [Terminal Attributes](#terminal-attributes)
+22. [Standard Streams](#standard-streams)
+23. [Temporary Files](#temporary-files)
+24. [Networking](#networking)
+25. [I/O Multiplexing](#io-multiplexing)
+26. [File Permissions](#file-permissions)
+27. [File Status](#file-status)
 28. [Directory Iteration](#directory-iteration)
 29. [Path Canonicalization](#path-canonicalization)
 30. [Path Utilities](#path-utilities)
@@ -45,6 +45,7 @@ This document outlines the architecture, planned modules, and API design for **v
 39. [Conclusion](#conclusion)
 40. [Logging](#logging)
 41. [Path Expansion](#path-expansion)
+42. [Filesystem Statistics](#filesystem-statistics)
 
 ## Overview
 
@@ -168,6 +169,7 @@ stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
 regex.h     - simple regular expression matching
+termios.h   - terminal attribute helpers
 unistd.h    - POSIX I/O and process helpers
 sys/file.h   - file permission helpers
 sys/mman.h   - memory mapping helpers
@@ -636,6 +638,20 @@ pipe(pipefd);
 ```
 
 Use `isatty(fd)` to query whether a descriptor refers to a terminal.
+
+## Terminal Attributes
+
+`tcgetattr` reads the settings for a terminal and `tcsetattr` modifies
+them. `cfmakeraw` adjusts a `struct termios` to raw mode for interactive
+programs:
+
+```c
+struct termios t;
+if (tcgetattr(STDIN_FILENO, &t) == 0) {
+    cfmakeraw(&t);
+    tcsetattr(STDIN_FILENO, TCSANOW, &t);
+}
+```
 
 ## Standard Streams
 

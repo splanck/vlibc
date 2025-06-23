@@ -81,6 +81,7 @@ SRC := \
     src/inet_ntop.c \
     src/fd.c \
     src/isatty.c \
+    src/termios.c \
     src/file.c \
     src/file_perm.c \
     src/truncate.c \
