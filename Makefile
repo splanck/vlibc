@@ -115,7 +115,8 @@ SRC := \
     src/pwd.c \
     src/math.c \
     src/math_extra.c \
-    src/regex.c
+    src/regex.c \
+    src/glob.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
 SRC += $(if $(ARCH_SRC),$(ARCH_SRC),src/setjmp.c)
