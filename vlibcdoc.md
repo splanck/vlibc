@@ -186,6 +186,7 @@ syscall.h    - raw syscall interface
 time.h       - time related helpers
 vlibc.h      - library initialization
 wchar.h      - wide character helpers
+wctype.h     - wide character classification helpers
 ```
 
 
@@ -337,6 +338,10 @@ int w = wcswidth(L"hello", 5);      // 5
 Character checks live in [include/ctype.h](include/ctype.h).  The macros
 operate on a small table of 128 entries, so only the standard ASCII
 characters are recognized.
+
+Wide-character classification is provided in [include/wctype.h](include/wctype.h).
+The functions there test a few basic Unicode ranges and fall back to the host
+implementation on BSD systems when available.
 
 - `isalpha(c)`  – non-zero for letters `A`–`Z` or `a`–`z`.
 - `isdigit(c)`  – non-zero for decimal digits `0`–`9`.
