@@ -32,6 +32,7 @@
 #define LOG_PID     0x01
 
 void openlog(const char *ident, int option, int facility);
+void vsyslog(int priority, const char *format, va_list ap);
 void syslog(int priority, const char *format, ...);
 void closelog(void);
 
