@@ -32,14 +32,15 @@ This document outlines the architecture, planned modules, and API design for **v
 26. [File Status](#file-status)
 27. [Directory Iteration](#directory-iteration)
 28. [Path Canonicalization](#path-canonicalization)
-29. [Time Formatting](#time-formatting)
-30. [Locale Support](#locale-support)
-31. [Time Retrieval](#time-retrieval)
-32. [Sleep Functions](#sleep-functions)
-33. [Raw System Calls](#raw-system-calls)
-34. [Non-local Jumps](#non-local-jumps)
-35. [Limitations](#limitations)
-36. [Conclusion](#conclusion)
+29. [User Database](#user-database)
+30. [Time Formatting](#time-formatting)
+31. [Locale Support](#locale-support)
+32. [Time Retrieval](#time-retrieval)
+33. [Sleep Functions](#sleep-functions)
+34. [Raw System Calls](#raw-system-calls)
+35. [Non-local Jumps](#non-local-jumps)
+36. [Limitations](#limitations)
+37. [Conclusion](#conclusion)
 
 ## Overview
 
@@ -738,6 +739,28 @@ directory.
 char buf[256];
 realpath("tests/../", buf); // buf now holds the absolute path to the repository
 ```
+
+## User Database
+
+`pwd.h` exposes minimal lookup helpers for entries in `/etc/passwd`.
+
+```c
+struct passwd {
+    char *pw_name;
+    char *pw_passwd;
+    uid_t pw_uid;
+    gid_t pw_gid;
+    char *pw_gecos;
+    char *pw_dir;
+    char *pw_shell;
+};
+
+struct passwd *getpwuid(uid_t uid);
+struct passwd *getpwnam(const char *name);
+```
+
+On BSD systems vlibc parses the file directly. The location can be
+overridden via the `VLIBC_PASSWD` environment variable for testing.
 
 ## Time Formatting
 
