@@ -7,13 +7,13 @@ CFLAGS += -std=c11
 AR ?= ar
 ARCH ?= $(shell uname -m)
 
-# Detect availability of sbrk
+	# Detect availability of sbrk
 HAVE_SBRK := $(shell printf '#include <unistd.h>\nint main(){void *p=sbrk(0);return 0;}' | $(CC) -x c - -Werror -c -o /dev/null 2>/dev/null && echo 1 || echo 0)
 ifeq ($(HAVE_SBRK),1)
 CFLAGS += -DHAVE_SBRK
 endif
 
-# Detect optional syscalls used by vlibc
+	# Detect optional syscalls used by vlibc
 HAVE_ACCEPT4 := $(shell printf '#include <sys/syscall.h>\nint main(){return SYS_accept4;}' | $(CC) -x c - -Werror -c -o /dev/null 2>/dev/null && echo 1 || echo 0)
 ifeq ($(HAVE_ACCEPT4),1)
 CFLAGS += -DVLIBC_HAVE_ACCEPT4=1
@@ -43,9 +43,9 @@ else ifeq ($(TARGET_OS),Windows_NT)
 SYS_SRC := src/arch/win32/syscall.c
 endif
 
-# Use the system implementations of select(2) and poll(2) on the BSD
-# family. These wrappers are only needed on Linux where direct
-# syscalls are issued.
+	# Use the system implementations of select(2) and poll(2) on the BSD
+	# family. These wrappers are only needed on Linux where direct
+	# syscalls are issued.
 SELECT_SRC := src/select.c
 ifneq (,$(filter $(TARGET_OS),FreeBSD NetBSD OpenBSD DragonFly))
 SELECT_SRC :=
@@ -179,6 +179,8 @@ install: $(LIB)
 	install -m 644 include/unistd.h $(DESTDIR)$(PREFIX)/include
 	# ensure the new assert.h header is installed
 	install -m 644 include/assert.h $(DESTDIR)$(PREFIX)/include
+	# ensure iconv.h is installed
+	install -m 644 include/iconv.h $(DESTDIR)$(PREFIX)/include
 	install -d $(DESTDIR)$(PREFIX)/include/sys
 	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys
 

@@ -176,6 +176,7 @@ setjmp.h     - non-local jump helpers
 stdio.h      - simple stream I/O
 stdlib.h     - basic utilities
 string.h     - string manipulation
+iconv.h      - character set conversion helpers
 regex.h     - simple regular expression matching
 termios.h   - terminal attribute helpers
 unistd.h    - POSIX I/O and process helpers
@@ -335,6 +336,15 @@ are delegated to the host implementation.
 int c = wcwidth(L'A');               // 1
 int w = wcswidth(L"hello", 5);      // 5
 ```
+
+### Character Set Conversion
+
+`iconv_open` returns a descriptor for translating between character
+sets.  vlibc understands only conversions between `"ASCII"` and
+`"UTF-8"`.  The `iconv` function copies bytes from the input buffer to
+the output buffer and fails with `EILSEQ` on bytes that cannot be
+represented.  On BSD systems other conversions are delegated to the
+host `iconv` implementation when present.
 
 ## Character Classification
 
