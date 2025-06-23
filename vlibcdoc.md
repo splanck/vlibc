@@ -30,20 +30,21 @@ This document outlines the architecture, planned modules, and API design for **v
 24. [I/O Multiplexing](#io-multiplexing)
 25. [File Permissions](#file-permissions)
 26. [File Status](#file-status)
-27. [Directory Iteration](#directory-iteration)
-28. [Path Canonicalization](#path-canonicalization)
-29. [Path Utilities](#path-utilities)
-30. [User Database](#user-database)
-31. [Time Formatting](#time-formatting)
-32. [Locale Support](#locale-support)
-33. [Time Retrieval](#time-retrieval)
-34. [Sleep Functions](#sleep-functions)
-35. [Raw System Calls](#raw-system-calls)
-36. [Non-local Jumps](#non-local-jumps)
-37. [Limitations](#limitations)
-38. [Conclusion](#conclusion)
-39. [Logging](#logging)
-40. [Path Expansion](#path-expansion)
+27. [Filesystem Statistics](#filesystem-statistics)
+28. [Directory Iteration](#directory-iteration)
+29. [Path Canonicalization](#path-canonicalization)
+30. [Path Utilities](#path-utilities)
+31. [User Database](#user-database)
+32. [Time Formatting](#time-formatting)
+33. [Locale Support](#locale-support)
+34. [Time Retrieval](#time-retrieval)
+35. [Sleep Functions](#sleep-functions)
+36. [Raw System Calls](#raw-system-calls)
+37. [Non-local Jumps](#non-local-jumps)
+38. [Limitations](#limitations)
+39. [Conclusion](#conclusion)
+40. [Logging](#logging)
+41. [Path Expansion](#path-expansion)
 
 ## Overview
 
@@ -173,6 +174,7 @@ sys/mman.h   - memory mapping helpers
 sys/select.h - fd_set macros and select wrapper
 sys/socket.h - networking wrappers
 sys/stat.h   - file status functions
+sys/statvfs.h - filesystem statistics
 syscall.h    - raw syscall interface
 time.h       - time related helpers
 vlibc.h      - library initialization
@@ -737,6 +739,21 @@ file:
 ```c
 struct utimbuf t = { .actime = 1625097600, .modtime = 1625097600 };
 utime("data.txt", &t);
+```
+
+## Filesystem Statistics
+
+`statvfs` and `fstatvfs` from `sys/statvfs.h` report details about the
+underlying filesystem such as block size and available space. On Linux
+the vlibc wrappers issue the `statfs`/`fstatfs` syscalls and translate the
+results. On BSD systems they simply call the host C library
+implementations.
+
+```c
+struct statvfs sv;
+if (statvfs("/", &sv) == 0) {
+    printf("%lu blocks free\n", (unsigned long)sv.f_bfree);
+}
 ```
 
 ## Directory Iteration
