@@ -16,6 +16,7 @@ char *realpath(const char *path, char *resolved_path);
 /* Path utilities */
 char *basename(const char *path);
 char *dirname(const char *path);
+char *mkdtemp(char *template);
 
 /* Execute a shell command */
 int system(const char *command);

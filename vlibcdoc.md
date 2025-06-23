@@ -749,13 +749,16 @@ void parse_numbers(const char *buf, const char *fmt, ...) {
 ## Temporary Files
 
 `mkstemp` replaces the trailing `XXXXXX` in a template with random
-characters and opens the resulting path. `tmpfile` returns a stream
+characters and opens the resulting file. `mkdtemp` performs the same
+replacement but creates a directory instead. `tmpfile` returns a stream
 backed by an anonymous temporary file that is unlinked immediately.
 
 ```c
 char path[] = "/tmp/exampleXXXXXX";
 int fd = mkstemp(path);
 FILE *anon = tmpfile();
+char dir[] = "/tmp/exampledirXXXXXX";
+mkdtemp(dir);
 ```
 
 ## Networking

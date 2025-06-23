@@ -70,6 +70,24 @@ int mkstemp(char *template)
     return -1;
 }
 
+char *mkdtemp(char *template)
+{
+    if (!template) {
+        errno = EINVAL;
+        return NULL;
+    }
+    for (int i = 0; i < 100; i++) {
+        if (replace_x(template) < 0)
+            return NULL;
+        if (mkdir(template, 0700) == 0)
+            return template;
+        if (errno != EEXIST)
+            return NULL;
+    }
+    errno = EEXIST;
+    return NULL;
+}
+
 FILE *tmpfile(void)
 {
     char tmpl[] = "/tmp/vlibcXXXXXX";
