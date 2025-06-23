@@ -7,31 +7,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
-#define USE_ARC4RANDOM 1
-#endif
-
 static int fill_random(unsigned char *buf, size_t len)
 {
-#ifdef USE_ARC4RANDOM
     arc4random_buf(buf, len);
     return 0;
-#else
-    int fd = open("/dev/urandom", O_RDONLY);
-    if (fd < 0)
-        return -1;
-    size_t off = 0;
-    while (off < len) {
-        ssize_t r = read(fd, buf + off, len - off);
-        if (r <= 0) {
-            close(fd);
-            return -1;
-        }
-        off += (size_t)r;
-    }
-    close(fd);
-    return 0;
-#endif
 }
 
 static int replace_x(char *template)

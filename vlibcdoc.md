@@ -364,11 +364,19 @@ linear congruential generator.
 ```c
 int rand(void);
 void srand(unsigned seed);
+unsigned int arc4random(void);
+void arc4random_buf(void *buf, size_t len);
+int rand_r(unsigned *state);
 ```
 
 Calling `srand()` initializes the internal state. Reusing the same seed
 produces the identical sequence of numbers, each in the range `0` to
 `32767`.
+
+`arc4random()` returns a 32-bit value sourced from the operating system's
+random generator. `arc4random_buf()` fills an arbitrary buffer with secure
+random bytes. The `rand_r()` variant operates like `rand()` but stores its
+state in a user-provided variable so it can be used in threaded code.
 
 ## Sorting Helpers
 

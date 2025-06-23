@@ -40,6 +40,9 @@ void *bsearch(const void *key, const void *base, size_t nmemb, size_t size,
 /* Pseudo-random number generator */
 int rand(void);
 void srand(unsigned seed);
+unsigned int arc4random(void);
+void arc4random_buf(void *buf, size_t len);
+int rand_r(unsigned *state);
 
 /* Register a function to run at normal process exit */
 int atexit(void (*fn)(void));

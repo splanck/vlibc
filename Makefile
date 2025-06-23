@@ -72,6 +72,7 @@ SRC := \
     src/strerror_r.c \
     src/strto.c \
     src/rand.c \
+    src/arc4random.c \
     src/socket.c \
     src/socketpair.c \
     src/setsockopt.c \
