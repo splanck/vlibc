@@ -73,3 +73,100 @@ double tanh(double x)
     double c = cosh(x);
     return c == 0.0 ? 0.0 : s / c;
 }
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+extern double host_fmod(double, double) __asm("fmod");
+extern float host_fabsf(float) __asm("fabsf");
+extern double host_ldexp(double, int) __asm("ldexp");
+extern double host_log2(double) __asm("log2");
+extern double host_fmin(double, double) __asm("fmin");
+extern double host_fmax(double, double) __asm("fmax");
+extern double host_copysign(double, double) __asm("copysign");
+#endif
+
+double fmod(double x, double y)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_fmod(x, y);
+#else
+    if (y == 0.0)
+        return 0.0;
+    long q = (long)(x / y);
+    double r = x - (double)q * y;
+    if (r < 0.0)
+        r += y;
+    return r;
+#endif
+}
+
+float fabsf(float x)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_fabsf(x);
+#else
+    return x < 0.0f ? -x : x;
+#endif
+}
+
+double ldexp(double x, int exp)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_ldexp(x, exp);
+#else
+    if (exp >= 0) {
+        for (int i = 0; i < exp; ++i)
+            x *= 2.0;
+    } else {
+        for (int i = 0; i < -exp; ++i)
+            x *= 0.5;
+    }
+    return x;
+#endif
+}
+
+double log2(double x)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_log2(x);
+#else
+    static const double LN2 = 0.69314718055994530942;
+    return log(x) / LN2;
+#endif
+}
+
+double fmin(double a, double b)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_fmin(a, b);
+#else
+    return (a < b) ? a : b;
+#endif
+}
+
+double fmax(double a, double b)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_fmax(a, b);
+#else
+    return (a > b) ? a : b;
+#endif
+}
+
+double copysign(double x, double y)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_copysign(x, y);
+#else
+    if ((y < 0 && x > 0) || (y >= 0 && x < 0))
+        x = -x;
+    return x;
+#endif
+}

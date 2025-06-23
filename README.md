@@ -20,6 +20,7 @@ programs. Key features include:
 - Syslog-style logging
 - Directory scanning helpers
 - Standard `assert` macro for runtime checks
+- Extended math helpers
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD
