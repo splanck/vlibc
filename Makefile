@@ -80,6 +80,7 @@ SRC := \
     src/inet_pton.c \
     src/inet_ntop.c \
     src/fd.c \
+    src/fcntl.c \
     src/isatty.c \
     src/termios.c \
     src/file.c \
