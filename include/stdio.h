@@ -6,7 +6,19 @@
 
 typedef struct {
     int fd;
+    unsigned char *buf;
+    size_t bufsize;
+    size_t bufpos;
+    size_t buflen;
+    int buf_owned;
 } FILE;
+
+#define _IOFBF 0
+#define _IOLBF 1
+#define _IONBF 2
+#ifndef BUFSIZ
+#define BUFSIZ 1024
+#endif
 
 extern FILE *stdin;
 extern FILE *stdout;
@@ -24,6 +36,8 @@ int fputc(int c, FILE *stream);
 char *fgets(char *s, int size, FILE *stream);
 int fputs(const char *s, FILE *stream);
 int fflush(FILE *stream);
+int setvbuf(FILE *stream, char *buf, int mode, size_t size);
+void setbuf(FILE *stream, char *buf);
 
 int printf(const char *format, ...);
 int fprintf(FILE *stream, const char *format, ...);

@@ -544,6 +544,10 @@ descriptors 0, 1 and 2. They can be used with the provided `fread`,
 `fflush(stream)` succeeds
 and invokes `fsync` on the descriptor when one is present.
 
+Streams may be given a custom buffer with `setvbuf` or the simpler
+`setbuf`. When buffered, I/O operates on that memory until it is filled
+or explicitly flushed.
+
 ```c
 int a;
 unsigned b;
@@ -691,8 +695,8 @@ state.
 
 ## Limitations
 
- - The I/O routines perform no buffering and provide only basic error
-   reporting.
+ - The I/O routines perform simple optional buffering and provide only
+   basic error reporting.
  - Process creation currently relies on Linux-specific syscalls.
  - BSD support is experimental and some subsystems may not compile yet.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
