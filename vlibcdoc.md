@@ -451,6 +451,10 @@ and installing signal handlers.  The companion `signal.h` header offers
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 int execvp(const char *file, char *const argv[]);
+int execv(const char *path, char *const argv[]);
+int execl(const char *path, const char *arg, ...);
+int execlp(const char *file, const char *arg, ...);
+int execle(const char *path, const char *arg, ...);
 int posix_spawn(pid_t *pid, const char *path,
                 const posix_spawn_file_actions_t *file_actions,
                 const posix_spawnattr_t *attrp,
@@ -501,6 +505,10 @@ if (daemon(0, 0) < 0)
 ```
 
 `execvp` performs the same operation as `execve` but searches the directories in the `PATH` environment variable when the program name does not contain a slash.
+`execv`, `execl`, `execlp` and `execle` are thin wrappers that build an
+argument array on behalf of the caller. `execl` and `execlp` accept a
+variable list of arguments terminated by `NULL`. `execle` is similar but
+takes a custom environment pointer after the final `NULL` argument.
 
 The convenience `system()` call executes a shell command by forking and
 invoking `/bin/sh -c command`. It returns the raw status from `waitpid`

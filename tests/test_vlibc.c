@@ -1565,6 +1565,72 @@ static const char *test_system_fn(void)
     return 0;
 }
 
+static const char *test_execv_fn(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        char *argv[] = {"/bin/echo", "v", NULL};
+        execv("/bin/echo", argv);
+        _exit(127);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("execv status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    return 0;
+}
+
+static const char *test_execl_fn(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        execl("/bin/echo", "l", "1", NULL);
+        _exit(127);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("execl status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    return 0;
+}
+
+static const char *test_execlp_fn(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        execlp("echo", "lp", NULL);
+        _exit(127);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("execlp status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    return 0;
+}
+
+static const char *test_execle_fn(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        char *custom[] = {"FOO=BAR", NULL};
+        execle("/bin/echo", "le", NULL, custom);
+        _exit(127);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("execle status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    return 0;
+}
+
 static const char *test_execvp_fn(void)
 {
     extern char **__environ;
@@ -2192,6 +2258,10 @@ static const char *all_tests(void)
     mu_run_test(test_error_reporting);
     mu_run_test(test_strsignal_names);
     mu_run_test(test_system_fn);
+    mu_run_test(test_execv_fn);
+    mu_run_test(test_execl_fn);
+    mu_run_test(test_execlp_fn);
+    mu_run_test(test_execle_fn);
     mu_run_test(test_execvp_fn);
     mu_run_test(test_posix_spawn_fn);
     mu_run_test(test_popen_fn);
