@@ -13,6 +13,7 @@
 #include "env.h"
 
 int isatty(int fd);
+int daemon(int nochdir, int noclose);
 
 uid_t getuid(void);
 uid_t geteuid(void);

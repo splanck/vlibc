@@ -66,6 +66,7 @@ SRC := \
     src/signal.c \
     src/abort.c \
     src/system.c \
+    src/daemon.c \
     src/string.c \
     src/string_extra.c \
     src/strndup.c \
