@@ -72,6 +72,7 @@ SRC := \
     src/strto.c \
     src/rand.c \
     src/socket.c \
+    src/socketpair.c \
     src/setsockopt.c \
     src/getsockopt.c \
     src/netdb.c \

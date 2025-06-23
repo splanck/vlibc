@@ -639,7 +639,8 @@ FILE *anon = tmpfile();
 
 The socket layer exposes thin wrappers around the kernel's networking
 syscalls including `socket`, `bind`, `listen`, `accept`, `connect`,
-`send`, `recv`, `sendto`, `recvfrom`, `setsockopt`, and `getsockopt`.
+`socketpair`, `send`, `recv`, `sendto`, `recvfrom`, `setsockopt`, and
+`getsockopt`.
 Address resolution is handled
 via `getaddrinfo`, `freeaddrinfo`, and `getnameinfo`.
 
@@ -649,9 +650,20 @@ presentation strings and binary network format.
 ```c
 struct addrinfo *ai;
 if (getaddrinfo("localhost", "80", NULL, &ai) == 0) {
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
+int fd = socket(AF_INET, SOCK_STREAM, 0);
     connect(fd, ai->ai_addr, ai->ai_addrlen);
     freeaddrinfo(ai);
+}
+```
+
+Create a pair of connected sockets with `socketpair`:
+
+```c
+int sv[2];
+if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0) {
+    send(sv[0], "hi", 2, 0);
+    char buf[3] = {0};
+    recv(sv[1], buf, 2, 0);
 }
 ```
 
