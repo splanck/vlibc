@@ -579,6 +579,19 @@ static const char *test_strlcpy_cat(void)
     return 0;
 }
 
+static const char *test_strndup_basic(void)
+{
+    char *p = strndup("hello", 10);
+    mu_assert("strndup copy", p && strcmp(p, "hello") == 0);
+    free(p);
+
+    p = strndup("truncate", 4);
+    mu_assert("strndup trunc", p && strcmp(p, "trun") == 0);
+    free(p);
+
+    return 0;
+}
+
 static const char *test_widechar_basic(void)
 {
     wchar_t wc = 0;
@@ -1653,6 +1666,7 @@ static const char *all_tests(void)
     mu_run_test(test_string_helpers);
     mu_run_test(test_string_casecmp);
     mu_run_test(test_strlcpy_cat);
+    mu_run_test(test_strndup_basic);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_widechar_conv);
     mu_run_test(test_strtok_basic);

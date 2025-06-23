@@ -105,11 +105,11 @@ static const struct sig_name sig_names[] = {
     { 0, NULL }
 };
 
-const char *strsignal(int signum)
+char *strsignal(int signum)
 {
     for (size_t i = 0; sig_names[i].name; ++i) {
         if (sig_names[i].num == signum)
-            return sig_names[i].name;
+            return (char *)sig_names[i].name;
     }
     return "Unknown signal";
 }
