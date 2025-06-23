@@ -3,7 +3,7 @@
 #include "memory.h"
 #include "stdlib.h"
 #include "dirent.h"
-#include <fnmatch.h>
+#include "fnmatch.h"
 #include <errno.h>
 
 static char *join_path(const char *base, const char *name)
