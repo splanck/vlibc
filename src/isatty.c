@@ -1,0 +1,32 @@
+#include "unistd.h"
+#include "errno.h"
+#include <sys/syscall.h>
+#include <unistd.h>
+#include "syscall.h"
+#ifndef __has_include
+#define __has_include(x) 0
+#endif
+#if __has_include(<termios.h>)
+#include <termios.h>
+#endif
+
+int isatty(int fd)
+{
+#ifdef SYS_isatty
+    long ret = vlibc_syscall(SYS_isatty, fd, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return 0;
+    }
+    return (int)ret;
+#else
+#if __has_include(<termios.h>)
+    struct termios t;
+    return tcgetattr(fd, &t) == 0;
+#else
+    (void)fd;
+    errno = ENOTTY;
+    return 0;
+#endif
+#endif
+}
