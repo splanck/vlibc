@@ -20,8 +20,10 @@ static int flush_buffer(FILE *stream)
     while (off < stream->buflen) {
         ssize_t w = write(stream->fd, stream->buf + off,
                           stream->buflen - off);
-        if (w <= 0)
+        if (w <= 0) {
+            stream->err = 1;
             return -1;
+        }
         off += (size_t)w;
     }
     stream->buflen = 0;
@@ -74,8 +76,13 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
         if (stream->buf) {
             if (stream->bufpos >= stream->buflen) {
                 ssize_t r = read(stream->fd, stream->buf, stream->bufsize);
-                if (r <= 0)
+                if (r <= 0) {
+                    if (r == 0)
+                        stream->eof = 1;
+                    else
+                        stream->err = 1;
                     break;
+                }
                 stream->buflen = (size_t)r;
                 stream->bufpos = 0;
             }
@@ -86,8 +93,13 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
             copied += n;
         } else {
             ssize_t r = read(stream->fd, out + copied, total - copied);
-            if (r <= 0)
+            if (r <= 0) {
+                if (r == 0)
+                    stream->eof = 1;
+                else
+                    stream->err = 1;
                 break;
+            }
             copied += (size_t)r;
         }
     }
@@ -118,8 +130,10 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
             }
         } else {
             ssize_t w = write(stream->fd, in + written, total - written);
-            if (w <= 0)
+            if (w <= 0) {
+                stream->err = 1;
                 break;
+            }
             written += (size_t)w;
         }
     }
@@ -145,8 +159,10 @@ int fseek(FILE *stream, long offset, int whence)
     if (flush_buffer(stream) < 0)
         return -1;
     off_t r = lseek(stream->fd, (off_t)offset, whence);
-    if (r == (off_t)-1)
+    if (r == (off_t)-1) {
+        stream->err = 1;
         return -1;
+    }
     stream->bufpos = 0;
     stream->buflen = 0;
     return 0;
@@ -159,8 +175,10 @@ long ftell(FILE *stream)
     if (flush_buffer(stream) < 0)
         return -1L;
     off_t r = lseek(stream->fd, 0, SEEK_CUR);
-    if (r == (off_t)-1)
+    if (r == (off_t)-1) {
+        stream->err = 1;
         return -1L;
+    }
     return (long)r;
 }
 
@@ -169,7 +187,8 @@ void rewind(FILE *stream)
     if (!stream)
         return;
     flush_buffer(stream);
-    lseek(stream->fd, 0, SEEK_SET);
+    if (lseek(stream->fd, 0, SEEK_SET) == (off_t)-1)
+        stream->err = 1;
     stream->bufpos = 0;
     stream->buflen = 0;
 }
@@ -178,6 +197,10 @@ int fgetc(FILE *stream)
 {
     if (!stream)
         return -1;
+    if (stream->have_ungot) {
+        stream->have_ungot = 0;
+        return stream->ungot_char;
+    }
     unsigned char ch;
     if (fread(&ch, 1, 1, stream) != 1)
         return -1;
@@ -192,6 +215,16 @@ int fputc(int c, FILE *stream)
     if (fwrite(&ch, 1, 1, stream) != 1)
         return -1;
     return ch;
+}
+
+int ungetc(int c, FILE *stream)
+{
+    if (!stream || c == -1 || stream->have_ungot)
+        return -1;
+    stream->ungot_char = (unsigned char)c;
+    stream->have_ungot = 1;
+    stream->eof = 0;
+    return c & 0xff;
 }
 
 char *fgets(char *s, int size, FILE *stream)
@@ -277,5 +310,42 @@ int setvbuf(FILE *stream, char *buf, int mode, size_t size)
 void setbuf(FILE *stream, char *buf)
 {
     setvbuf(stream, buf, _IOFBF, BUFSIZ);
+}
+
+int feof(FILE *stream)
+{
+    return stream ? stream->eof : 1;
+}
+
+int ferror(FILE *stream)
+{
+    return stream ? stream->err : 1;
+}
+
+void clearerr(FILE *stream)
+{
+    if (stream) {
+        stream->err = 0;
+        stream->eof = 0;
+        stream->have_ungot = 0;
+    }
+}
+
+int fileno(FILE *stream)
+{
+    return stream ? stream->fd : -1;
+}
+
+FILE *fdopen(int fd, const char *mode)
+{
+    (void)mode; /* mode is ignored for now */
+    FILE *f = malloc(sizeof(FILE));
+    if (!f) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    memset(f, 0, sizeof(FILE));
+    f->fd = fd;
+    return f;
 }
 
