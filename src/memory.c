@@ -1,6 +1,14 @@
 #include "memory.h"
 #include "string.h"
 #include <stdint.h>
+#include <errno.h>
+
+struct posix_align_hdr {
+    uint32_t magic;
+    void    *orig;
+};
+
+#define POSIX_ALIGN_MAGIC 0x50414C47 /* 'PALG' */
 
 #ifdef HAVE_SBRK
 #include <unistd.h>
@@ -19,6 +27,16 @@ struct block_header {
 };
 
 static struct block_header *free_list = NULL;
+
+static void free_impl(void *ptr)
+{
+    if (!ptr)
+        return;
+
+    struct block_header *hdr = (struct block_header *)ptr - 1;
+    hdr->next = free_list;
+    free_list = hdr;
+}
 
 void *malloc(size_t size)
 {
@@ -53,9 +71,15 @@ void free(void *ptr)
     if (!ptr)
         return;
 
-    struct block_header *hdr = (struct block_header *)ptr - 1;
-    hdr->next = free_list;
-    free_list = hdr;
+    struct posix_align_hdr *ph = (struct posix_align_hdr *)ptr - 1;
+    if (ph->magic == POSIX_ALIGN_MAGIC) {
+        void *orig = ph->orig;
+        ph->magic = 0;
+        free_impl(orig);
+        return;
+    }
+
+    free_impl(ptr);
 }
 
 #else /* HAVE_SBRK */
@@ -80,13 +104,29 @@ void *malloc(size_t size)
     return (void *)(hdr + 1);
 }
 
-void free(void *ptr)
+static void free_impl(void *ptr)
 {
     if (!ptr)
         return;
 
     struct mmap_header *hdr = (struct mmap_header *)ptr - 1;
     munmap(hdr, hdr->size + sizeof(struct mmap_header));
+}
+
+void free(void *ptr)
+{
+    if (!ptr)
+        return;
+
+    struct posix_align_hdr *ph = (struct posix_align_hdr *)ptr - 1;
+    if (ph->magic == POSIX_ALIGN_MAGIC) {
+        void *orig = ph->orig;
+        ph->magic = 0;
+        free_impl(orig);
+        return;
+    }
+
+    free_impl(ptr);
 }
 
 #endif /* HAVE_SBRK */
@@ -123,4 +163,28 @@ void *realloc(void *ptr, size_t size)
     vmemcpy(new_ptr, ptr, copy);
     free(ptr);
     return new_ptr;
+}
+
+int posix_memalign(void **memptr, size_t alignment, size_t size)
+{
+    if (!memptr)
+        return EINVAL;
+
+    if (alignment == 0 || (alignment & (alignment - 1)) != 0 ||
+        alignment % sizeof(void *) != 0)
+        return EINVAL;
+
+    size_t total = size + alignment - 1 + sizeof(struct posix_align_hdr);
+    void *orig = malloc(total);
+    if (!orig)
+        return ENOMEM;
+
+    uintptr_t addr = (uintptr_t)orig + sizeof(struct posix_align_hdr);
+    uintptr_t aligned = (addr + alignment - 1) & ~(uintptr_t)(alignment - 1);
+    struct posix_align_hdr *ph = (struct posix_align_hdr *)aligned - 1;
+    ph->magic = POSIX_ALIGN_MAGIC;
+    ph->orig = orig;
+
+    *memptr = (void *)aligned;
+    return 0;
 }

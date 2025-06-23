@@ -114,6 +114,17 @@ static const char *test_malloc_reuse(void)
     return 0;
 }
 
+static const char *test_posix_memalign_basic(void)
+{
+    void *p = NULL;
+    int r = posix_memalign(&p, 64, 32);
+    mu_assert("posix_memalign ret", r == 0);
+    mu_assert("ptr aligned", ((uintptr_t)p & 63) == 0);
+    vmemset(p, 0xBB, 32);
+    free(p);
+    return 0;
+}
+
 static const char *test_memory_ops(void)
 {
     char buf[8];
@@ -1425,6 +1436,7 @@ static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
     mu_run_test(test_malloc_reuse);
+    mu_run_test(test_posix_memalign_basic);
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
