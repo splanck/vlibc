@@ -100,3 +100,34 @@ double pow(double base, double exp)
 
     return exp_approx(exp * log_approx(base));
 }
+
+double log(double x)
+{
+    return log_approx(x);
+}
+
+double exp(double x)
+{
+    return exp_approx(x);
+}
+
+double floor(double x)
+{
+    long i = (long)x;
+    if (x < 0.0 && x != (double)i)
+        --i;
+    return (double)i;
+}
+
+double ceil(double x)
+{
+    long i = (long)x;
+    if (x > 0.0 && x != (double)i)
+        ++i;
+    return (double)i;
+}
+
+double fabs(double x)
+{
+    return x < 0.0 ? -x : x;
+}
