@@ -13,6 +13,10 @@ int unsetenv(const char *name);
 char *getcwd(char *buf, size_t size);
 char *realpath(const char *path, char *resolved_path);
 
+/* Path utilities */
+char *basename(const char *path);
+char *dirname(const char *path);
+
 /* Execute a shell command */
 int system(const char *command);
 

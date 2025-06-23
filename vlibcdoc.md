@@ -32,15 +32,16 @@ This document outlines the architecture, planned modules, and API design for **v
 26. [File Status](#file-status)
 27. [Directory Iteration](#directory-iteration)
 28. [Path Canonicalization](#path-canonicalization)
-29. [User Database](#user-database)
-30. [Time Formatting](#time-formatting)
-31. [Locale Support](#locale-support)
-32. [Time Retrieval](#time-retrieval)
-33. [Sleep Functions](#sleep-functions)
-34. [Raw System Calls](#raw-system-calls)
-35. [Non-local Jumps](#non-local-jumps)
-36. [Limitations](#limitations)
-37. [Conclusion](#conclusion)
+29. [Path Utilities](#path-utilities)
+30. [User Database](#user-database)
+31. [Time Formatting](#time-formatting)
+32. [Locale Support](#locale-support)
+33. [Time Retrieval](#time-retrieval)
+34. [Sleep Functions](#sleep-functions)
+35. [Raw System Calls](#raw-system-calls)
+36. [Non-local Jumps](#non-local-jumps)
+37. [Limitations](#limitations)
+38. [Conclusion](#conclusion)
 
 ## Overview
 
@@ -752,6 +753,17 @@ directory.
 ```c
 char buf[256];
 realpath("tests/../", buf); // buf now holds the absolute path to the repository
+```
+
+## Path Utilities
+
+`basename` returns the last component of a path while `dirname`
+removes the trailing element. Both functions allocate a new string
+for the result so the input remains untouched.
+
+```c
+char *b = basename("/usr/local/bin/tool");  // "tool"
+char *d = dirname("/usr/local/bin/tool");   // "/usr/local/bin"
 ```
 
 ## User Database
