@@ -12,6 +12,10 @@ typedef struct {
     size_t bufpos;
     size_t buflen;
     int buf_owned;
+    int err;
+    int eof;
+    int have_ungot;
+    unsigned char ungot_char;
 } FILE;
 
 #define _IOFBF 0
@@ -34,11 +38,17 @@ long ftell(FILE *stream);
 void rewind(FILE *stream);
 int fgetc(FILE *stream);
 int fputc(int c, FILE *stream);
+int ungetc(int c, FILE *stream);
 char *fgets(char *s, int size, FILE *stream);
 int fputs(const char *s, FILE *stream);
 int fflush(FILE *stream);
 int setvbuf(FILE *stream, char *buf, int mode, size_t size);
 void setbuf(FILE *stream, char *buf);
+int feof(FILE *stream);
+int ferror(FILE *stream);
+void clearerr(FILE *stream);
+int fileno(FILE *stream);
+FILE *fdopen(int fd, const char *mode);
 
 int printf(const char *format, ...);
 int fprintf(FILE *stream, const char *format, ...);

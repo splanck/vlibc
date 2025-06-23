@@ -732,10 +732,12 @@ if (tcgetattr(STDIN_FILENO, &t) == 0) {
 
 `stdin`, `stdout`, and `stderr` are lightweight streams wrapping file
 descriptors 0, 1 and 2. They can be used with the provided `fread`,
-`fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`, `fputc`, `fgets`,
+`fwrite`, `fseek`, `ftell`, `rewind`, `fgetc`, `fputc`, `ungetc`, `fgets`,
 `fputs`, `sprintf`, `snprintf`, `asprintf`, `vasprintf`, `vsprintf`,
 `vsnprintf`, `fprintf`, `vfprintf`, `printf`, `vprintf`, `vsscanf`, `vfscanf`, `vscanf`,
-`sscanf`, `fscanf`, `scanf`, `getline`, and `getdelim` helpers.
+`sscanf`, `fscanf`, `scanf`, `getline`, and `getdelim` helpers.  Query
+stream state with `feof`, `ferror`, and `clearerr`, obtain the descriptor
+number via `fileno`, or wrap an existing descriptor with `fdopen`.
 `fflush(stream)` succeeds
 and invokes `fsync` on the descriptor when one is present.
 
