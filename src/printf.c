@@ -2,14 +2,17 @@
 #include "io.h"
 #include <stdarg.h>
 #include <string.h>
+#include <stdint.h>
 
-static int uint_to_str(unsigned int value, char *buf, size_t size)
+static int uint_to_base(unsigned long value, unsigned base, int upper,
+                        char *buf, size_t size)
 {
-    char tmp[20];
+    const char *digits = upper ? "0123456789ABCDEF" : "0123456789abcdef";
+    char tmp[32];
     size_t i = 0;
     do {
-        tmp[i++] = '0' + (value % 10);
-        value /= 10;
+        tmp[i++] = digits[value % base];
+        value /= base;
     } while (value && i < sizeof(tmp));
     if (i > size)
         i = size;
@@ -27,8 +30,22 @@ static int int_to_str(int value, char *buf, size_t size)
             buf[pos] = '-';
         pos++;
     }
-    pos += uint_to_str(v, buf + pos, (pos < size) ? size - pos : 0);
+    pos += uint_to_base(v, 10, 0, buf + pos, (pos < size) ? size - pos : 0);
     return (int)pos;
+}
+
+static void out_char(char *dst, size_t size, size_t *pos, char c)
+{
+    if (*pos + 1 < size)
+        dst[*pos] = c;
+    (*pos)++;
+}
+
+static void out_str(char *dst, size_t size, size_t *pos,
+                    const char *s, size_t len)
+{
+    for (size_t i = 0; i < len; i++)
+        out_char(dst, size, pos, s[i]);
 }
 
 static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
@@ -36,49 +53,110 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
     size_t pos = 0;
     for (const char *p = fmt; *p; ++p) {
         if (*p != '%') {
-            if (pos + 1 < size)
-                str[pos] = *p;
-            pos++;
+            out_char(str, size, &pos, *p);
             continue;
         }
         ++p;
         if (*p == '%') {
-            if (pos + 1 < size)
-                str[pos] = '%';
-            pos++;
-        } else if (*p == 's') {
+            out_char(str, size, &pos, '%');
+            continue;
+        }
+
+        int width = 0;
+        int precision = -1;
+        while (*p >= '0' && *p <= '9') {
+            width = width * 10 + (*p - '0');
+            ++p;
+        }
+        if (*p == '.') {
+            ++p;
+            precision = 0;
+            while (*p >= '0' && *p <= '9') {
+                precision = precision * 10 + (*p - '0');
+                ++p;
+            }
+        }
+
+        char spec = *p;
+        char buf[64];
+        int len = 0;
+        const char *prefix = "";
+        int prefix_len = 0;
+        int sign = 0;
+
+        switch (spec) {
+        case 's': {
             const char *s = va_arg(ap, const char *);
             if (!s)
                 s = "(null)";
-            while (*s) {
-                if (pos + 1 < size)
-                    str[pos] = *s;
-                pos++; s++; }
-        } else if (*p == 'd') {
-            char num[32];
-            int n = int_to_str(va_arg(ap, int), num, sizeof(num));
-            for (int i = 0; i < n; ++i) {
-                if (pos + 1 < size)
-                    str[pos] = num[i];
-                pos++; }
-        } else if (*p == 'u') {
-            char num[32];
-            int n = uint_to_str(va_arg(ap, unsigned int), num, sizeof(num));
-            for (int i = 0; i < n; ++i) {
-                if (pos + 1 < size)
-                    str[pos] = num[i];
-                pos++; }
-        } else {
-            /* unsupported specifier, output as-is */
-            if (pos + 1 < size)
-                str[pos] = '%';
-            pos++;
-            if (*p) {
-                if (pos + 1 < size)
-                    str[pos] = *p;
-                pos++; }
+            size_t slen = strlen(s);
+            if (precision >= 0 && (size_t)precision < slen)
+                slen = (size_t)precision;
+            if (width > 0 && (int)slen < width) {
+                for (int i = 0; i < width - (int)slen; i++)
+                    out_char(str, size, &pos, ' ');
+            }
+            out_str(str, size, &pos, s, slen);
+            break;
         }
+        case 'd': {
+            int v = va_arg(ap, int);
+            sign = v < 0;
+            len = uint_to_base(sign ? (unsigned int)-v : (unsigned int)v,
+                              10, 0, buf, sizeof(buf));
+            break;
+        }
+        case 'u': {
+            unsigned int v = va_arg(ap, unsigned int);
+            len = uint_to_base(v, 10, 0, buf, sizeof(buf));
+            break;
+        }
+        case 'x':
+        case 'X': {
+            unsigned int v = va_arg(ap, unsigned int);
+            len = uint_to_base(v, 16, spec == 'X', buf, sizeof(buf));
+            break;
+        }
+        case 'o': {
+            unsigned int v = va_arg(ap, unsigned int);
+            len = uint_to_base(v, 8, 0, buf, sizeof(buf));
+            break;
+        }
+        case 'p': {
+            uintptr_t v = (uintptr_t)va_arg(ap, void *);
+            prefix = "0x";
+            prefix_len = 2;
+            len = uint_to_base(v, 16, 0, buf, sizeof(buf));
+            break;
+        }
+        case 'c': {
+            buf[0] = (char)va_arg(ap, int);
+            len = 1;
+            break;
+        }
+        default:
+            out_char(str, size, &pos, '%');
+            if (spec)
+                out_char(str, size, &pos, spec);
+            continue;
+        }
+
+        int num_len = len;
+        if (precision > num_len)
+            num_len = precision;
+        int total = prefix_len + (sign ? 1 : 0) + num_len;
+        if (width > total) {
+            for (int i = 0; i < width - total; i++)
+                out_char(str, size, &pos, ' ');
+        }
+        if (sign)
+            out_char(str, size, &pos, '-');
+        out_str(str, size, &pos, prefix, (size_t)prefix_len);
+        for (int i = 0; i < num_len - len; i++)
+            out_char(str, size, &pos, '0');
+        out_str(str, size, &pos, buf, (size_t)len);
     }
+
     if (size > 0) {
         if (pos >= size)
             str[size - 1] = '\0';
