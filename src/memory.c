@@ -188,3 +188,12 @@ int posix_memalign(void **memptr, size_t alignment, size_t size)
     *memptr = (void *)aligned;
     return 0;
 }
+
+void *reallocarray(void *ptr, size_t nmemb, size_t size)
+{
+    if (size != 0 && nmemb > SIZE_MAX / size) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    return realloc(ptr, nmemb * size);
+}

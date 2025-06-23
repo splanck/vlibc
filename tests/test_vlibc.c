@@ -142,6 +142,28 @@ static const char *test_posix_memalign(void)
     return 0;
 }
 
+static const char *test_reallocarray_overflow(void)
+{
+    size_t big = (size_t)-1 / 2 + 1;
+    errno = 0;
+    void *p = reallocarray(NULL, big, 2);
+    mu_assert("overflow NULL", p == NULL);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    return 0;
+}
+
+static const char *test_reallocarray_basic(void)
+{
+    char *p = reallocarray(NULL, 4, 8);
+    mu_assert("alloc", p != NULL);
+    p[0] = 'z';
+    p = reallocarray(p, 8, 8);
+    mu_assert("realloc", p != NULL);
+    mu_assert("preserve", p[0] == 'z');
+    free(p);
+    return 0;
+}
+
 static const char *test_memory_ops(void)
 {
     char buf[8];
@@ -1931,6 +1953,8 @@ static const char *all_tests(void)
     mu_run_test(test_malloc_reuse);
     mu_run_test(test_posix_memalign_basic);
     mu_run_test(test_posix_memalign);
+    mu_run_test(test_reallocarray_overflow);
+    mu_run_test(test_reallocarray_basic);
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
