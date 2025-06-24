@@ -388,3 +388,33 @@ struct hostent *gethostbyaddr(const void *addr, socklen_t len, int type)
     errno = EAFNOSUPPORT;
     return NULL;
 }
+
+struct gai_entry {
+    int code;
+    const char *msg;
+};
+
+static const struct gai_entry gai_table[] = {
+    { EAI_BADFLAGS, "Invalid value for ai_flags" },
+    { EAI_NONAME, "Name or service not known" },
+    { EAI_AGAIN, "Temporary failure in name resolution" },
+    { EAI_FAIL, "Non-recoverable failure in name resolution" },
+    { EAI_FAMILY, "Address family not supported" },
+    { EAI_SOCKTYPE, "Socket type not supported" },
+    { EAI_SERVICE, "Service not supported for socket type" },
+    { EAI_MEMORY, "Memory allocation failure" },
+    { EAI_SYSTEM, "System error" },
+    { EAI_OVERFLOW, "Argument buffer overflow" },
+    { 0, NULL }
+};
+
+const char *gai_strerror(int errcode)
+{
+    for (size_t i = 0; gai_table[i].msg; i++) {
+        if (gai_table[i].code == errcode)
+            return gai_table[i].msg;
+    }
+    static char buf[32];
+    snprintf(buf, sizeof(buf), "Unknown error %d", errcode);
+    return buf;
+}
