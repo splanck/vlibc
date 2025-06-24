@@ -37,6 +37,7 @@
 #include "../include/regex.h"
 #include "../include/ftw.h"
 #include "../include/fts.h"
+#include "../include/wordexp.h"
 #include "../include/pty.h"
 #include <unistd.h>
 #include <stdio.h>
@@ -2410,6 +2411,50 @@ static const char *test_getlogin_fn(void)
     return 0;
 }
 
+static const char *test_wordexp_basic(void)
+{
+    char tmpl[] = "/tmp/wexpXXXXXX";
+    char *dir = mkdtemp(tmpl);
+    mu_assert("mkdtemp", dir != NULL);
+
+    char p1[256], p2[256];
+    snprintf(p1, sizeof(p1), "%s/file1.txt", dir);
+    int fd = open(p1, O_WRONLY | O_CREAT, 0600);
+    mu_assert("file1", fd >= 0); close(fd);
+
+    snprintf(p2, sizeof(p2), "%s/file2.txt", dir);
+    fd = open(p2, O_WRONLY | O_CREAT, 0600);
+    mu_assert("file2", fd >= 0); close(fd);
+
+    char *orig = getenv("HOME");
+    orig = orig ? strdup(orig) : NULL;
+    setenv("HOME", dir, 1);
+
+    wordexp_t we;
+    int r = wordexp("~/file*.txt", &we);
+    mu_assert("expand", r == 0);
+    mu_assert("count", we.we_wordc == 2);
+    mu_assert("first", strcmp(we.we_wordv[0], p1) == 0);
+    mu_assert("second", strcmp(we.we_wordv[1], p2) == 0);
+    wordfree(&we);
+
+    r = wordexp("'~/file*.txt'", &we);
+    mu_assert("quote", r == 0 && we.we_wordc == 1);
+    mu_assert("literal", strcmp(we.we_wordv[0], "~/file*.txt") == 0);
+    wordfree(&we);
+
+    if (orig) {
+        setenv("HOME", orig, 1);
+        free(orig);
+    } else {
+        unsetenv("HOME");
+    }
+    unlink(p1);
+    unlink(p2);
+    rmdir(dir);
+    return 0;
+}
+
 static int int_cmp(const void *a, const void *b)
 {
     int ia = *(const int *)a;
@@ -2775,6 +2820,7 @@ static const char *all_tests(void)
     mu_run_test(test_passwd_lookup);
     mu_run_test(test_group_lookup);
     mu_run_test(test_getlogin_fn);
+    mu_run_test(test_wordexp_basic);
     mu_run_test(test_dirent);
     mu_run_test(test_ftw_walk);
     mu_run_test(test_fts_walk);

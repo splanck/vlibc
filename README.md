@@ -35,6 +35,7 @@ programs. Key features include:
 - Change root directories with `chroot()` when supported
 - Directory scanning helpers
 - File tree traversal with `fts`
+- Path expansion helpers with `glob()` and `wordexp()`
 - Array sorting with `qsort`, `qsort_r` and `bsearch`
 - Standard `assert` macro for runtime checks
 - Extended math helpers
