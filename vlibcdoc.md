@@ -271,7 +271,7 @@ The **string** module provides fundamental operations needed by most C programs:
 
 - `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat`, `strncat`, `strlcpy` and `strlcat` equivalents.
 - `strdup` and `strndup` helpers allocate new copies of strings.
-- Search helpers `strstr`, `strrchr`, and `memchr` for locating substrings or bytes.
+- Search helpers `strstr`, `strrchr`, `memchr`, and `memrchr` for locating substrings or bytes.
 - Prefix scanners `strspn` and `strcspn` along with `strpbrk` for finding any character from a set.
 - Case-insensitive comparisons `strcasecmp` and `strncasecmp`.
 - Basic collation helpers `strcoll` and `strxfrm` act on ASCII strings. On
