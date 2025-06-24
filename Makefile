@@ -98,6 +98,7 @@ SRC := \
     src/realpath.c \
     src/chroot.c \
     src/path.c \
+    src/pathconf.c \
     src/mkfifo.c \
     src/mknod.c \
     $(SYS_SRC) \
