@@ -51,6 +51,7 @@ programs. Key features include:
 - Query configuration strings with `confstr()`
 - Simple alarm timers with `alarm()`
 - POSIX interval timers with `timer_create` and `timer_settime()`
+- Resource usage statistics with `getrusage()`
 - Basic character set conversion with `iconv`
 
 **Note**: vlibc provides only a small subset of the standard C library. Some

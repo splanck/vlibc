@@ -154,6 +154,7 @@ SRC := \
     src/math.c \
     src/math_extra.c \
     src/rlimit.c \
+    src/getrusage.c \
     src/regex.c \
     src/fnmatch.c \
     src/scandir.c \

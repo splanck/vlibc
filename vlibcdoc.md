@@ -1460,6 +1460,18 @@ if (getrlimit(RLIMIT_NOFILE, &lim) == 0) {
 }
 ```
 
+`getrusage` reports detailed statistics about CPU time and other
+resources consumed by a process. Call it with `RUSAGE_SELF` to inspect
+the current process or `RUSAGE_CHILDREN` for exited children.
+
+```c
+struct rusage ru;
+getrusage(RUSAGE_SELF, &ru);
+printf("user: %ld.%06ld sys: %ld.%06ld\n",
+       (long)ru.ru_utime.tv_sec, (long)ru.ru_utime.tv_usec,
+       (long)ru.ru_stime.tv_sec, (long)ru.ru_stime.tv_usec);
+```
+
 ## Logging
 
 `syslog.h` provides simple helpers to send log messages to `/dev/log` on
