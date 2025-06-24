@@ -28,6 +28,7 @@ programs. Key features include:
 - Large-file aware seeks
 - Memory synchronization with `msync()`
 - Advisory file locking with `flock()`
+- FIFO creation with `mkfifo()` and `mkfifoat()`
 - Generic descriptor control with `ioctl()`
 - Simple alarm timers with `alarm()`
 - Basic character set conversion with `iconv`

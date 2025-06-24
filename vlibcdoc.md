@@ -904,7 +904,11 @@ int fd = mkstemp(path);
 FILE *anon = tmpfile();
 char dir[] = "/tmp/exampledirXXXXXX";
 mkdtemp(dir);
+mkfifo("/tmp/myfifo", 0600);
 ```
+
+`mkfifo` creates a FIFO special file. The `mkfifoat` variant allows
+specifying a directory file descriptor in addition to the path.
 
 ## Networking
 
