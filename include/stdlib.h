@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for basic utilities.
+ */
 #ifndef STDLIB_H
 #define STDLIB_H
 

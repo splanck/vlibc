@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for signal handling helpers.
+ */
 #ifndef SIGNAL_H
 #define SIGNAL_H
 

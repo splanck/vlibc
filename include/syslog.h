@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for syslog-style logging functions.
+ */
 #ifndef SYSLOG_H
 #define SYSLOG_H
 

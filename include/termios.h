@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for terminal attribute helpers.
+ */
 #ifndef TERMIOS_H
 #define TERMIOS_H
 

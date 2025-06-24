@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for shell word expansion helpers.
+ */
 #ifndef WORDEXP_H
 #define WORDEXP_H
 

@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for optional syscall feature macros.
+ */
 #ifndef VLIBC_FEATURES_H
 #define VLIBC_FEATURES_H
 

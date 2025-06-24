@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for network interface enumeration.
+ */
 #ifndef IFADDRS_H
 #define IFADDRS_H
 

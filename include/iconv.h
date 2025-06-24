@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for character set conversion helpers.
+ */
 #ifndef ICONV_H
 #define ICONV_H
 

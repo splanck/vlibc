@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for simple stream I/O.
+ */
 #ifndef STDIO_H
 #define STDIO_H
 

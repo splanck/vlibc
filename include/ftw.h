@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for directory tree traversal helpers.
+ */
 #ifndef FTW_H
 #define FTW_H
 

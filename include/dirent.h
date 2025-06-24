@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for directory iteration wrappers.
+ */
 #ifndef DIRENT_H
 #define DIRENT_H
 

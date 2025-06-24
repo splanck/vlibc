@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for process creation and control.
+ */
 #ifndef PROCESS_H
 #define PROCESS_H
 

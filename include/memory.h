@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for heap allocation functions.
+ */
 #ifndef MEMORY_H
 #define MEMORY_H
 

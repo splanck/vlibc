@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for character classification helpers.
+ */
 #ifndef CTYPE_H
 #define CTYPE_H
 

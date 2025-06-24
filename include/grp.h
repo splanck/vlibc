@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for group database access.
+ */
 #ifndef GRP_H
 #define GRP_H
 

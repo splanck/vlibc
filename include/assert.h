@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for runtime assertion checks.
+ */
 #ifndef ASSERT_H
 #define ASSERT_H
 

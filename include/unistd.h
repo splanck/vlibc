@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for POSIX I/O and process helpers.
+ */
 #ifndef UNISTD_H
 #define UNISTD_H
 

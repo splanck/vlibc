@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for standard error codes.
+ */
 #ifndef ERRNO_H
 #define ERRNO_H
 

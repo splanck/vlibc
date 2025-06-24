@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for time related helpers.
+ */
 #ifndef TIME_H
 #define TIME_H
 

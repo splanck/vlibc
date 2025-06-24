@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for basic math routines.
+ */
 #ifndef MATH_H
 #define MATH_H
 
