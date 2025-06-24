@@ -47,6 +47,7 @@ programs. Key features include:
 - FIFO creation with `mkfifo()` and `mkfifoat()`
 - Device node creation with `mknod()`
 - Generic descriptor control with `ioctl()`
+- Filesystem limits with `pathconf()` and `fpathconf()`
 - Simple alarm timers with `alarm()`
 - Basic character set conversion with `iconv`
 

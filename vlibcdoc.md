@@ -1180,6 +1180,14 @@ if (statvfs("/", &sv) == 0) {
 }
 ```
 
+`pathconf` and `fpathconf` query limits such as the maximum filename
+length for a given directory. vlibc uses `sysconf` together with the
+host `statvfs` implementation on BSD systems to answer these queries.
+
+```c
+long n = pathconf("/", _PC_NAME_MAX); /* typically 255 */
+```
+
 ## Directory Iteration
 
 Use `opendir`, `readdir`, and `closedir` from `dirent.h` to traverse

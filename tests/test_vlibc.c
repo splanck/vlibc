@@ -2159,6 +2159,18 @@ static const char *test_realpath_basic(void)
     return 0;
 }
 
+static const char *test_pathconf_basic(void)
+{
+    long n = pathconf("/", _PC_NAME_MAX);
+    mu_assert("pathconf", n > 0);
+    int fd = open("/", O_RDONLY);
+    mu_assert("open root", fd >= 0);
+    long nf = fpathconf(fd, _PC_NAME_MAX);
+    close(fd);
+    mu_assert("fpathconf", nf == n);
+    return 0;
+}
+
 static const char *test_dirent(void)
 {
     DIR *d = opendir("tests");
@@ -2680,6 +2692,7 @@ static const char *all_tests(void)
     mu_run_test(test_atexit_handler);
     mu_run_test(test_getcwd_chdir);
     mu_run_test(test_realpath_basic);
+    mu_run_test(test_pathconf_basic);
     mu_run_test(test_passwd_lookup);
     mu_run_test(test_group_lookup);
     mu_run_test(test_getlogin_fn);

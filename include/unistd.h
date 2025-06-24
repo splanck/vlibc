@@ -28,6 +28,9 @@ int setegid(gid_t egid);
 long sysconf(int name);
 int getpagesize(void);
 
+long pathconf(const char *path, int name);
+long fpathconf(int fd, int name);
+
 char *getlogin(void);
 char *getpass(const char *prompt);
 
