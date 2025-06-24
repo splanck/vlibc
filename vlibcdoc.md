@@ -1354,6 +1354,7 @@ char buf[64];
 strftime(buf, sizeof(buf), "%a %b %d %Y %H:%M:%S %Z %z", &tm);
 // "Sat May 06 2023 07:08:09 UTC +0000"
 ```
+`wcsftime` performs the same conversion but writes to a wide-character buffer.
 `timegm` converts a `struct tm` in UTC back to `time_t` using the same logic as `mktime` but without timezone adjustments.
 
 ## Locale Support
