@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <stdatomic.h>
+#include "time.h"
 
 /*
  * vlibc threads are thin wrappers around the host pthread
@@ -59,6 +60,8 @@ int pthread_mutexattr_gettype(const pthread_mutexattr_t *attr, int *type);
 
 int pthread_cond_init(pthread_cond_t *cond, void *attr);
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
+int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
+                           const struct timespec *abstime);
 int pthread_cond_signal(pthread_cond_t *cond);
 int pthread_cond_broadcast(pthread_cond_t *cond);
 
