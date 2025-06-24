@@ -963,6 +963,16 @@ int fd = socket(AF_INET, SOCK_STREAM, 0);
 }
 ```
 
+When `getaddrinfo` fails it returns an `EAI_*` code. Use
+`gai_strerror` to obtain a human readable description:
+
+```c
+struct addrinfo *ai;
+int r = getaddrinfo("nosuch.host", NULL, NULL, &ai);
+if (r != 0)
+    fprintf(stderr, "%s\n", gai_strerror(r));
+```
+
 ### Legacy Lookup API
 
 Older programs may still rely on `gethostbyname` and `gethostbyaddr`.

@@ -19,6 +19,7 @@ programs. Key features include:
 - Non-blocking mutex acquisition with `pthread_mutex_trylock()`
 - Query the current thread ID with `pthread_self()` and compare IDs with `pthread_equal()`
 - Networking sockets
+- Human-readable address errors with `gai_strerror()`
 - Interface enumeration via `getifaddrs`
 - Dynamic loading
 - Environment variable handling
