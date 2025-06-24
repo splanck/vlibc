@@ -992,6 +992,14 @@ needs to be preserved.
 char *pw = getpass("Password: ");
 ```
 
+## Password Hashing
+
+`crypt` implements the legacy DES-based algorithm used by early UNIX
+systems. On BSD platforms the implementation falls back to the system
+`crypt` when the salt begins with `$` so stronger hashes like MD5 or
+SHA‑512 are supported. Only the two-character DES format is portable
+across all targets.
+
 ## Standard Streams
 
 `stdin`, `stdout`, and `stderr` are lightweight streams wrapping file
@@ -1564,11 +1572,13 @@ state.
    attributes and join/detach.
  - Locale handling falls back to the host implementation for values other
    than `"C"` or `"POSIX"`.
- - `setjmp`/`longjmp` rely on the host C library when available.
-   Only an x86_64 fallback implementation is provided.
- - Regular expressions cover only a subset of POSIX syntax. Capture
-   groups and numeric backreferences are supported but more advanced
-   features remain unimplemented.
+- `setjmp`/`longjmp` rely on the host C library when available.
+  Only an x86_64 fallback implementation is provided.
+- Regular expressions cover only a subset of POSIX syntax. Capture
+  groups and numeric backreferences are supported but more advanced
+  features remain unimplemented.
+- The `crypt` helper only implements the traditional DES algorithm when
+  BSD's extended `crypt` is unavailable.
 
 ## Conclusion
 

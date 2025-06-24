@@ -2419,6 +2419,20 @@ static const char *test_getlogin_fn(void)
     return 0;
 }
 
+static const char *test_crypt_des(void)
+{
+    const char *h = crypt("password", "ab");
+    mu_assert("crypt des", strcmp(h, "abJnggxhB/yWI") == 0);
+    return 0;
+}
+
+static const char *test_crypt_md5(void)
+{
+    const char *h = crypt("pw", "$1$aa$");
+    mu_assert("crypt md5", strcmp(h, "$1$aa$2PtxCS.ei0jou2gZ339Kp0") == 0);
+    return 0;
+}
+
 static const char *test_wordexp_basic(void)
 {
     char tmpl[] = "/tmp/wexpXXXXXX";
@@ -2828,6 +2842,8 @@ static const char *all_tests(void)
     mu_run_test(test_passwd_lookup);
     mu_run_test(test_group_lookup);
     mu_run_test(test_getlogin_fn);
+    mu_run_test(test_crypt_des);
+    mu_run_test(test_crypt_md5);
     mu_run_test(test_wordexp_basic);
     mu_run_test(test_dirent);
     mu_run_test(test_ftw_walk);
