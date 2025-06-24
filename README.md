@@ -41,6 +41,7 @@ programs. Key features include:
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Memory-backed streams with `open_memstream()` and `fmemopen()`
 - Large-file aware seeks
+- Zero-copy file transfers with `sendfile()`
 - Memory synchronization with `msync()`
 - Advisory file locking with `flock()`
 - FIFO creation with `mkfifo()` and `mkfifoat()`

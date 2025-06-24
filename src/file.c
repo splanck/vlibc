@@ -4,6 +4,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "sys/file.h"
 #ifndef AT_FDCWD
 #define AT_FDCWD -100
 #endif
@@ -71,4 +72,43 @@ int chdir(const char *path)
         return -1;
     }
     return (int)ret;
+}
+
+int sendfile(int fd, int s, off_t offset, size_t nbytes,
+             struct sf_hdtr *hdtr, off_t *sbytes, int flags)
+{
+#if defined(SYS_sendfile) && !defined(__linux__)
+    long ret = vlibc_syscall(SYS_sendfile, fd, s, offset, nbytes,
+                             (long)hdtr, (long)sbytes);
+    if (ret >= 0)
+        return (int)ret;
+    if (ret != -ENOSYS && ret != -EINVAL && ret != -EOPNOTSUPP && ret != -ENOTSOCK) {
+        errno = -ret;
+        return -1;
+    }
+#endif
+
+    (void)hdtr; (void)flags;
+    off_t sent = 0;
+    char buf[8192];
+    while (sent < (off_t)nbytes) {
+        size_t chunk = nbytes - (size_t)sent;
+        if (chunk > sizeof(buf))
+            chunk = sizeof(buf);
+        ssize_t r = pread(fd, buf, chunk, offset + sent);
+        if (r <= 0)
+            break;
+        ssize_t w = write(s, buf, (size_t)r);
+        if (w < 0) {
+            if (sbytes)
+                *sbytes = sent;
+            return -1;
+        }
+        sent += w;
+        if (w < r)
+            break;
+    }
+    if (sbytes)
+        *sbytes = sent;
+    return 0;
 }

@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include "../time.h"
+#include "sys/uio.h"
 
 #if defined(__has_include)
 #  if __has_include("/usr/include/x86_64-linux-gnu/sys/file.h")
@@ -43,5 +44,14 @@ struct utimbuf {
 struct timeval;
 int utime(const char *path, const struct utimbuf *times);
 int utimes(const char *path, const struct timeval times[2]);
+
+struct sf_hdtr {
+    struct iovec *headers;
+    int hdr_cnt;
+    struct iovec *trailers;
+    int trl_cnt;
+};
+int sendfile(int fd, int s, off_t offset, size_t nbytes,
+             struct sf_hdtr *hdtr, off_t *sbytes, int flags);
 
 #endif /* SYS_FILE_H */
