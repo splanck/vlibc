@@ -1,3 +1,11 @@
+/*
+ * BSD 2-Clause License: Redistribution and use in source and binary forms, with or without modification, are permitted provided that the copyright notice and this permission notice appear in all copies. This software is provided "as is" without warranty.
+ *
+ * Purpose: Contains unit tests for vlibc using a minimal test framework. Exercises various library features.
+ *
+ * Copyright (c) 2025
+ */
+
 #include "minunit.h"
 #include "../include/memory.h"
 #include "../include/io.h"
