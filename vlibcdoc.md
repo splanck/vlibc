@@ -785,8 +785,16 @@ The `dlfcn` module implements a minimal ELF loader. On 64-bit x86
 systems it can resolve `R_X86_64_RELATIVE`, `R_X86_64_64`,
 `R_X86_64_GLOB_DAT`, and `R_X86_64_JUMP_SLOT` relocations. Other
 architectures are currently unsupported and attempting to load a
-library will fail with an error. Use `dlopen`, `dlsym`, and `dlclose`
-to load code at runtime.
+library will fail with an error. Use `dlopen`, `dlsym`, `dlclose` and
+`dladdr` to load code and query symbol information at runtime.
+
+```c
+Dl_info info;
+void *handle = dlopen("plugin.so", RTLD_NOW);
+void *sym = dlsym(handle, "plugin_value");
+if (dladdr(sym, &info))
+    printf("%s from %s\n", info.dli_sname, info.dli_fname);
+```
 
 ## Environment Variables
 

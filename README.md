@@ -24,7 +24,7 @@ programs. Key features include:
 - Networking sockets
 - Human-readable address errors with `gai_strerror()`
 - Interface enumeration via `getifaddrs`
-- Dynamic loading
+- Dynamic loading with `dlopen`, `dlsym`, `dlclose` and `dladdr`
 - Environment variable handling
 - Host name queries and changes
 - Login name retrieval with `getlogin()`
