@@ -16,6 +16,7 @@ programs. Key features include:
 - Thread-local storage helpers
 - Query the current thread ID with `pthread_self()` and compare IDs with `pthread_equal()`
 - Networking sockets
+- Interface enumeration via `getifaddrs`
 - Dynamic loading
 - Environment variable handling
 - Host name queries and changes
@@ -160,6 +161,20 @@ struct msghdr msg = {0};
 msg.msg_iov = iov;
 msg.msg_iovlen = 2;
 sendmsg(sock, &msg, 0);
+```
+
+### Interface Enumeration
+
+`getifaddrs` returns a linked list describing each network interface. Iterate
+through the list and free it with `freeifaddrs` when finished.
+
+```c
+struct ifaddrs *ifs;
+if (getifaddrs(&ifs) == 0) {
+    for (struct ifaddrs *i = ifs; i; i = i->ifa_next)
+        printf("%s\n", i->ifa_name);
+    freeifaddrs(ifs);
+}
 ```
 
 ## Path Utilities

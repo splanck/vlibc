@@ -969,6 +969,19 @@ if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0) {
 }
 ```
 
+Network interfaces can be enumerated with `getifaddrs` which fills a list of
+`struct ifaddrs`. Each entry describes an interface name, flags and optional
+addresses. Free the list with `freeifaddrs` when done.
+
+```c
+struct ifaddrs *ifas;
+if (getifaddrs(&ifas) == 0) {
+    for (struct ifaddrs *i = ifas; i; i = i->ifa_next)
+        printf("%s\n", i->ifa_name);
+    freeifaddrs(ifas);
+}
+```
+
 ## I/O Multiplexing
 
 `select` and `poll` wait for activity on multiple file descriptors.
