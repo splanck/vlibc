@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for wide character helpers.
+ */
 #ifndef WCHAR_H
 #define WCHAR_H
 

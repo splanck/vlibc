@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for wide character classification helpers.
+ */
 #ifndef WCTYPE_H
 #define WCTYPE_H
 

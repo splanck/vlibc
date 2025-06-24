@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for filename matching helpers.
+ */
 #ifndef FNMATCH_H
 #define FNMATCH_H
 

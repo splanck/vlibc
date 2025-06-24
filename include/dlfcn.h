@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for runtime loading of shared libraries.
+ */
 #ifndef DLFCN_H
 #define DLFCN_H
 

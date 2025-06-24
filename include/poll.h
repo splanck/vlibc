@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for I/O multiplexing helpers.
+ */
 #ifndef POLL_H
 #define POLL_H
 

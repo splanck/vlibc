@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for unbuffered I/O primitives.
+ */
 #ifndef IO_H
 #define IO_H
 

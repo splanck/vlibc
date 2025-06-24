@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for file tree walk helpers.
+ */
 #ifndef FTS_H
 #define FTS_H
 

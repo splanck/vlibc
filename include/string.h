@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for string manipulation functions.
+ */
 #ifndef STRING_H
 #define STRING_H
 

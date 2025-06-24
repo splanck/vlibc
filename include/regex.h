@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for simple regular expression matching.
+ */
 #ifndef REGEX_H
 #define REGEX_H
 

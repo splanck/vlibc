@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for library initialization.
+ */
 #ifndef VLIBC_H
 #define VLIBC_H
 

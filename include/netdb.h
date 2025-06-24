@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for address resolution helpers.
+ */
 #ifndef NETDB_H
 #define NETDB_H
 

@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for non-local jump helpers.
+ */
 #ifndef SETJMP_H
 #define SETJMP_H
 

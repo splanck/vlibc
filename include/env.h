@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for environment variable access.
+ */
 #ifndef ENV_H
 #define ENV_H
 

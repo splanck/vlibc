@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for pseudo-terminal helpers.
+ */
 #ifndef PTY_H
 #define PTY_H
 

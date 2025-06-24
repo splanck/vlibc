@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for pathname globbing helpers.
+ */
 #ifndef GLOB_H
 #define GLOB_H
 

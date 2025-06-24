@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for file control operations.
+ */
 #ifndef FCNTL_H
 #define FCNTL_H
 

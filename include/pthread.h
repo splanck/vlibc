@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for minimal threading support.
+ */
 #ifndef PTHREAD_H
 #define PTHREAD_H
 

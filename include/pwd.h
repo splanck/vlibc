@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for user account database access.
+ */
 #ifndef PWD_H
 #define PWD_H
 

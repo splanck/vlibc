@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for counting semaphore primitives.
+ */
 #ifndef SEMAPHORE_H
 #define SEMAPHORE_H
 

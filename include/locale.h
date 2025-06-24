@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Declarations for locale helpers.
+ */
 #ifndef LOCALE_H
 #define LOCALE_H
 
