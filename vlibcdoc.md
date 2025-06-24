@@ -60,8 +60,8 @@ This document outlines the architecture, planned modules, and API design for **v
 
 vlibc is a minimal libc replacement targeted at UNIX-like systems. It provides a
 small subset of the standard C library with an emphasis on simplicity and
-predictability. The project is distributed under the terms of the GNU General
-Public License v3.0.
+predictability. The project is distributed under the terms of the BSD 2-Clause
+"Simplified" License.
 
 ### Goals
 - Keep the code base small and auditable.
