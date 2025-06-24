@@ -99,6 +99,7 @@ SRC := \
     src/chroot.c \
     src/path.c \
     src/mkfifo.c \
+    src/mknod.c \
     $(SYS_SRC) \
     src/mmap.c \
     src/msync.c \

@@ -33,6 +33,7 @@ programs. Key features include:
 - Memory synchronization with `msync()`
 - Advisory file locking with `flock()`
 - FIFO creation with `mkfifo()` and `mkfifoat()`
+- Device node creation with `mknod()`
 - Generic descriptor control with `ioctl()`
 - Simple alarm timers with `alarm()`
 - Basic character set conversion with `iconv`
