@@ -35,6 +35,7 @@
 #include "../include/locale.h"
 #include "../include/regex.h"
 #include "../include/ftw.h"
+#include "../include/fts.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -2088,6 +2089,45 @@ static const char *test_ftw_walk(void)
     return 0;
 }
 
+static const char *test_fts_walk(void)
+{
+    char tmpl[] = "/tmp/ftsXXXXXX";
+    char *dir = mkdtemp(tmpl);
+    mu_assert("mkdtemp", dir != NULL);
+
+    char buf[256];
+    snprintf(buf, sizeof(buf), "%s/a", dir);
+    int fd = open(buf, O_WRONLY | O_CREAT, 0600);
+    mu_assert("file a", fd >= 0);
+    close(fd);
+
+    snprintf(buf, sizeof(buf), "%s/b", dir);
+    mu_assert("mkdir", mkdir(buf, 0700) == 0);
+
+    snprintf(buf, sizeof(buf), "%s/b/c", dir);
+    fd = open(buf, O_WRONLY | O_CREAT, 0600);
+    mu_assert("file c", fd >= 0);
+    close(fd);
+
+    char *const paths[] = { dir, NULL };
+    FTS *fts = fts_open(paths, FTS_PHYSICAL, NULL);
+    mu_assert("fts_open", fts != NULL);
+
+    int count = 0;
+    FTSENT *ent;
+    while ((ent = fts_read(fts)))
+        count++;
+
+    mu_assert("count", count == 4);
+    mu_assert("fts_close", fts_close(fts) == 0);
+
+    snprintf(buf, sizeof(buf), "%s/b/c", dir); unlink(buf);
+    snprintf(buf, sizeof(buf), "%s/b", dir); rmdir(buf);
+    snprintf(buf, sizeof(buf), "%s/a", dir); unlink(buf);
+    rmdir(dir);
+    return 0;
+}
+
 static const char *test_passwd_lookup(void)
 {
     char tmpl[] = "/tmp/pwtestXXXXXX";
@@ -2486,6 +2526,7 @@ static const char *all_tests(void)
     mu_run_test(test_getlogin_fn);
     mu_run_test(test_dirent);
     mu_run_test(test_ftw_walk);
+    mu_run_test(test_fts_walk);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
     mu_run_test(test_qsort_r_desc);

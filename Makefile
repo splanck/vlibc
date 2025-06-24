@@ -153,6 +153,7 @@ SRC := \
     src/regex.c \
     src/fnmatch.c \
     src/scandir.c \
+    src/fts.c \
     src/ftw.c \
     src/glob.c \
     src/wprintf.c \

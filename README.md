@@ -34,6 +34,7 @@ programs. Key features include:
 - Syslog-style logging
 - Change root directories with `chroot()` when supported
 - Directory scanning helpers
+- File tree traversal with `fts`
 - Array sorting with `qsort`, `qsort_r` and `bsearch`
 - Standard `assert` macro for runtime checks
 - Extended math helpers
@@ -219,6 +220,7 @@ free(list);
 `ftw` and `nftw` recursively walk a directory tree, invoking a callback
 for each entry. Use `FTW_PHYS` with `nftw` to avoid following symbolic
 links.
+The `fts` interface provides an iterator-based walk returning each entry in turn.
 
 ## Display Width
 

@@ -170,6 +170,7 @@ assert.h     - runtime assertion checks
 netdb.h      - address resolution helpers
 arpa/inet.h  - IPv4/IPv6 presentation conversion helpers
 ftw.h        - directory tree traversal helpers
+fts.h        - file tree walk helpers
 poll.h       - I/O multiplexing helpers
 signal.h    - signal handling helpers
 process.h    - process creation and control
@@ -1185,6 +1186,18 @@ static int cb(const char *path, const struct stat *st, int flag,
 }
 
 nftw("/tmp", cb, 8, FTW_PHYS);
+```
+
+The `fts` interface offers an iterator that yields an `FTSENT`
+for each visited file or directory:
+
+```c
+FTSENT *e;
+char *const paths[] = {"/tmp", NULL};
+FTS *f = fts_open(paths, FTS_PHYSICAL, NULL);
+while ((e = fts_read(f)))
+    printf("%s\n", e->fts_path);
+fts_close(f);
 ```
 
 ## Path Canonicalization
