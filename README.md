@@ -24,6 +24,8 @@ programs. Key features include:
 - Environment variable handling
 - Host name queries and changes
 - Login name retrieval with `getlogin()`
+- Thread-safe user and group lookups with `getpwuid_r`, `getpwnam_r`,
+  `getgrgid_r`, and `getgrnam_r`
 - Secure password input with `getpass()`
 - Syslog-style logging
 - Change root directories with `chroot()` when supported
