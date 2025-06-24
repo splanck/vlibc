@@ -17,5 +17,7 @@ int stat(const char *path, struct stat *buf);
 int fstat(int fd, struct stat *buf);
 int fstatat(int dirfd, const char *path, struct stat *buf, int flags);
 int lstat(const char *path, struct stat *buf);
+int mkfifo(const char *path, mode_t mode);
+int mkfifoat(int dirfd, const char *path, mode_t mode);
 
 #endif /* SYS_STAT_H */

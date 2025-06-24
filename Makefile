@@ -97,6 +97,7 @@ SRC := \
     src/realpath.c \
     src/chroot.c \
     src/path.c \
+    src/mkfifo.c \
     $(SYS_SRC) \
     src/mmap.c \
     src/msync.c \
