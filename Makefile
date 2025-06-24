@@ -139,6 +139,7 @@ SRC := \
     src/wctype.c \
     src/memstream.c \
     src/tempfile.c \
+    src/confstr.c \
     src/sysconf.c \
     src/syslog.c \
     src/getline.c \

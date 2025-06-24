@@ -1738,6 +1738,28 @@ static const char *test_uname_fn(void)
     return 0;
 }
 
+static const char *test_confstr_path(void)
+{
+#ifdef _CS_PATH
+    char buf[256];
+    errno = 0;
+    size_t n = confstr(_CS_PATH, buf, sizeof(buf));
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    mu_assert("confstr path", n > 0 && n < sizeof(buf));
+    mu_assert("non-empty", buf[0] != '\0');
+#else
+    mu_assert("confstr unsupported", n == 0);
+    mu_assert("errno EINVAL", errno == EINVAL);
+#endif
+#else
+    errno = 0;
+    size_t n = confstr(0, NULL, 0);
+    mu_assert("confstr absent", n == 0 && errno == EINVAL);
+#endif
+    return 0;
+}
+
 static const char *test_error_reporting(void)
 {
     errno = ENOENT;
@@ -2671,6 +2693,7 @@ static const char *all_tests(void)
     mu_run_test(test_locale_from_env);
     mu_run_test(test_gethostname_fn);
     mu_run_test(test_uname_fn);
+    mu_run_test(test_confstr_path);
     mu_run_test(test_error_reporting);
     mu_run_test(test_strsignal_names);
     mu_run_test(test_system_fn);

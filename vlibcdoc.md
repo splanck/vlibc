@@ -827,6 +827,17 @@ if (uname(&u) == 0) {
 }
 ```
 
+The `confstr()` function retrieves string-valued system parameters such as
+`_CS_PATH`. When the query is unsupported it returns `0` and sets `errno` to
+`EINVAL`.
+
+```c
+char path[256];
+size_t n = confstr(_CS_PATH, path, sizeof(path));
+if (n > 0 && n < sizeof(path))
+    printf("search path: %s\n", path);
+```
+
 ## Basic File I/O
 
 Thin wrappers around the kernel's file APIs live in `io.h`. Functions
