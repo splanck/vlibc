@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Socket APIs and ancillary data helpers.
+ */
 #ifndef SYS_SOCKET_H
 #define SYS_SOCKET_H
 

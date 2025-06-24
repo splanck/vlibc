@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Memory mapping and protection interfaces.
+ */
 #ifndef MMAN_H
 #define MMAN_H
 

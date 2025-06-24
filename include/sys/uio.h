@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Scatter/gather I/O structures and calls.
+ */
 #ifndef SYS_UIO_H
 #define SYS_UIO_H
 
