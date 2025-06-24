@@ -24,6 +24,23 @@ void *memrchr(const void *s, int c, size_t n)
     return NULL;
 }
 
+void *memmem(const void *haystack, size_t haystacklen,
+             const void *needle, size_t needlelen)
+{
+    if (needlelen == 0)
+        return (void *)haystack;
+    if (haystacklen < needlelen)
+        return NULL;
+    const unsigned char *h = haystack;
+    const unsigned char *n = needle;
+    size_t end = haystacklen - needlelen + 1;
+    for (size_t i = 0; i < end; i++) {
+        if (h[i] == n[0] && memcmp(h + i, n, needlelen) == 0)
+            return (void *)(h + i);
+    }
+    return NULL;
+}
+
 char *strrchr(const char *s, int c)
 {
     const char *ret = NULL;
