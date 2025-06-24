@@ -94,6 +94,7 @@ SRC := \
     src/access.c \
     src/getcwd.c \
     src/realpath.c \
+    src/chroot.c \
     src/path.c \
     $(SYS_SRC) \
     src/mmap.c \

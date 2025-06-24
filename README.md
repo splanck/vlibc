@@ -19,6 +19,7 @@ programs. Key features include:
 - Environment variable handling
 - Host name queries and changes
 - Syslog-style logging
+- Change root directories with `chroot()` when supported
 - Directory scanning helpers
 - Standard `assert` macro for runtime checks
 - Extended math helpers
@@ -209,6 +210,8 @@ well. BSD compatibility has been tested on FreeBSD, though some modules still
 rely on Linux-only system calls. Portable helpers like `sysconf()` and
 `getpagesize()` ease porting, but non-Linux builds may still require additional
 work.
+The `chroot()` wrapper is one such case and returns `ENOSYS` when the
+underlying kernel lacks the system call.
 
 ## Running Tests
 
