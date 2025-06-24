@@ -1130,10 +1130,15 @@ struct passwd {
 
 struct passwd *getpwuid(uid_t uid);
 struct passwd *getpwnam(const char *name);
+char *getlogin(void);
 ```
 
 On BSD systems vlibc parses the file directly. The location can be
 overridden via the `VLIBC_PASSWD` environment variable for testing.
+
+`getlogin()` obtains the user name for the current UID using
+`getpwuid(getuid())`.  The resulting string is cached in thread-local
+storage so repeated calls are inexpensive.
 
 ## Group Database
 

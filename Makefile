@@ -133,6 +133,7 @@ SRC := \
     src/sysconf.c \
     src/syslog.c \
     src/getline.c \
+    src/getlogin.c \
     src/pwd.c \
     src/grp.c \
     src/uid.c \

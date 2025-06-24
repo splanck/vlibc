@@ -18,6 +18,7 @@ programs. Key features include:
 - Dynamic loading
 - Environment variable handling
 - Host name queries and changes
+- Login name retrieval with `getlogin()`
 - Syslog-style logging
 - Change root directories with `chroot()` when supported
 - Directory scanning helpers
