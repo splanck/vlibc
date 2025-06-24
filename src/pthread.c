@@ -94,6 +94,33 @@ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
     return 0;
 }
 
+int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
+                           const struct timespec *abstime)
+{
+    if (!abstime)
+        return pthread_cond_wait(cond, mutex);
+
+    int seq = atomic_load_explicit(&cond->seq, memory_order_relaxed);
+    pthread_mutex_unlock(mutex);
+
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    while (atomic_load_explicit(&cond->seq, memory_order_acquire) == seq) {
+        if (now.tv_sec > abstime->tv_sec ||
+            (now.tv_sec == abstime->tv_sec &&
+             now.tv_nsec >= abstime->tv_nsec)) {
+            pthread_mutex_lock(mutex);
+            return ETIMEDOUT;
+        }
+        struct timespec ts = {0, 1000000};
+        nanosleep(&ts, NULL);
+        clock_gettime(CLOCK_REALTIME, &now);
+    }
+
+    pthread_mutex_lock(mutex);
+    return 0;
+}
+
 int pthread_cond_signal(pthread_cond_t *cond)
 {
     atomic_fetch_add_explicit(&cond->seq, 1, memory_order_release);

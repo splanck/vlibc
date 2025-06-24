@@ -17,6 +17,7 @@ programs. Key features include:
 - Threading primitives and simple read-write locks
 - Thread-local storage helpers
 - Non-blocking mutex acquisition with `pthread_mutex_trylock()`
+- Timed waits on conditions with `pthread_cond_timedwait()`
 - Set mutex types with `pthread_mutexattr_settype()`
 - Query the current thread ID with `pthread_self()` and compare IDs with `pthread_equal()`
 - Networking sockets

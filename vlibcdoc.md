@@ -637,6 +637,8 @@ int pthread_mutexattr_gettype(const pthread_mutexattr_t *attr, int *type);
 
 int pthread_cond_init(pthread_cond_t *cond, void *attr);
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
+int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
+                           const struct timespec *abstime);
 int pthread_cond_signal(pthread_cond_t *cond);
 int pthread_cond_broadcast(pthread_cond_t *cond);
 
@@ -677,7 +679,9 @@ or `PTHREAD_MUTEX_RECURSIVE` and pass the attribute to
 
 Condition variables provide simple waiting semantics. A thread calls
 `pthread_cond_wait()` with a locked mutex and blocks until another thread
-signals the condition. `pthread_cond_signal()` wakes a single waiter while
+signals the condition. `pthread_cond_timedwait()` behaves the same but
+returns `ETIMEDOUT` if the absolute time specified by `abstime` is
+reached. `pthread_cond_signal()` wakes a single waiter while
 `pthread_cond_broadcast()` wakes all waiters.
 
 Read-write locks allow multiple threads to hold the lock in read mode or
