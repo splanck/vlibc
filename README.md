@@ -11,7 +11,8 @@ programs. Key features include:
 - File I/O wrappers
 - Permission checks with `access()` and `faccessat()`
 - Process creation and control
-- Wait for children with `wait()` or `waitpid()`
+- Wait for children with `wait()` or `waitpid()` and decode results
+  with macros from `<sys/wait.h>`
 - Basic session and process-group APIs
 - Threading primitives and simple read-write locks
 - Thread-local storage helpers
