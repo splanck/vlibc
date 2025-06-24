@@ -46,6 +46,10 @@ static void free_impl(void *ptr)
     free_list = hdr;
 }
 
+/*
+ * Allocates a block from the tiny heap allocator.
+ * Reuses a free-list block or gets new memory via sbrk/mmap using a size header.
+ */
 void *malloc(size_t size)
 {
     if (size == 0)
@@ -74,6 +78,10 @@ void *malloc(size_t size)
     return (void *)(hdr + 1);
 }
 
+/*
+ * Releases a block back to the allocator.
+ * Handles aligned allocations then returns it to the free list or unmaps it.
+ */
 void free(void *ptr)
 {
     if (!ptr)
@@ -97,6 +105,10 @@ struct mmap_header {
     size_t size;
 };
 
+/*
+ * Allocates a block from the tiny heap allocator.
+ * Reuses a free-list block or gets new memory via sbrk/mmap using a size header.
+ */
 void *malloc(size_t size)
 {
     if (size == 0)
@@ -121,6 +133,10 @@ static void free_impl(void *ptr)
     munmap(hdr, hdr->size + sizeof(struct mmap_header));
 }
 
+/*
+ * Releases a block back to the allocator.
+ * Handles aligned allocations then returns it to the free list or unmaps it.
+ */
 void free(void *ptr)
 {
     if (!ptr)
@@ -139,6 +155,10 @@ void free(void *ptr)
 
 #endif /* HAVE_SBRK */
 
+/*
+ * Allocates an array and zeroes it.
+ * Uses malloc for the combined size then fills the memory with zeros.
+ */
 void *calloc(size_t nmemb, size_t size)
 {
     size_t total = nmemb * size;
@@ -148,6 +168,10 @@ void *calloc(size_t nmemb, size_t size)
     return ptr;
 }
 
+/*
+ * Resizes an allocated block.
+ * Allocates a new block, copies the old contents, then frees the original.
+ */
 void *realloc(void *ptr, size_t size)
 {
     if (!ptr)
@@ -172,7 +196,10 @@ void *realloc(void *ptr, size_t size)
     free(ptr);
     return new_ptr;
 }
-
+/*
+ * Allocates an aligned block.
+ * Reserves extra space, aligns the result and records the original pointer.
+ */
 int posix_memalign(void **memptr, size_t alignment, size_t size)
 {
     if (!memptr)
@@ -197,6 +224,10 @@ int posix_memalign(void **memptr, size_t alignment, size_t size)
     return 0;
 }
 
+/*
+ * Resizes an array with overflow checking.
+ * Verifies nmemb * size won't overflow and delegates to realloc.
+ */
 void *reallocarray(void *ptr, size_t nmemb, size_t size)
 {
     if (size != 0 && nmemb > SIZE_MAX / size) {
