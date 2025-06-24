@@ -2077,6 +2077,13 @@ static const char *test_group_lookup(void)
     return 0;
 }
 
+static const char *test_getlogin_fn(void)
+{
+    char *name = getlogin();
+    mu_assert("getlogin", name && *name != '\0');
+    return 0;
+}
+
 static int int_cmp(const void *a, const void *b)
 {
     int ia = *(const int *)a;
@@ -2393,6 +2400,7 @@ static const char *all_tests(void)
     mu_run_test(test_realpath_basic);
     mu_run_test(test_passwd_lookup);
     mu_run_test(test_group_lookup);
+    mu_run_test(test_getlogin_fn);
     mu_run_test(test_dirent);
     mu_run_test(test_ftw_walk);
     mu_run_test(test_qsort_int);
