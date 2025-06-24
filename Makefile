@@ -84,6 +84,7 @@ SRC := \
     src/inet_ntop.c \
     src/fd.c \
     src/fcntl.c \
+    src/ioctl.c \
     src/isatty.c \
     src/termios.c \
     src/file.c \
