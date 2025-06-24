@@ -120,6 +120,7 @@ SRC := \
     src/utime.c \
     src/pthread.c \
     src/pthread_rwlock.c \
+    src/semaphore.c \
     src/dirent.c \
     src/default_shell.c \
     src/popen.c \

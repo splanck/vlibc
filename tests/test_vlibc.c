@@ -9,6 +9,7 @@
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
 #include "../include/pthread.h"
+#include "../include/semaphore.h"
 #include "../include/sys/select.h"
 #include "../include/poll.h"
 #include <dirent.h>
@@ -1390,6 +1391,38 @@ static const char *test_pthread_rwlock(void)
     return 0;
 }
 
+static sem_t sem;
+
+static void *sem_worker(void *arg)
+{
+    sem_wait(&sem);
+    return arg;
+}
+
+static const char *test_semaphore_basic(void)
+{
+    sem_init(&sem, 0, 0);
+    pthread_t t;
+    pthread_create(&t, NULL, sem_worker, (void *)123);
+    usleep(100000);
+    sem_post(&sem);
+    void *r = NULL;
+    pthread_join(t, &r);
+    sem_destroy(&sem);
+    mu_assert("sem result", r == (void *)123);
+    return 0;
+}
+
+static const char *test_semaphore_trywait(void)
+{
+    sem_t s;
+    sem_init(&s, 0, 1);
+    mu_assert("trywait first", sem_trywait(&s) == 0);
+    mu_assert("trywait empty", sem_trywait(&s) == EAGAIN);
+    sem_destroy(&s);
+    return 0;
+}
+
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
@@ -2406,6 +2439,8 @@ static const char *all_tests(void)
     mu_run_test(test_pthread_tls);
     mu_run_test(test_pthread_mutexattr);
     mu_run_test(test_pthread_rwlock);
+    mu_run_test(test_semaphore_basic);
+    mu_run_test(test_semaphore_trywait);
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
