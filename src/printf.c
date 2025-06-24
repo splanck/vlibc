@@ -221,6 +221,23 @@ int dprintf(int fd, const char *format, ...)
 
 int vfprintf(FILE *stream, const char *format, va_list ap)
 {
+    if (stream && stream->is_mem) {
+        va_list copy;
+        va_copy(copy, ap);
+        int len = vsnprintf(NULL, 0, format, copy);
+        va_end(copy);
+        if (len < 0)
+            return -1;
+        char *buf = malloc((size_t)len + 1);
+        if (!buf) {
+            errno = ENOMEM;
+            return -1;
+        }
+        vsnprintf(buf, (size_t)len + 1, format, ap);
+        size_t w = fwrite(buf, 1, (size_t)len, stream);
+        free(buf);
+        return (int)w;
+    }
     return vfdprintf(stream ? stream->fd : -1, format, ap);
 }
 

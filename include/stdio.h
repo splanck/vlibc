@@ -16,6 +16,9 @@ typedef struct {
     int eof;
     int have_ungot;
     unsigned char ungot_char;
+    int is_mem;
+    char **mem_bufp;
+    size_t *mem_sizep;
 } FILE;
 
 #define _IOFBF 0
@@ -87,6 +90,9 @@ int mkstemp(char *template);
 FILE *tmpfile(void);
 char *tmpnam(char *s);
 char *tempnam(const char *dir, const char *pfx);
+
+FILE *open_memstream(char **bufp, size_t *sizep);
+FILE *fmemopen(void *buf, size_t size, const char *mode);
 
 ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream);
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);

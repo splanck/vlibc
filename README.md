@@ -25,6 +25,7 @@ programs. Key features include:
 - Standard `assert` macro for runtime checks
 - Extended math helpers
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
+- Memory-backed streams with `open_memstream()` and `fmemopen()`
 - Large-file aware seeks
 - Memory synchronization with `msync()`
 - Advisory file locking with `flock()`
