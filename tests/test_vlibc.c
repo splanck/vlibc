@@ -670,6 +670,9 @@ static const char *test_string_casecmp(void)
     mu_assert("strcasecmp eq", strcasecmp("HeLLo", "hello") == 0);
     mu_assert("strcasecmp diff", strcasecmp("abc", "Abd") < 0);
     mu_assert("strncasecmp n4", strncasecmp("TestX", "testY", 4) == 0);
+    const char *p = strcasestr("AbcDe", "cde");
+    mu_assert("strcasestr", p && p - "AbcDe" == 2);
+    mu_assert("strcasestr none", strcasestr("abcd", "EF") == NULL);
     return 0;
 }
 

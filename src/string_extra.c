@@ -87,6 +87,21 @@ int strcasecmp(const char *s1, const char *s2)
     return strncasecmp(s1, s2, (size_t)-1);
 }
 
+char *strcasestr(const char *haystack, const char *needle)
+{
+    if (!*needle)
+        return (char *)haystack;
+    size_t nlen = vstrlen(needle);
+    while (*haystack) {
+        if (tolower((unsigned char)*haystack) ==
+            tolower((unsigned char)*needle) &&
+            strncasecmp(haystack, needle, nlen) == 0)
+            return (char *)haystack;
+        haystack++;
+    }
+    return NULL;
+}
+
 size_t strlcpy(char *dst, const char *src, size_t size)
 {
     size_t len = vstrlen(src);
