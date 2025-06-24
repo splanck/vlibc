@@ -193,6 +193,7 @@ install: $(LIB)
 	# ensure iconv.h is installed
 	install -m 644 include/iconv.h $(DESTDIR)$(PREFIX)/include
 	install -d $(DESTDIR)$(PREFIX)/include/sys
+	# install system headers including wait.h
 	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys
 
 clean:

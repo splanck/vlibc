@@ -538,6 +538,15 @@ argument array on behalf of the caller. `execl` and `execlp` accept a
 variable list of arguments terminated by `NULL`. `execle` is similar but
 takes a custom environment pointer after the final `NULL` argument.
 
+### Wait Status Helpers
+
+Macros in `<sys/wait.h>` decode the integer status returned by `wait()`
+and `waitpid()`. Use `WIFEXITED(status)` to detect normal termination
+and `WEXITSTATUS(status)` to read the child's exit code. When a signal
+causes termination, `WIFSIGNALED(status)` becomes true and
+`WTERMSIG(status)` yields the signal number. `WIFSTOPPED(status)` tests
+if the child was stopped by a signal.
+
 The convenience `system()` call executes a shell command by forking and
 invoking `/bin/sh -c command`. It returns the raw status from `waitpid`
 and is intended only for simple helper tasks.
