@@ -45,4 +45,9 @@ int vwscanf(const wchar_t *format, va_list ap);
 int vfwscanf(FILE *stream, const wchar_t *format, va_list ap);
 int vswscanf(const wchar_t *str, const wchar_t *format, va_list ap);
 
+/* Time formatting */
+#include "time.h"
+size_t wcsftime(wchar_t *s, size_t max, const wchar_t *format,
+                const struct tm *tm);
+
 #endif /* WCHAR_H */
