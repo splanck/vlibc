@@ -88,6 +88,7 @@ SRC := \
     src/termios.c \
     src/file.c \
     src/file_perm.c \
+    src/flock.c \
     src/truncate.c \
     src/dir.c \
     src/access.c \

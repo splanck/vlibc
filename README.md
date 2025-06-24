@@ -25,6 +25,7 @@ programs. Key features include:
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Large-file aware seeks
 - Memory synchronization with `msync()`
+- Advisory file locking with `flock()`
 - Simple alarm timers with `alarm()`
 - Basic character set conversion with `iconv`
 

@@ -12,6 +12,19 @@
 #  endif
 #endif
 
+#ifndef LOCK_SH
+#define LOCK_SH 1
+#endif
+#ifndef LOCK_EX
+#define LOCK_EX 2
+#endif
+#ifndef LOCK_UN
+#define LOCK_UN 8
+#endif
+#ifndef LOCK_NB
+#define LOCK_NB 4
+#endif
+
 int chmod(const char *path, mode_t mode);
 int chown(const char *path, uid_t owner, gid_t group);
 mode_t umask(mode_t mask);
@@ -20,6 +33,7 @@ int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags);
 int fchown(int fd, uid_t owner, gid_t group);
 int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags);
 int lchown(const char *pathname, uid_t owner, gid_t group);
+int flock(int fd, int operation);
 
 struct utimbuf {
     time_t actime;
