@@ -3,6 +3,7 @@
 #include "../include/io.h"
 #include "../include/sys/socket.h"
 #include "../include/sys/uio.h"
+#include "../include/sys/file.h"
 #include <netinet/in.h>
 #include "../include/arpa/inet.h"
 #include <stdint.h>
@@ -331,6 +332,36 @@ static const char *test_readv_writev(void)
 
     close(fd);
     unlink(fname);
+    return 0;
+}
+
+static const char *test_sendfile_copy(void)
+{
+    const char *src = "tmp_sf_src";
+    const char *dst = "tmp_sf_dst";
+    int in = open(src, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    mu_assert("open src", in >= 0);
+    const char *msg = "sendfile";
+    mu_assert("write src", write(in, msg, strlen(msg)) == (ssize_t)strlen(msg));
+    close(in);
+
+    in = open(src, O_RDONLY);
+    int out = open(dst, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    mu_assert("open out", out >= 0 && in >= 0);
+
+    off_t sent = 0;
+    int r = sendfile(in, out, 0, strlen(msg), NULL, &sent, 0);
+    mu_assert("sendfile", r == 0 && sent == (off_t)strlen(msg));
+
+    lseek(out, 0, SEEK_SET);
+    char buf[16] = {0};
+    mu_assert("read dst", read(out, buf, sizeof(buf)) == (ssize_t)strlen(msg));
+    mu_assert("content", strcmp(buf, msg) == 0);
+
+    close(in);
+    close(out);
+    unlink(src);
+    unlink(dst);
     return 0;
 }
 
@@ -2444,6 +2475,7 @@ static const char *all_tests(void)
     mu_run_test(test_lseek_dup);
     mu_run_test(test_pread_pwrite);
     mu_run_test(test_readv_writev);
+    mu_run_test(test_sendfile_copy);
     mu_run_test(test_dup3_cloexec);
     mu_run_test(test_pipe2_cloexec);
     mu_run_test(test_isatty_stdin);

@@ -800,7 +800,9 @@ like `open`, `read`, `write`, `close`, `unlink`, `rename`, `symlink`,
 `access` and `faccessat` query permissions on files without opening
 them.
 Vector I/O through `readv` and `writev` is available to gather or scatter
-multiple buffers in a single call.
+multiple buffers in a single call. Zero-copy transfers are possible with
+`sendfile`, which uses the BSD system call when available and otherwise
+falls back to copying via `read` and `write`.
 
 ```c
 int fd = open("log.txt", O_WRONLY | O_CREAT, 0644);
