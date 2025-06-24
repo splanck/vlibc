@@ -52,6 +52,7 @@ This document outlines the architecture, planned modules, and API design for **v
 46. [Path Expansion](#path-expansion)
 47. [Filesystem Statistics](#filesystem-statistics)
 48. [Resource Limits](#resource-limits)
+49. [Password Input](#password-input)
 
 ## Overview
 
@@ -1212,6 +1213,18 @@ if (getrlimit(RLIMIT_NOFILE, &lim) == 0) {
            (unsigned long)lim.rlim_max);
 }
 ```
+
+## Password Input
+
+`getpass` reads a password from `/dev/tty` with echo disabled and
+returns it in a static buffer.
+
+```c
+char *pw = getpass("Password: ");
+```
+
+The function toggles the terminal `ECHO` flag via `tcsetattr` and
+restores the original settings after reading the line.
 
 ## Logging
 

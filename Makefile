@@ -129,6 +129,7 @@ SRC := \
     src/tempfile.c \
     src/sysconf.c \
     src/syslog.c \
+    src/getpass.c \
     src/getline.c \
     src/pwd.c \
     src/grp.c \
