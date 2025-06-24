@@ -2,6 +2,7 @@
 #define SYS_RESOURCE_H
 
 #include <sys/types.h>
+#include "../time.h"
 
 /* Resource limits */
 #ifndef RLIMIT_CPU
@@ -73,7 +74,37 @@ struct rlimit {
     rlim_t rlim_max;
 };
 
+#ifndef RUSAGE_SELF
+#define RUSAGE_SELF 0
+#endif
+#ifndef RUSAGE_CHILDREN
+#define RUSAGE_CHILDREN -1
+#endif
+#ifndef RUSAGE_THREAD
+#define RUSAGE_THREAD 1
+#endif
+
+struct rusage {
+    struct timeval ru_utime; /* user CPU time used */
+    struct timeval ru_stime; /* system CPU time used */
+    long ru_maxrss;
+    long ru_ixrss;
+    long ru_idrss;
+    long ru_isrss;
+    long ru_minflt;
+    long ru_majflt;
+    long ru_nswap;
+    long ru_inblock;
+    long ru_oublock;
+    long ru_msgsnd;
+    long ru_msgrcv;
+    long ru_nsignals;
+    long ru_nvcsw;
+    long ru_nivcsw;
+};
+
 int getrlimit(int resource, struct rlimit *rlim);
 int setrlimit(int resource, const struct rlimit *rlim);
+int getrusage(int who, struct rusage *usage);
 
 #endif /* SYS_RESOURCE_H */

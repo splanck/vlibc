@@ -52,6 +52,7 @@ This document outlines the architecture, planned modules, and API design for **v
 46. [Path Expansion](#path-expansion)
 47. [Filesystem Statistics](#filesystem-statistics)
 48. [Resource Limits](#resource-limits)
+49. [Resource Usage](#resource-usage)
 
 ## Overview
 
@@ -1210,6 +1211,20 @@ if (getrlimit(RLIMIT_NOFILE, &lim) == 0) {
     printf("soft: %lu hard: %lu\n",
            (unsigned long)lim.rlim_cur,
            (unsigned long)lim.rlim_max);
+}
+```
+
+## Resource Usage
+
+Call `getrusage` from `sys/resource.h` to inspect statistics for the
+current process or its children.
+
+```c
+struct rusage ru;
+if (getrusage(RUSAGE_SELF, &ru) == 0) {
+    printf("user time: %ld.%06ld\n",
+           (long)ru.ru_utime.tv_sec,
+           (long)ru.ru_utime.tv_usec);
 }
 ```
 
