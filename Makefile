@@ -139,6 +139,7 @@ SRC := \
     src/sysconf.c \
     src/syslog.c \
     src/getline.c \
+    src/getpass.c \
     src/getlogin.c \
     src/pwd.c \
     src/grp.c \
