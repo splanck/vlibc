@@ -14,6 +14,7 @@ programs. Key features include:
 - Basic session and process-group APIs
 - Threading primitives and simple read-write locks
 - Thread-local storage helpers
+- Query the current thread ID with `pthread_self()` and compare IDs with `pthread_equal()`
 - Networking sockets
 - Dynamic loading
 - Environment variable handling

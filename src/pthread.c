@@ -4,6 +4,9 @@
 #include <stdatomic.h>
 #include "time.h"
 
+extern pthread_t host_pthread_self(void) __asm__("pthread_self");
+extern int host_pthread_equal(pthread_t, pthread_t) __asm__("pthread_equal");
+
 /* simple spinlock based mutex */
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
 {
@@ -124,4 +127,14 @@ int pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
     }
     pthread_mutex_unlock(&once_lock);
     return 0;
+}
+
+pthread_t pthread_self(void)
+{
+    return host_pthread_self();
+}
+
+int pthread_equal(pthread_t a, pthread_t b)
+{
+    return host_pthread_equal(a, b);
 }

@@ -588,6 +588,8 @@ int pthread_create(pthread_t *thread, const void *attr,
                    void *(*start)(void *), void *arg);
 int pthread_join(pthread_t thread, void **retval);
 int pthread_detach(pthread_t thread);
+pthread_t pthread_self(void);
+int pthread_equal(pthread_t a, pthread_t b);
 
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
 int pthread_mutex_destroy(pthread_mutex_t *mutex);
@@ -608,6 +610,9 @@ int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
 
 Threads share the process address space and use a simple spinlock-based
 mutex for synchronization.
+
+`pthread_self()` returns the identifier of the calling thread while
+`pthread_equal()` compares two thread IDs for equality.
 
 `pthread_create()` spawns a new thread running the `start` routine with the
 given argument. The thread identifier is written to `thread` and can later be
