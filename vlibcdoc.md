@@ -755,6 +755,10 @@ if (getcwd(path, sizeof(path)))
 chdir("/");
 ```
 
+`chroot` confines the process to a new root directory. The wrapper simply
+invokes the `chroot(2)` system call when available and fails with `ENOSYS`
+on platforms lacking the call.
+
 Additional helpers inspect and reset a stream's state. `feof(stream)`
 returns non-zero once the end of input has been reached while
 `ferror(stream)` indicates an I/O error.  Call `clearerr(stream)` to reset

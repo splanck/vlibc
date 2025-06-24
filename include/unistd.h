@@ -14,6 +14,7 @@
 
 int isatty(int fd);
 int daemon(int nochdir, int noclose);
+int chroot(const char *path);
 
 uid_t getuid(void);
 uid_t geteuid(void);
