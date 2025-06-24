@@ -43,6 +43,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include "../include/time.h"
+#include "../include/sys/resource.h"
 #include "../include/sys/mman.h"
 
 /* use host printf for test output */
@@ -1561,6 +1562,18 @@ static const char *test_timer_basic(void)
     return 0;
 }
 
+static const char *test_getrusage_self(void)
+{
+    struct rusage r;
+    volatile long sink = 0;
+    for (long i = 0; i < 1000000; ++i)
+        sink += i;
+    (void)sink;
+    mu_assert("getrusage", getrusage(RUSAGE_SELF, &r) == 0);
+    mu_assert("have utime", r.ru_utime.tv_sec > 0 || r.ru_utime.tv_usec > 0);
+    return 0;
+}
+
 static const char *test_strftime_basic(void)
 {
     struct tm tm = {
@@ -2698,6 +2711,7 @@ static const char *all_tests(void)
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_timer_basic);
+    mu_run_test(test_getrusage_self);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_strftime_extended);
     mu_run_test(test_wcsftime_basic);
