@@ -256,10 +256,13 @@ memory mapping facilities. Available functions are:
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
 int munmap(void *addr, size_t length);
 int mprotect(void *addr, size_t length, int prot);
+int msync(void *addr, size_t length, int flags);
 ```
 
 `mmap` creates new mappings, `munmap` releases them and `mprotect` changes
-their access protections.
+their access protections.  `msync` flushes modified pages back to their
+underlying file.  When the raw syscall is unavailable the BSD wrapper is
+used instead, so some platforms may ignore unsupported flags.
 
 ## String Handling
 
