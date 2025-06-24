@@ -594,6 +594,7 @@ int pthread_equal(pthread_t a, pthread_t b);
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
 int pthread_mutex_destroy(pthread_mutex_t *mutex);
 int pthread_mutex_lock(pthread_mutex_t *mutex);
+int pthread_mutex_trylock(pthread_mutex_t *mutex);
 int pthread_mutex_unlock(pthread_mutex_t *mutex);
 
 int pthread_cond_init(pthread_cond_t *cond, void *attr);
@@ -625,9 +626,11 @@ returned by the start routine. It should only be called once per thread.
 automatically when it terminates. Detached threads cannot be joined.
 
 Mutex routines provide minimal mutual exclusion. `pthread_mutex_init()`
-initializes a mutex, `pthread_mutex_lock()` acquires it, and
-`pthread_mutex_unlock()` releases it.  Destroying a locked mutex with
-`pthread_mutex_destroy()` is undefined.
+initializes a mutex, `pthread_mutex_lock()` acquires it,
+`pthread_mutex_trylock()` attempts to lock without blocking and returns
+`EBUSY` if the mutex is already held, and `pthread_mutex_unlock()`
+releases it.  Destroying a locked mutex with `pthread_mutex_destroy()` is
+undefined.
 
 Condition variables provide simple waiting semantics. A thread calls
 `pthread_cond_wait()` with a locked mutex and blocks until another thread
