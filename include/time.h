@@ -29,6 +29,11 @@ struct itimerval {
     struct timeval it_value;    /* time until next expiration */
 };
 
+struct itimerspec {
+    struct timespec it_interval; /* timer period */
+    struct timespec it_value;    /* time until next expiration */
+};
+
 #ifndef ITIMER_REAL
 #define ITIMER_REAL    0
 #endif
@@ -48,8 +53,34 @@ struct tm {
     int tm_year;  /* years since 1900 */
     int tm_wday;  /* days since Sunday [0,6] */
     int tm_yday;  /* days since January 1 [0,365] */
-    int tm_isdst; /* daylight savings time flag */
+int tm_isdst; /* daylight savings time flag */
 };
+
+#ifndef __clockid_t_defined
+#define __clockid_t_defined 1
+typedef int clockid_t;
+#endif
+
+typedef union sigval {
+    int sival_int;
+    void *sival_ptr;
+} sigval_t;
+
+struct sigevent {
+    int sigev_notify;
+    int sigev_signo;
+    sigval_t sigev_value;
+};
+
+#ifndef SIGEV_SIGNAL
+#define SIGEV_SIGNAL 0
+#define SIGEV_NONE   1
+#endif
+
+#ifndef __timer_t_defined
+#define __timer_t_defined 1
+typedef struct vlibc_timer *timer_t;
+#endif
 
 #ifndef CLOCK_REALTIME
 #define CLOCK_REALTIME 0
@@ -73,6 +104,17 @@ int setitimer(int which, const struct itimerval *new,
               struct itimerval *old);
 int getitimer(int which, struct itimerval *curr);
 unsigned int alarm(unsigned int seconds);
+
+#ifndef TIMER_ABSTIME
+#define TIMER_ABSTIME 1
+#endif
+
+int timer_create(clockid_t clockid, struct sigevent *sevp, timer_t *timerid);
+int timer_delete(timer_t timerid);
+int timer_settime(timer_t timerid, int flags,
+                  const struct itimerspec *new_value,
+                  struct itimerspec *old_value);
+int timer_gettime(timer_t timerid, struct itimerspec *curr_value);
 
 size_t strftime(char *s, size_t max, const char *format, const struct tm *tm);
 char *strptime(const char *s, const char *format, struct tm *tm);

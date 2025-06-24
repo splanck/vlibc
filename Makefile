@@ -114,6 +114,7 @@ SRC := \
     src/time_conv.c \
     src/time_r.c \
     src/itimer.c \
+    src/timer.c \
     src/strftime.c \
     src/wcsftime.c \
     src/strptime.c \

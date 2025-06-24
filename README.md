@@ -50,6 +50,7 @@ programs. Key features include:
 - Filesystem limits with `pathconf()` and `fpathconf()`
 - Query configuration strings with `confstr()`
 - Simple alarm timers with `alarm()`
+- POSIX interval timers with `timer_create` and `timer_settime()`
 - Basic character set conversion with `iconv`
 
 **Note**: vlibc provides only a small subset of the standard C library. Some

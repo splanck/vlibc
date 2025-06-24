@@ -1434,6 +1434,18 @@ struct itimerval it = { {1, 0}, {1, 0} };
 setitimer(ITIMER_REAL, &it, NULL);
 ```
 
+`timer_create` provides a more flexible POSIX timer API. After creating a
+`timer_t` handle, call `timer_settime` to arm it and `timer_gettime` to query
+the remaining time. vlibc maps these helpers to the Linux `timer_create(2)`
+syscall or to BSD `kqueue` timers.
+
+```c
+timer_t t;
+struct itimerspec its = { {0, 0}, {1, 0} };
+timer_create(CLOCK_REALTIME, NULL, &t);
+timer_settime(t, 0, &its, NULL);
+```
+
 ## Resource Limits
 
 Processes may query and update operating system limits using
