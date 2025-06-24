@@ -45,6 +45,11 @@ static void wout_str(wchar_t *dst, size_t size, size_t *pos,
         wout_char(dst, size, pos, s[i]);
 }
 
+/*
+ * vswprintf_impl is the wide-character equivalent of vsnprintf_impl. It
+ * builds formatted output in a caller-provided buffer and supports a
+ * minimal subset of format specifiers.
+ */
 static int vswprintf_impl(wchar_t *str, size_t size, const wchar_t *fmt, va_list ap)
 {
     size_t pos = 0;
@@ -177,6 +182,10 @@ int swprintf(wchar_t *str, size_t size, const wchar_t *format, ...)
     return r;
 }
 
+/*
+ * vfdwprintf performs wide-character formatted output directly to a file
+ * descriptor. It converts the wide buffer to multibyte text before writing.
+ */
 static int vfdwprintf(int fd, const wchar_t *format, va_list ap)
 {
     wchar_t wbuf[1024];
@@ -200,6 +209,10 @@ int vwprintf(const wchar_t *format, va_list ap)
     return vfdwprintf(1, format, ap);
 }
 
+/*
+ * fwprintf is the wide-character variant of fprintf and writes formatted
+ * output to the given FILE stream.
+ */
 int fwprintf(FILE *stream, const wchar_t *format, ...)
 {
     va_list ap;
@@ -209,6 +222,9 @@ int fwprintf(FILE *stream, const wchar_t *format, ...)
     return r;
 }
 
+/*
+ * wprintf prints a formatted wide-character string to standard output.
+ */
 int wprintf(const wchar_t *format, ...)
 {
     va_list ap;

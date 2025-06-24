@@ -58,6 +58,11 @@ static void out_str(char *dst, size_t size, size_t *pos,
         out_char(dst, size, pos, s[i]);
 }
 
+/*
+ * vsnprintf_impl handles the core of formatted output. It parses the format
+ * string and builds a temporary result in the caller provided buffer. Only a
+ * small subset of printf formatting is implemented.
+ */
 static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
 {
     size_t pos = 0;
@@ -204,6 +209,10 @@ int sprintf(char *str, const char *format, ...)
     return r;
 }
 
+/*
+ * vfdprintf formats to a fixed-size buffer and writes the result to a
+ * file descriptor. It is the low level helper used by printf and friends.
+ */
 static int vfdprintf(int fd, const char *format, va_list ap)
 {
     char buf[1024];
@@ -227,6 +236,11 @@ int dprintf(int fd, const char *format, ...)
     return r;
 }
 
+/*
+ * vfprintf sends formatted output to a FILE stream. Memory-backed streams
+ * are handled specially by formatting into a temporary buffer and then
+ * writing with fwrite(). For regular files, vfdprintf performs the work.
+ */
 int vfprintf(FILE *stream, const char *format, va_list ap)
 {
     if (stream && stream->is_mem) {
@@ -263,6 +277,10 @@ int fprintf(FILE *stream, const char *format, ...)
     return r;
 }
 
+/*
+ * printf formats the arguments according to the format string and writes the
+ * result to standard output. It delegates most of the work to vprintf.
+ */
 int printf(const char *format, ...)
 {
     va_list ap;
