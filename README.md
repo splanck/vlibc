@@ -48,6 +48,7 @@ programs. Key features include:
 - Device node creation with `mknod()`
 - Generic descriptor control with `ioctl()`
 - Filesystem limits with `pathconf()` and `fpathconf()`
+- Query configuration strings with `confstr()`
 - Simple alarm timers with `alarm()`
 - Basic character set conversion with `iconv`
 

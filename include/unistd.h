@@ -28,6 +28,8 @@ int setegid(gid_t egid);
 long sysconf(int name);
 int getpagesize(void);
 
+size_t confstr(int name, char *buf, size_t len);
+
 long pathconf(const char *path, int name);
 long fpathconf(int fd, int name);
 
