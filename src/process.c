@@ -9,6 +9,7 @@
 #include "env.h"
 #include "memory.h"
 #include <stdarg.h>
+#include <fcntl.h>
 extern long syscall(long number, ...);
 
 /* from atexit.c */
@@ -355,6 +356,153 @@ sighandler_t signal(int signum, sighandler_t handler)
 #endif
 }
 
+struct posix_spawn_file_action {
+    int type;
+    int fd;
+    int newfd;
+    char *path;
+    int oflag;
+    mode_t mode;
+};
+
+#define SPAWN_ACTION_OPEN  1
+#define SPAWN_ACTION_CLOSE 2
+#define SPAWN_ACTION_DUP2  3
+
+int posix_spawn_file_actions_init(posix_spawn_file_actions_t *acts)
+{
+    if (!acts)
+        return EINVAL;
+    acts->actions = NULL;
+    acts->count = 0;
+    return 0;
+}
+
+int posix_spawn_file_actions_destroy(posix_spawn_file_actions_t *acts)
+{
+    if (!acts)
+        return EINVAL;
+    for (size_t i = 0; i < acts->count; i++)
+        if (acts->actions[i].type == SPAWN_ACTION_OPEN)
+            free(acts->actions[i].path);
+    free(acts->actions);
+    acts->actions = NULL;
+    acts->count = 0;
+    return 0;
+}
+
+static int file_actions_add(posix_spawn_file_actions_t *acts,
+                            struct posix_spawn_file_action **out)
+{
+    size_t n = acts->count + 1;
+    struct posix_spawn_file_action *tmp =
+        realloc(acts->actions, n * sizeof(*tmp));
+    if (!tmp)
+        return ENOMEM;
+    acts->actions = tmp;
+    *out = &acts->actions[acts->count];
+    acts->count = n;
+    return 0;
+}
+
+int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *acts, int fd,
+                                     const char *path, int oflag, mode_t mode)
+{
+    if (!acts || !path)
+        return EINVAL;
+    struct posix_spawn_file_action *a;
+    int r = file_actions_add(acts, &a);
+    if (r)
+        return r;
+    a->type = SPAWN_ACTION_OPEN;
+    a->fd = fd;
+    a->oflag = oflag;
+    a->mode = mode;
+    a->path = strdup(path);
+    if (!a->path)
+        return ENOMEM;
+    return 0;
+}
+
+int posix_spawn_file_actions_adddup2(posix_spawn_file_actions_t *acts, int fd,
+                                     int newfd)
+{
+    if (!acts)
+        return EINVAL;
+    struct posix_spawn_file_action *a;
+    int r = file_actions_add(acts, &a);
+    if (r)
+        return r;
+    a->type = SPAWN_ACTION_DUP2;
+    a->fd = fd;
+    a->newfd = newfd;
+    a->path = NULL;
+    return 0;
+}
+
+int posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *acts, int fd)
+{
+    if (!acts)
+        return EINVAL;
+    struct posix_spawn_file_action *a;
+    int r = file_actions_add(acts, &a);
+    if (r)
+        return r;
+    a->type = SPAWN_ACTION_CLOSE;
+    a->fd = fd;
+    a->path = NULL;
+    return 0;
+}
+
+int posix_spawnattr_init(posix_spawnattr_t *attr)
+{
+    if (!attr)
+        return EINVAL;
+    attr->flags = 0;
+    sigemptyset(&attr->sigmask);
+    sigemptyset(&attr->sigdefault);
+    attr->pgroup = 0;
+    return 0;
+}
+
+int posix_spawnattr_destroy(posix_spawnattr_t *attr)
+{
+    (void)attr;
+    return 0;
+}
+
+int posix_spawnattr_setflags(posix_spawnattr_t *attr, short flags)
+{
+    if (!attr)
+        return EINVAL;
+    attr->flags = flags;
+    return 0;
+}
+
+int posix_spawnattr_getflags(const posix_spawnattr_t *attr, short *flags)
+{
+    if (!attr || !flags)
+        return EINVAL;
+    *flags = attr->flags;
+    return 0;
+}
+
+int posix_spawnattr_setsigmask(posix_spawnattr_t *attr, const sigset_t *mask)
+{
+    if (!attr || !mask)
+        return EINVAL;
+    attr->sigmask = *mask;
+    return 0;
+}
+
+int posix_spawnattr_getsigmask(const posix_spawnattr_t *attr, sigset_t *mask)
+{
+    if (!attr || !mask)
+        return EINVAL;
+    *mask = attr->sigmask;
+    return 0;
+}
+
 static pid_t vlibc_vfork(void)
 {
 #ifdef SYS_vfork
@@ -374,14 +522,69 @@ int posix_spawn(pid_t *pid, const char *path,
                 const posix_spawnattr_t *attrp,
                 char *const argv[], char *const envp[])
 {
-    (void)file_actions;
-    (void)attrp;
-    pid_t cpid = vlibc_vfork();
-    if (cpid < 0)
+    int errpipe[2];
+    if (pipe(errpipe) < 0)
         return errno;
+    fcntl(errpipe[0], F_SETFD, FD_CLOEXEC);
+    fcntl(errpipe[1], F_SETFD, FD_CLOEXEC);
+
+    pid_t cpid = fork();
+    if (cpid < 0)
+        {
+            int err = errno;
+            close(errpipe[0]);
+            close(errpipe[1]);
+            return err;
+        }
     if (cpid == 0) {
+        close(errpipe[0]);
+        int err;
+
+        if (attrp) {
+            if (attrp->flags & POSIX_SPAWN_SETPGROUP)
+                setpgid(0, attrp->pgroup);
+            if (attrp->flags & POSIX_SPAWN_SETSIGMASK)
+                sigprocmask(SIG_SETMASK, &attrp->sigmask, NULL);
+            if (attrp->flags & POSIX_SPAWN_SETSIGDEF)
+                for (int s = 1; s < 64; s++)
+                    if (sigismember(&attrp->sigdefault, s))
+                        signal(s, SIG_DFL);
+        }
+
+        if (file_actions) {
+            for (size_t i = 0; i < file_actions->count; i++) {
+                struct posix_spawn_file_action *a = &file_actions->actions[i];
+                switch (a->type) {
+                case SPAWN_ACTION_OPEN: {
+                    int fd = open(a->path, a->oflag, a->mode);
+                    if (fd < 0) { err = errno; write(errpipe[1], &err, sizeof(err)); _exit(127); }
+                    if (fd != a->fd) {
+                        if (dup2(fd, a->fd) < 0) { err = errno; write(errpipe[1], &err, sizeof(err)); _exit(127); }
+                        close(fd);
+                    }
+                    break; }
+                case SPAWN_ACTION_CLOSE:
+                    if (close(a->fd) < 0) { err = errno; write(errpipe[1], &err, sizeof(err)); _exit(127); }
+                    break;
+                case SPAWN_ACTION_DUP2:
+                    if (dup2(a->fd, a->newfd) < 0) { err = errno; write(errpipe[1], &err, sizeof(err)); _exit(127); }
+                    break;
+                }
+            }
+        }
+
         execve(path, argv, envp ? envp : environ);
+        err = errno;
+        write(errpipe[1], &err, sizeof(err));
         _exit(127);
+    }
+    close(errpipe[1]);
+    int child_err = 0;
+    ssize_t n = read(errpipe[0], &child_err, sizeof(child_err));
+    close(errpipe[0]);
+    if (n > 0) {
+        waitpid(cpid, NULL, 0);
+        return child_err;
     }
     if (pid)
         *pid = cpid;
