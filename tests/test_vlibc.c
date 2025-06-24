@@ -1868,6 +1868,77 @@ static const char *test_posix_spawn_fn(void)
     return 0;
 }
 
+static const char *test_posix_spawn_actions(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    const char *in = "/tmp/pspawn_in.txt";
+    const char *out = "/tmp/pspawn_out.txt";
+    int fd = open(in, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+    write(fd, "abc", 3);
+    close(fd);
+
+    posix_spawn_file_actions_t fa;
+    posix_spawn_file_actions_init(&fa);
+    posix_spawn_file_actions_addopen(&fa, 0, in, O_RDONLY, 0);
+    posix_spawn_file_actions_addopen(&fa, 4, out,
+                                    O_WRONLY | O_CREAT | O_TRUNC, 0600);
+    posix_spawn_file_actions_adddup2(&fa, 4, 1);
+    posix_spawn_file_actions_addclose(&fa, 4);
+
+    char *argv[] = {"/bin/cat", NULL};
+    pid_t pid;
+    int r = posix_spawn(&pid, "/bin/cat", &fa, NULL, argv, __environ);
+    posix_spawn_file_actions_destroy(&fa);
+    mu_assert("spawn actions", r == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("cat status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    fd = open(out, O_RDONLY);
+    char buf[4] = {0};
+    read(fd, buf, 3);
+    close(fd);
+    unlink(in);
+    unlink(out);
+    mu_assert("actions content", strcmp(buf, "abc") == 0);
+    return 0;
+}
+
+static const char *test_posix_spawn_sigmask(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    const char *out = "/tmp/pspawn_mask.txt";
+    posix_spawn_file_actions_t fa;
+    posix_spawn_file_actions_init(&fa);
+    posix_spawn_file_actions_addopen(&fa, 1, out,
+                                    O_WRONLY | O_CREAT | O_TRUNC, 0600);
+
+    posix_spawnattr_t at;
+    posix_spawnattr_init(&at);
+    sigset_t m;
+    sigemptyset(&m);
+    sigaddset(&m, SIGUSR1);
+    posix_spawnattr_setflags(&at, POSIX_SPAWN_SETSIGMASK);
+    posix_spawnattr_setsigmask(&at, &m);
+
+    char *argv[] = {"/bin/sh", "-c", "kill -USR1 $$; echo hi", NULL};
+    pid_t pid;
+    int r = posix_spawn(&pid, "/bin/sh", &fa, &at, argv, __environ);
+    posix_spawn_file_actions_destroy(&fa);
+    mu_assert("spawn sigmask", r == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("sigmask status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    int fd = open(out, O_RDONLY);
+    char buf[4] = {0};
+    read(fd, buf, 3);
+    close(fd);
+    unlink(out);
+    mu_assert("sigmask content", strcmp(buf, "hi\n") == 0);
+    return 0;
+}
+
 static const char *test_popen_fn(void)
 {
     FILE *f = popen("echo popen", "r");
@@ -2543,6 +2614,8 @@ static const char *all_tests(void)
     mu_run_test(test_execle_fn);
     mu_run_test(test_execvp_fn);
     mu_run_test(test_posix_spawn_fn);
+    mu_run_test(test_posix_spawn_actions);
+    mu_run_test(test_posix_spawn_sigmask);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_temp_files);

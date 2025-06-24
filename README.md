@@ -122,6 +122,9 @@ posix_spawn(&pid, "/bin/echo", NULL, NULL, args, environ);
 waitpid(pid, NULL, 0);
 ```
 
+`posix_spawn` now honors optional attributes and file actions so callers can
+remap file descriptors or specify a signal mask for the new process.
+
 For detailed documentation, see [vlibcdoc.md](vlibcdoc.md).
 
 ## Thread-Local Storage
