@@ -16,9 +16,12 @@ struct dl_handle {
     Elf64_Sym *symtab;
     const char *strtab;
     size_t nsyms;
+    char *path;
+    struct dl_handle *next;
 };
 
 static char dl_err[128];
+static struct dl_handle *dl_list;
 
 static void set_error(const char *msg);
 
@@ -195,6 +198,8 @@ void *dlopen(const char *filename, int flag)
     h->symtab = NULL;
     h->strtab = NULL;
     h->nsyms = 0;
+    h->path = strdup(filename);
+    h->next = NULL;
 
     if (dyn_vaddr) {
         Elf64_Dyn *dyn = (Elf64_Dyn *)((char *)base + dyn_vaddr);
@@ -230,6 +235,10 @@ void *dlopen(const char *filename, int flag)
     }
 
     close(fd);
+
+    h->next = dl_list;
+    dl_list = h;
+
     return h;
 }
 
@@ -251,7 +260,45 @@ int dlclose(void *handle)
     struct dl_handle *h = handle;
     if (!h)
         return -1;
+    struct dl_handle **pp = &dl_list;
+    while (*pp && *pp != h)
+        pp = &(*pp)->next;
+    if (*pp == h)
+        *pp = h->next;
     munmap(h->mapping, h->map_size);
+    free(h->path);
     free(h);
+    return 0;
+}
+
+int dladdr(void *addr, Dl_info *info)
+{
+    if (!info)
+        return 0;
+
+    for (struct dl_handle *h = dl_list; h; h = h->next) {
+        char *start = h->base;
+        char *end = (char *)h->base + h->map_size;
+        if ((char *)addr >= start && (char *)addr < end) {
+            info->dli_fname = h->path;
+            info->dli_fbase = h->base;
+            info->dli_sname = NULL;
+            info->dli_saddr = NULL;
+            if (h->symtab && h->strtab) {
+                for (size_t i = 0; i < h->nsyms; i++) {
+                    Elf64_Addr val = h->symtab[i].st_value;
+                    if (val == 0)
+                        continue;
+                    void *sym_addr = (char *)h->base + val;
+                    if (sym_addr == addr) {
+                        info->dli_sname = h->strtab + h->symtab[i].st_name;
+                        info->dli_saddr = sym_addr;
+                        break;
+                    }
+                }
+            }
+            return 1;
+        }
+    }
     return 0;
 }

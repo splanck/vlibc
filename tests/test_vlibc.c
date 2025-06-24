@@ -2469,6 +2469,22 @@ static const char *test_dlopen_basic(void)
     return 0;
 }
 
+static const char *test_dladdr_basic(void)
+{
+    void *h = dlopen("tests/plugin.so", RTLD_NOW);
+    mu_assert("dlopen", h != NULL);
+    int (*val)(void) = dlsym(h, "plugin_value");
+    mu_assert("dlsym", val != NULL);
+    Dl_info info;
+    memset(&info, 0, sizeof(info));
+    mu_assert("dladdr", dladdr((void *)val, &info) == 1);
+    mu_assert("symbol", info.dli_sname && strcmp(info.dli_sname, "plugin_value") == 0);
+    mu_assert("addr", info.dli_saddr == (void *)val);
+    mu_assert("file", info.dli_fname && strstr(info.dli_fname, "plugin.so"));
+    dlclose(h);
+    return 0;
+}
+
 static const char *test_getopt_long_missing(void)
 {
     char *argv[] = {"prog", "--bar", NULL};
@@ -2679,6 +2695,7 @@ static const char *all_tests(void)
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
     mu_run_test(test_dlopen_basic);
+    mu_run_test(test_dladdr_basic);
     mu_run_test(test_getopt_long_missing);
     mu_run_test(test_getopt_long_basic);
     mu_run_test(test_getopt_long_only_missing);

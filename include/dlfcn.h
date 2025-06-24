@@ -11,4 +11,13 @@ void *dlsym(void *handle, const char *symbol);
 int dlclose(void *handle);
 const char *dlerror(void);
 
+typedef struct {
+    const char *dli_fname; /* Pathname of shared object */
+    void *dli_fbase;       /* Base address where object is loaded */
+    const char *dli_sname; /* Name of symbol closest to addr */
+    void *dli_saddr;       /* Exact address of that symbol */
+} Dl_info;
+
+int dladdr(void *addr, Dl_info *info);
+
 #endif /* DLFCN_H */
