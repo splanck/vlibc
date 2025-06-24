@@ -480,6 +480,7 @@ int posix_spawnp(pid_t *pid, const char *file,
                  const posix_spawn_file_actions_t *file_actions,
                  const posix_spawnattr_t *attrp,
                  char *const argv[], char *const envp[]);
+pid_t wait(int *status);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
 pid_t getpid(void);
