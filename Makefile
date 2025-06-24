@@ -131,6 +131,7 @@ SRC := \
     src/wchar.c \
     src/wchar_conv.c \
     src/wctype.c \
+    src/memstream.c \
     src/tempfile.c \
     src/sysconf.c \
     src/syslog.c \

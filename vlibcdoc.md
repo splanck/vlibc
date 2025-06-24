@@ -871,6 +871,9 @@ and invokes `fsync` on the descriptor when one is present.
 
 `getline` and `getdelim` grow the supplied buffer automatically while reading.
 
+Use `open_memstream` to capture output into a dynamically growing buffer or
+`fmemopen` to read and write to an existing memory region.
+
 Streams may be given a custom buffer with `setvbuf` or the simpler
 `setbuf`. When buffered, I/O operates on that memory until it is filled
 or explicitly flushed.

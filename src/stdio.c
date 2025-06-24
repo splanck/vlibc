@@ -16,6 +16,23 @@ static int flush_buffer(FILE *stream)
 {
     if (!stream || !stream->buf || stream->buflen == 0)
         return 0;
+    if (stream->is_mem) {
+        if (stream->buflen >= stream->bufsize) {
+            unsigned char *tmp = realloc(stream->buf, stream->buflen + 1);
+            if (!tmp) {
+                stream->error = 1;
+                return -1;
+            }
+            stream->buf = tmp;
+            stream->bufsize = stream->buflen + 1;
+        }
+        stream->buf[stream->buflen] = '\0';
+        if (stream->mem_bufp)
+            *stream->mem_bufp = (char *)stream->buf;
+        if (stream->mem_sizep)
+            *stream->mem_sizep = stream->buflen;
+        return 0;
+    }
     size_t off = 0;
     while (off < stream->buflen) {
         ssize_t w = write(stream->fd, stream->buf + off,
@@ -73,6 +90,18 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
     size_t copied = 0;
     unsigned char *out = ptr;
     while (copied < total) {
+        if (stream->is_mem) {
+            if (stream->bufpos >= stream->buflen) {
+                stream->eof = 1;
+                break;
+            }
+            size_t avail = stream->buflen - stream->bufpos;
+            size_t n = total - copied < avail ? total - copied : avail;
+            memcpy(out + copied, stream->buf + stream->bufpos, n);
+            stream->bufpos += n;
+            copied += n;
+            continue;
+        }
         if (stream->buf) {
             if (stream->bufpos >= stream->buflen) {
                 ssize_t r = read(stream->fd, stream->buf, stream->bufsize);
@@ -114,7 +143,27 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
     size_t written = 0;
     const unsigned char *in = ptr;
     while (written < total) {
-        if (stream->buf) {
+        if (stream->is_mem) {
+            size_t needed = stream->bufpos + (total - written);
+            if (needed > stream->bufsize) {
+                size_t newsize = stream->bufsize ? stream->bufsize * 2 : 128;
+                while (newsize < needed)
+                    newsize *= 2;
+                unsigned char *tmp = realloc(stream->buf, newsize);
+                if (!tmp) {
+                    stream->error = 1;
+                    break;
+                }
+                stream->buf = tmp;
+                stream->bufsize = newsize;
+            }
+            size_t n = total - written;
+            memcpy(stream->buf + stream->bufpos, in + written, n);
+            stream->bufpos += n;
+            if (stream->bufpos > stream->buflen)
+                stream->buflen = stream->bufpos;
+            written += n;
+        } else if (stream->buf) {
             if (stream->buflen == stream->bufsize) {
                 if (flush_buffer(stream) < 0)
                     break;
@@ -145,7 +194,11 @@ int fclose(FILE *stream)
     if (!stream)
         return -1;
     flush_buffer(stream);
-    int ret = close(stream->fd);
+    int ret = 0;
+    if (!stream->is_mem)
+        ret = close(stream->fd);
+    if (stream->is_mem && stream->mem_bufp)
+        stream->buf_owned = 0;
     if (stream->buf && stream->buf_owned)
         free(stream->buf);
     free(stream);
@@ -158,6 +211,23 @@ int fseek(FILE *stream, long offset, int whence)
         return -1;
     if (flush_buffer(stream) < 0)
         return -1;
+    if (stream->is_mem) {
+        size_t newpos;
+        if (whence == SEEK_SET)
+            newpos = (size_t)offset;
+        else if (whence == SEEK_CUR)
+            newpos = stream->bufpos + (size_t)offset;
+        else if (whence == SEEK_END)
+            newpos = stream->buflen + (size_t)offset;
+        else
+            return -1;
+        if (newpos > stream->buflen)
+            newpos = stream->buflen;
+        stream->bufpos = newpos;
+        stream->eof = (stream->bufpos >= stream->buflen);
+        stream->have_ungot = 0;
+        return 0;
+    }
     off_t r = lseek(stream->fd, (off_t)offset, whence);
     if (r == (off_t)-1) {
         stream->error = 1;
@@ -176,6 +246,8 @@ long ftell(FILE *stream)
         return -1L;
     if (flush_buffer(stream) < 0)
         return -1L;
+    if (stream->is_mem)
+        return (long)stream->bufpos;
     off_t r = lseek(stream->fd, 0, SEEK_CUR);
     if (r == (off_t)-1) {
         stream->error = 1;
@@ -199,7 +271,9 @@ void rewind(FILE *stream)
     if (!stream)
         return;
     flush_buffer(stream);
-    if (lseek(stream->fd, 0, SEEK_SET) == (off_t)-1)
+    if (stream->is_mem) {
+        stream->bufpos = 0;
+    } else if (lseek(stream->fd, 0, SEEK_SET) == (off_t)-1)
         stream->error = 1;
     stream->bufpos = 0;
     stream->buflen = 0;
@@ -278,14 +352,18 @@ int fflush(FILE *stream)
     if (flush_buffer(stream) < 0)
         return -1;
 #if defined(__linux__) && defined(SYS_fsync)
-    long ret = vlibc_syscall(SYS_fsync, stream->fd, 0, 0, 0, 0, 0);
-    if (ret < 0) {
-        errno = -ret;
-        return -1;
+    if (!stream->is_mem) {
+        long ret = vlibc_syscall(SYS_fsync, stream->fd, 0, 0, 0, 0, 0);
+        if (ret < 0) {
+            errno = -ret;
+            return -1;
+        }
     }
 #else
-    if (fsync(stream->fd) < 0)
+#    ifndef __linux__
+    if (!stream->is_mem && fsync(stream->fd) < 0)
         return -1;
+#    endif
 #endif
     return 0;
 }
