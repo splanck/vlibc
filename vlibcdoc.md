@@ -812,6 +812,14 @@ fcntl(fd, F_SETFL, fl | O_NONBLOCK);
 fcntl(fd, F_SETFD, FD_CLOEXEC);
 ```
 
+`ioctl` performs device-specific operations on a descriptor. Requests are
+platform-specific:
+
+```c
+struct winsize ws;
+ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);
+```
+
 ## File Locking
 
 Use `flock` to coordinate access to files between multiple processes.
