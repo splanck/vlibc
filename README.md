@@ -127,6 +127,7 @@ clock_gettime(CLOCK_MONOTONIC, &ts);
 ```
 
 `CLOCK_REALTIME` returns the wall-clock time.
+`clock_getres` queries the resolution of a given clock.
 
 ## Time Formatting
 

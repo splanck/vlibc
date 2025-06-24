@@ -59,6 +59,7 @@ struct tm {
 #endif
 
 int clock_gettime(int clk_id, struct timespec *ts);
+int clock_getres(int clk_id, struct timespec *res);
 
 time_t time(time_t *t);
 int gettimeofday(struct timeval *tv, void *tz);

@@ -107,6 +107,7 @@ SRC := \
     src/uname.c \
     src/sleep.c \
     src/clock_gettime.c \
+    src/clock_getres.c \
     src/time.c \
     src/time_conv.c \
     src/time_r.c \
