@@ -13,6 +13,17 @@ void *memchr(const void *s, int c, size_t n)
     return NULL;
 }
 
+void *memrchr(const void *s, int c, size_t n)
+{
+    const unsigned char *p = (const unsigned char *)s + n;
+    unsigned char ch = (unsigned char)c;
+    while (n--) {
+        if (*--p == ch)
+            return (void *)p;
+    }
+    return NULL;
+}
+
 char *strrchr(const char *s, int c)
 {
     const char *ret = NULL;

@@ -103,7 +103,8 @@ sscanf("42 example", "%d %s", &num, word);
 ## String Helpers
 
 vlibc ships common routines like `strdup`, `strndup`, `strlcpy`, and `strlcat`.
-Tokenizers `strtok`, `strtok_r`, and the lightweight `strsep` help split
+Search helpers `strstr`, `strrchr`, `memchr`, and `memrchr` locate substrings or
+bytes. Tokenizers `strtok`, `strtok_r`, and the lightweight `strsep` help split
 strings based on delimiters.
 
 Launching a program in a new process with `posix_spawn` is similarly easy:
