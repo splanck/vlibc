@@ -29,6 +29,7 @@ long sysconf(int name);
 int getpagesize(void);
 
 char *getlogin(void);
+char *getpass(const char *prompt);
 
 #ifndef STDIN_FILENO
 #define STDIN_FILENO 0

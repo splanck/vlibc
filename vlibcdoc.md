@@ -28,31 +28,32 @@ This document outlines the architecture, planned modules, and API design for **v
 22. [File Control](#file-control)
 23. [File Locking](#file-locking)
 24. [Terminal Attributes](#terminal-attributes)
-25. [Standard Streams](#standard-streams)
-26. [Temporary Files](#temporary-files)
-27. [Networking](#networking)
-28. [I/O Multiplexing](#io-multiplexing)
-29. [File Permissions](#file-permissions)
-30. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-31. [File Status](#file-status)
-32. [Directory Iteration](#directory-iteration)
-33. [Path Canonicalization](#path-canonicalization)
-34. [Path Utilities](#path-utilities)
-35. [User Database](#user-database)
-36. [Group Database](#group-database)
-37. [Time Formatting](#time-formatting)
-38. [Locale Support](#locale-support)
-39. [Time Retrieval](#time-retrieval)
-40. [Sleep Functions](#sleep-functions)
-41. [Interval Timers](#interval-timers)
-42. [Raw System Calls](#raw-system-calls)
-43. [Non-local Jumps](#non-local-jumps)
-44. [Limitations](#limitations)
-45. [Conclusion](#conclusion)
-46. [Logging](#logging)
-47. [Path Expansion](#path-expansion)
-48. [Filesystem Statistics](#filesystem-statistics)
-49. [Resource Limits](#resource-limits)
+25. [Secure Password Input](#secure-password-input)
+26. [Standard Streams](#standard-streams)
+27. [Temporary Files](#temporary-files)
+28. [Networking](#networking)
+29. [I/O Multiplexing](#io-multiplexing)
+30. [File Permissions](#file-permissions)
+31. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+32. [File Status](#file-status)
+33. [Directory Iteration](#directory-iteration)
+34. [Path Canonicalization](#path-canonicalization)
+35. [Path Utilities](#path-utilities)
+36. [User Database](#user-database)
+37. [Group Database](#group-database)
+38. [Time Formatting](#time-formatting)
+39. [Locale Support](#locale-support)
+40. [Time Retrieval](#time-retrieval)
+41. [Sleep Functions](#sleep-functions)
+42. [Interval Timers](#interval-timers)
+43. [Raw System Calls](#raw-system-calls)
+44. [Non-local Jumps](#non-local-jumps)
+45. [Limitations](#limitations)
+46. [Conclusion](#conclusion)
+47. [Logging](#logging)
+48. [Path Expansion](#path-expansion)
+49. [Filesystem Statistics](#filesystem-statistics)
+50. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -855,6 +856,16 @@ if (tcgetattr(STDIN_FILENO, &t) == 0) {
     cfmakeraw(&t);
     tcsetattr(STDIN_FILENO, TCSANOW, &t);
 }
+```
+
+## Secure Password Input
+
+`getpass` reads a line from `/dev/tty` with echo disabled. The typed
+password is returned in a static buffer so callers should copy it if it
+needs to be preserved.
+
+```c
+char *pw = getpass("Password: ");
 ```
 
 ## Standard Streams

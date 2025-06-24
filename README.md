@@ -23,6 +23,7 @@ programs. Key features include:
 - Environment variable handling
 - Host name queries and changes
 - Login name retrieval with `getlogin()`
+- Secure password input with `getpass()`
 - Syslog-style logging
 - Change root directories with `chroot()` when supported
 - Directory scanning helpers
