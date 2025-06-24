@@ -413,12 +413,31 @@ state in a user-provided variable so it can be used in threaded code.
 
 `qsort` sorts an array in place using a user-supplied comparison
 function while `bsearch` performs binary search on a sorted array.
+`qsort_r` acts like `qsort` but forwards a caller provided context
+pointer to the comparison callback.
 
 ```c
 int values[] = {4, 2, 7};
 qsort(values, 3, sizeof(int), cmp_int);
 int key = 7;
 int *found = bsearch(&key, values, 3, sizeof(int), cmp_int);
+```
+
+`qsort_r` accepts an extra context pointer which is passed to the
+comparison function. This can be used to change the sort order
+dynamically:
+
+```c
+static int cmp_dir(const void *a, const void *b, void *ctx)
+{
+    int dir = *(int *)ctx;        // 1 for ascending, -1 for descending
+    int x = *(const int *)a;
+    int y = *(const int *)b;
+    return dir * ((x > y) - (x < y));
+}
+
+int desc = -1;
+qsort_r(values, 3, sizeof(int), cmp_dir, &desc);
 ```
 
 ## Regular Expressions
