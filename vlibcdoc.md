@@ -1318,6 +1318,20 @@ if (glob("src/*.c", 0, NULL, &g) == 0) {
 Results are sorted by default; pass `GLOB_NOSORT` to preserve the
 filesystem order.
 
+`wordexp` tokenizes a command-like string honoring quotes and escapes.
+Each word undergoes `glob` expansion and leading `~` is replaced with the
+user's home directory. The expanded words are returned in a `wordexp_t`
+array which must be freed with `wordfree`.
+
+```c
+wordexp_t we;
+if (wordexp("~/src/*.c", &we) == 0) {
+    for (size_t i = 0; i < we.we_wordc; i++)
+        printf("%s\n", we.we_wordv[i]);
+    wordfree(&we);
+}
+```
+
 ## User Database
 
 `pwd.h` exposes minimal lookup helpers for entries in `/etc/passwd`.

@@ -162,6 +162,7 @@ SRC := \
     src/fts.c \
     src/ftw.c \
     src/glob.c \
+    src/wordexp.c \
     src/wprintf.c \
     src/wscanf.c
 
