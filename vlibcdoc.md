@@ -26,32 +26,33 @@ This document outlines the architecture, planned modules, and API design for **v
 20. [Basic File I/O](#basic-file-io)
 21. [File Descriptor Helpers](#file-descriptor-helpers)
 22. [File Control](#file-control)
-23. [Terminal Attributes](#terminal-attributes)
-24. [Standard Streams](#standard-streams)
-25. [Temporary Files](#temporary-files)
-26. [Networking](#networking)
-27. [I/O Multiplexing](#io-multiplexing)
-28. [File Permissions](#file-permissions)
-29. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-30. [File Status](#file-status)
-31. [Directory Iteration](#directory-iteration)
-32. [Path Canonicalization](#path-canonicalization)
-33. [Path Utilities](#path-utilities)
-34. [User Database](#user-database)
-35. [Group Database](#group-database)
-36. [Time Formatting](#time-formatting)
-37. [Locale Support](#locale-support)
-38. [Time Retrieval](#time-retrieval)
-39. [Sleep Functions](#sleep-functions)
-40. [Interval Timers](#interval-timers)
-41. [Raw System Calls](#raw-system-calls)
-42. [Non-local Jumps](#non-local-jumps)
-43. [Limitations](#limitations)
-44. [Conclusion](#conclusion)
-45. [Logging](#logging)
-46. [Path Expansion](#path-expansion)
-47. [Filesystem Statistics](#filesystem-statistics)
-48. [Resource Limits](#resource-limits)
+23. [File Locking](#file-locking)
+24. [Terminal Attributes](#terminal-attributes)
+25. [Standard Streams](#standard-streams)
+26. [Temporary Files](#temporary-files)
+27. [Networking](#networking)
+28. [I/O Multiplexing](#io-multiplexing)
+29. [File Permissions](#file-permissions)
+30. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+31. [File Status](#file-status)
+32. [Directory Iteration](#directory-iteration)
+33. [Path Canonicalization](#path-canonicalization)
+34. [Path Utilities](#path-utilities)
+35. [User Database](#user-database)
+36. [Group Database](#group-database)
+37. [Time Formatting](#time-formatting)
+38. [Locale Support](#locale-support)
+39. [Time Retrieval](#time-retrieval)
+40. [Sleep Functions](#sleep-functions)
+41. [Interval Timers](#interval-timers)
+42. [Raw System Calls](#raw-system-calls)
+43. [Non-local Jumps](#non-local-jumps)
+44. [Limitations](#limitations)
+45. [Conclusion](#conclusion)
+46. [Logging](#logging)
+47. [Path Expansion](#path-expansion)
+48. [Filesystem Statistics](#filesystem-statistics)
+49. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -802,6 +803,20 @@ non-blocking mode:
 int fl = fcntl(fd, F_GETFL);
 fcntl(fd, F_SETFL, fl | O_NONBLOCK);
 fcntl(fd, F_SETFD, FD_CLOEXEC);
+```
+
+## File Locking
+
+Use `flock` to coordinate access to files between multiple processes.
+Shared locks (`LOCK_SH`) allow concurrent readers while an exclusive lock
+(`LOCK_EX`) grants write access. Combine `LOCK_NB` to return immediately if
+the lock cannot be obtained.
+
+```c
+int fd = open("data.txt", O_RDWR);
+flock(fd, LOCK_EX);
+/* operate on the file */
+flock(fd, LOCK_UN);
 ```
 
 ## Terminal Attributes
