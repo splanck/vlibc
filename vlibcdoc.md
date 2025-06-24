@@ -1240,6 +1240,13 @@ struct timespec ts;
 clock_gettime(CLOCK_REALTIME, &ts);
 ```
 
+The resolution of a clock can be determined with `clock_getres`:
+
+```c
+struct timespec res;
+clock_getres(CLOCK_MONOTONIC, &res);
+```
+
 Thread-safe variants `gmtime_r` and `localtime_r` fill a user-provided
 `struct tm` using the same conversion logic.  `tzset` updates the active
 timezone by reading the `TZ` environment variable on BSD systems.
