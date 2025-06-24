@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: File locking constants and sendfile declarations.
+ */
 #ifndef SYS_FILE_H
 #define SYS_FILE_H
 

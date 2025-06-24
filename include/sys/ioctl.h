@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Device-specific IO control interface.
+ */
 #ifndef SYS_IOCTL_H
 #define SYS_IOCTL_H
 

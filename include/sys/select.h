@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: fd_set helpers and select() declaration.
+ */
 #ifndef SYS_SELECT_H
 #define SYS_SELECT_H
 

@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Status macros for process waiting.
+ */
 #ifndef SYS_WAIT_H
 #define SYS_WAIT_H
 

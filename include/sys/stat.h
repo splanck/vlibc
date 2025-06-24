@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Prototypes for file status queries.
+ */
 #ifndef SYS_STAT_H
 #define SYS_STAT_H
 

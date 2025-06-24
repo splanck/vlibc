@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Resource limit definitions and usage tracking.
+ */
 #ifndef SYS_RESOURCE_H
 #define SYS_RESOURCE_H
 

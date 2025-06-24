@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: System identification structure and uname.
+ */
 #ifndef SYS_UTSNAME_H
 #define SYS_UTSNAME_H
 

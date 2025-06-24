@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Filesystem statistics interface.
+ */
 #ifndef SYS_STATVFS_H
 #define SYS_STATVFS_H
 
