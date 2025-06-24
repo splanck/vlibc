@@ -15,7 +15,7 @@
 extern pthread_t host_pthread_self(void) __asm__("pthread_self");
 extern int host_pthread_equal(pthread_t, pthread_t) __asm__("pthread_equal");
 
-/* simple spinlock based mutex */
+/* Initialize a mutex implemented as a simple spinlock. */
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
 {
     (void)attr;
@@ -23,6 +23,7 @@ int pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
     return 0;
 }
 
+/* Acquire the spinlock based mutex. */
 int pthread_mutex_lock(pthread_mutex_t *mutex)
 {
     while (atomic_flag_test_and_set_explicit(&mutex->locked,
@@ -31,6 +32,7 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
     return 0;
 }
 
+/* Try to acquire the mutex without blocking. */
 int pthread_mutex_trylock(pthread_mutex_t *mutex)
 {
     if (atomic_flag_test_and_set_explicit(&mutex->locked,
@@ -39,12 +41,14 @@ int pthread_mutex_trylock(pthread_mutex_t *mutex)
     return 0;
 }
 
+/* Release the mutex. */
 int pthread_mutex_unlock(pthread_mutex_t *mutex)
 {
     atomic_flag_clear_explicit(&mutex->locked, memory_order_release);
     return 0;
 }
 
+/* Initialize a mutex attribute object. */
 int pthread_mutexattr_init(pthread_mutexattr_t *attr)
 {
     if (!attr)
@@ -53,12 +57,14 @@ int pthread_mutexattr_init(pthread_mutexattr_t *attr)
     return 0;
 }
 
+/* Destroy a mutex attribute object (no-op). */
 int pthread_mutexattr_destroy(pthread_mutexattr_t *attr)
 {
     (void)attr;
     return 0;
 }
 
+/* Set the mutex type to normal or recursive. */
 int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type)
 {
     if (!attr)
@@ -69,6 +75,7 @@ int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type)
     return 0;
 }
 
+/* Retrieve the configured mutex type. */
 int pthread_mutexattr_gettype(const pthread_mutexattr_t *attr, int *type)
 {
     if (!attr || !type)
@@ -77,12 +84,14 @@ int pthread_mutexattr_gettype(const pthread_mutexattr_t *attr, int *type)
     return 0;
 }
 
+/* Destroy a mutex (no resources to release). */
 int pthread_mutex_destroy(pthread_mutex_t *mutex)
 {
     (void)mutex;
     return 0;
 }
 
+/* Initialize a condition variable. */
 int pthread_cond_init(pthread_cond_t *cond, void *attr)
 {
     (void)attr;
@@ -90,6 +99,7 @@ int pthread_cond_init(pthread_cond_t *cond, void *attr)
     return 0;
 }
 
+/* Wait for a condition signal while temporarily releasing the mutex. */
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
     int seq = atomic_load_explicit(&cond->seq, memory_order_relaxed);
@@ -102,6 +112,7 @@ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
     return 0;
 }
 
+/* Like pthread_cond_wait but stop waiting after "abstime". */
 int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
                            const struct timespec *abstime)
 {
@@ -129,12 +140,14 @@ int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
     return 0;
 }
 
+/* Wake one thread waiting on the condition. */
 int pthread_cond_signal(pthread_cond_t *cond)
 {
     atomic_fetch_add_explicit(&cond->seq, 1, memory_order_release);
     return 0;
 }
 
+/* Wake all threads waiting on the condition. */
 int pthread_cond_broadcast(pthread_cond_t *cond)
 {
     return pthread_cond_signal(cond);
@@ -146,6 +159,7 @@ static pthread_mutex_t key_lock;
 static void (*key_destructors[KEY_MAX])(void *);
 static __thread void *key_values[KEY_MAX];
 
+/* Create a thread-specific data key. */
 int pthread_key_create(pthread_key_t *key, void (*destructor)(void *))
 {
     if (!key)
@@ -163,6 +177,7 @@ int pthread_key_create(pthread_key_t *key, void (*destructor)(void *))
     return EAGAIN;
 }
 
+/* Delete a thread-specific data key. */
 int pthread_key_delete(pthread_key_t key)
 {
     if (key >= KEY_MAX)
@@ -174,6 +189,7 @@ int pthread_key_delete(pthread_key_t key)
     return 0;
 }
 
+/* Store a per-thread value associated with a key. */
 int pthread_setspecific(pthread_key_t key, const void *value)
 {
     if (key >= KEY_MAX || !key_destructors[key])
@@ -182,6 +198,7 @@ int pthread_setspecific(pthread_key_t key, const void *value)
     return 0;
 }
 
+/* Retrieve the thread-specific value for the key. */
 void *pthread_getspecific(pthread_key_t key)
 {
     if (key >= KEY_MAX || !key_destructors[key])
@@ -191,6 +208,7 @@ void *pthread_getspecific(pthread_key_t key)
 
 static pthread_mutex_t once_lock;
 
+/* Execute the initialization routine exactly once. */
 int pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
 {
     if (atomic_load_explicit(&once_control->done, memory_order_acquire))
@@ -204,11 +222,13 @@ int pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
     return 0;
 }
 
+/* Return the calling thread's ID. */
 pthread_t pthread_self(void)
 {
     return host_pthread_self();
 }
 
+/* Compare two thread IDs for equality. */
 int pthread_equal(pthread_t a, pthread_t b)
 {
     return host_pthread_equal(a, b);

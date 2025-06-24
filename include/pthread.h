@@ -47,40 +47,70 @@ typedef struct {
 
 int pthread_create(pthread_t *thread, const void *attr,
                    void *(*start_routine)(void *), void *arg);
+/* Spawn a new thread executing "start_routine" with "arg" using
+ * the underlying host pthread implementation. */
 int pthread_join(pthread_t thread, void **retval);
+/* Wait for the given thread to finish and retrieve its return value. */
 int pthread_detach(pthread_t thread);
+/* Mark the thread as detached so its resources are released on exit. */
 pthread_t pthread_self(void);
+/* Obtain the identifier of the calling thread. */
 int pthread_equal(pthread_t a, pthread_t b);
+/* Compare two thread identifiers for equality. */
 
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
+/* Initialize a mutex using a simple spinlock. */
 int pthread_mutex_destroy(pthread_mutex_t *mutex);
+/* No-op for our lightweight mutex type. */
 int pthread_mutex_lock(pthread_mutex_t *mutex);
+/* Acquire the mutex, spinning until it becomes available. */
 int pthread_mutex_trylock(pthread_mutex_t *mutex);
+/* Attempt to acquire the mutex without blocking. */
 int pthread_mutex_unlock(pthread_mutex_t *mutex);
+/* Release the mutex. */
 
 int pthread_mutexattr_init(pthread_mutexattr_t *attr);
+/* Initialize mutex attribute object with default type. */
 int pthread_mutexattr_destroy(pthread_mutexattr_t *attr);
+/* Destroy a mutex attribute object (no-op). */
 int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type);
+/* Set the mutex behavior (normal or recursive). */
 int pthread_mutexattr_gettype(const pthread_mutexattr_t *attr, int *type);
+/* Retrieve the mutex type stored in the attribute object. */
 
 int pthread_cond_init(pthread_cond_t *cond, void *attr);
+/* Initialize a condition variable. */
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
+/* Wait for a signal while releasing and re-acquiring the mutex. */
 int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
                            const struct timespec *abstime);
+/* Like pthread_cond_wait but with an absolute timeout. */
 int pthread_cond_signal(pthread_cond_t *cond);
+/* Wake one waiter on the condition variable. */
 int pthread_cond_broadcast(pthread_cond_t *cond);
+/* Wake all waiters on the condition variable. */
 
 int pthread_rwlock_init(pthread_rwlock_t *rwlock, void *attr);
+/* Initialize a read-write lock allowing shared readers. */
 int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
+/* Acquire the lock for reading, blocking writers. */
 int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
+/* Acquire the lock for writing, waiting for readers to drain. */
 int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
+/* Release a read or write hold on the lock. */
 int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
+/* Destroy a read-write lock object (no-op). */
 
 int pthread_key_create(pthread_key_t *key, void (*destructor)(void *));
+/* Allocate a new thread-specific data key. */
 int pthread_key_delete(pthread_key_t key);
+/* Remove a previously created thread-specific data key. */
 int pthread_setspecific(pthread_key_t key, const void *value);
+/* Associate a value with the calling thread for the given key. */
 void *pthread_getspecific(pthread_key_t key);
+/* Retrieve the thread-specific value for the given key. */
 
 int pthread_once(pthread_once_t *once_control, void (*init_routine)(void));
+/* Ensure that "init_routine" is executed only once. */
 
 #endif /* PTHREAD_H */

@@ -9,6 +9,7 @@
 #include "semaphore.h"
 #include <errno.h>
 
+/* Initialize a semaphore with the given initial count. */
 int sem_init(sem_t *sem, int pshared, unsigned value)
 {
     (void)pshared;
@@ -18,12 +19,14 @@ int sem_init(sem_t *sem, int pshared, unsigned value)
     return 0;
 }
 
+/* Destroy a semaphore object (no-op). */
 int sem_destroy(sem_t *sem)
 {
     (void)sem;
     return 0;
 }
 
+/* Decrement the semaphore count, blocking if it is zero. */
 int sem_wait(sem_t *sem)
 {
     if (!sem)
@@ -40,6 +43,7 @@ int sem_wait(sem_t *sem)
     }
 }
 
+/* Try to decrement the semaphore without blocking. */
 int sem_trywait(sem_t *sem)
 {
     if (!sem)
@@ -54,6 +58,7 @@ int sem_trywait(sem_t *sem)
     return EAGAIN;
 }
 
+/* Increment the semaphore count and wake waiters. */
 int sem_post(sem_t *sem)
 {
     if (!sem)

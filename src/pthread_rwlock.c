@@ -11,6 +11,7 @@
 #include <errno.h>
 #include "time.h"
 
+/* Initialize a read-write lock object. */
 int pthread_rwlock_init(pthread_rwlock_t *rwlock, void *attr)
 {
     (void)attr;
@@ -19,6 +20,7 @@ int pthread_rwlock_init(pthread_rwlock_t *rwlock, void *attr)
     return 0;
 }
 
+/* Acquire the lock for reading; multiple readers may hold it. */
 int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock)
 {
     for (;;) {
@@ -32,6 +34,7 @@ int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock)
     return 0;
 }
 
+/* Acquire the lock for writing, waiting until no readers exist. */
 int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock)
 {
     while (atomic_exchange_explicit(&rwlock->writer, 1, memory_order_acquire))
@@ -43,6 +46,7 @@ int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock)
     return 0;
 }
 
+/* Release a read or write hold on the lock. */
 int pthread_rwlock_unlock(pthread_rwlock_t *rwlock)
 {
     if (atomic_load_explicit(&rwlock->writer, memory_order_acquire))
@@ -52,6 +56,7 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock)
     return 0;
 }
 
+/* Destroy a read-write lock object (no-op). */
 int pthread_rwlock_destroy(pthread_rwlock_t *rwlock)
 {
     (void)rwlock;
