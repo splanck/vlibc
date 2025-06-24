@@ -274,6 +274,7 @@ The **string** module provides fundamental operations needed by most C programs:
 - Search helpers `strstr`, `strrchr`, `memchr`, `memrchr`, and `memmem` for locating substrings or bytes.
 - Prefix scanners `strspn` and `strcspn` along with `strpbrk` for finding any character from a set.
 - Case-insensitive comparisons `strcasecmp` and `strncasecmp`.
+- Case-insensitive substring search with `strcasestr`.
 - Basic collation helpers `strcoll` and `strxfrm` act on ASCII strings. On
   BSD systems they defer to the host implementations when the active locale is
   not `"C"` or `"POSIX"`.
