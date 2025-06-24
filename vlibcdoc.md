@@ -647,6 +647,13 @@ int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
+
+typedef struct { atomic_int count; } sem_t;
+int sem_init(sem_t *sem, int pshared, unsigned value);
+int sem_destroy(sem_t *sem);
+int sem_wait(sem_t *sem);
+int sem_trywait(sem_t *sem);
+int sem_post(sem_t *sem);
 ```
 
 Threads share the process address space and use a simple spinlock-based
@@ -688,6 +695,10 @@ Read-write locks allow multiple threads to hold the lock in read mode or
 a single writer to hold it exclusively. They are lightweight wrappers
 around atomic counters and follow the same initialization and destruction
 pattern as mutexes.
+
+Semaphores provide a simple counting mechanism for coordinating threads. They
+use an atomic counter and block with `nanosleep` when no resources are
+available.
 
 Thread-local storage is available through key objects:
 

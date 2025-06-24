@@ -19,6 +19,7 @@ programs. Key features include:
 - Non-blocking mutex acquisition with `pthread_mutex_trylock()`
 - Timed waits on conditions with `pthread_cond_timedwait()`
 - Set mutex types with `pthread_mutexattr_settype()`
+- Counting semaphores with `sem_init()`/`sem_wait()`/`sem_post()`
 - Query the current thread ID with `pthread_self()` and compare IDs with `pthread_equal()`
 - Networking sockets
 - Human-readable address errors with `gai_strerror()`
