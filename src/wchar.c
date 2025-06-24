@@ -1,4 +1,5 @@
 #include "wchar.h"
+#include "memory.h"
 
 int mbtowc(wchar_t *pwc, const char *s, size_t n)
 {
@@ -57,4 +58,57 @@ int wcswidth(const wchar_t *s, size_t n)
         width += w;
     }
     return width;
+}
+
+wchar_t *wcscpy(wchar_t *dest, const wchar_t *src)
+{
+    wchar_t *d = dest;
+    while ((*d++ = *src++) != 0)
+        ;
+    return dest;
+}
+
+wchar_t *wcsncpy(wchar_t *dest, const wchar_t *src, size_t n)
+{
+    wchar_t *d = dest;
+    while (n && *src) {
+        *d++ = *src++;
+        --n;
+    }
+    while (n--) {
+        *d++ = 0;
+    }
+    return dest;
+}
+
+int wcscmp(const wchar_t *s1, const wchar_t *s2)
+{
+    while (*s1 && *s1 == *s2) {
+        s1++;
+        s2++;
+    }
+    return (int)(*s1 - *s2);
+}
+
+int wcsncmp(const wchar_t *s1, const wchar_t *s2, size_t n)
+{
+    while (n--) {
+        wchar_t c1 = *s1++;
+        wchar_t c2 = *s2++;
+        if (c1 != c2)
+            return (int)(c1 - c2);
+        if (c1 == 0)
+            break;
+    }
+    return 0;
+}
+
+wchar_t *wcsdup(const wchar_t *s)
+{
+    size_t len = wcslen(s);
+    wchar_t *dup = malloc((len + 1) * sizeof(wchar_t));
+    if (!dup)
+        return NULL;
+    wcscpy(dup, s);
+    return dup;
 }

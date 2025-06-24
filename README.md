@@ -226,6 +226,10 @@ int c = wcwidth(L'A');                // 1
 int w = wcswidth(L"hello", 5);       // 5
 ```
 
+Common helpers like `wcslen`, `wcscpy`, `wcsncpy`, `wcscmp`, `wcsncmp`, and
+`wcsdup` mirror their narrow-string counterparts for manipulating wide
+character strings.
+
 ## Wide-Character I/O
 
 Basic wide-character formatting and scanning are available through
