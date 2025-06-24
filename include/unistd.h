@@ -35,6 +35,7 @@ long fpathconf(int fd, int name);
 
 char *getlogin(void);
 char *getpass(const char *prompt);
+char *crypt(const char *key, const char *salt);
 
 #ifndef STDIN_FILENO
 #define STDIN_FILENO 0

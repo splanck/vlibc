@@ -31,6 +31,7 @@ programs. Key features include:
 - Thread-safe user and group lookups with `getpwuid_r`, `getpwnam_r`,
   `getgrgid_r`, and `getgrnam_r`
 - Secure password input with `getpass()`
+- Password hashing with `crypt()`
 - Syslog-style logging
 - Change root directories with `chroot()` when supported
 - Directory scanning helpers
