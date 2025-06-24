@@ -28,26 +28,27 @@ This document outlines the architecture, planned modules, and API design for **v
 22. [File Control](#file-control)
 23. [File Locking](#file-locking)
 24. [Terminal Attributes](#terminal-attributes)
-25. [Secure Password Input](#secure-password-input)
-26. [Standard Streams](#standard-streams)
-27. [Temporary Files](#temporary-files)
-28. [Networking](#networking)
-29. [I/O Multiplexing](#io-multiplexing)
-30. [File Permissions](#file-permissions)
-31. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-32. [File Status](#file-status)
-33. [Directory Iteration](#directory-iteration)
-34. [Path Canonicalization](#path-canonicalization)
-35. [Path Utilities](#path-utilities)
-36. [User Database](#user-database)
-37. [Group Database](#group-database)
-38. [Time Formatting](#time-formatting)
-39. [Locale Support](#locale-support)
-40. [Time Retrieval](#time-retrieval)
-41. [Sleep Functions](#sleep-functions)
-42. [Interval Timers](#interval-timers)
-43. [Raw System Calls](#raw-system-calls)
-44. [Non-local Jumps](#non-local-jumps)
+25. [Pseudo-terminals](#pseudo-terminals)
+26. [Secure Password Input](#secure-password-input)
+27. [Standard Streams](#standard-streams)
+28. [Temporary Files](#temporary-files)
+29. [Networking](#networking)
+30. [I/O Multiplexing](#io-multiplexing)
+31. [File Permissions](#file-permissions)
+32. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+33. [File Status](#file-status)
+34. [Directory Iteration](#directory-iteration)
+35. [Path Canonicalization](#path-canonicalization)
+36. [Path Utilities](#path-utilities)
+37. [User Database](#user-database)
+38. [Group Database](#group-database)
+39. [Time Formatting](#time-formatting)
+40. [Locale Support](#locale-support)
+41. [Time Retrieval](#time-retrieval)
+42. [Sleep Functions](#sleep-functions)
+43. [Interval Timers](#interval-timers)
+44. [Raw System Calls](#raw-system-calls)
+45. [Non-local Jumps](#non-local-jumps)
 45. [Limitations](#limitations)
 46. [Conclusion](#conclusion)
 47. [Logging](#logging)
@@ -963,6 +964,22 @@ if (tcgetattr(STDIN_FILENO, &t) == 0) {
     cfmakeraw(&t);
     tcsetattr(STDIN_FILENO, TCSANOW, &t);
 }
+```
+
+## Pseudo-terminals
+
+`openpty` creates a master/slave pair of descriptors. Optional `termios` and
+`winsize` parameters configure the initial terminal settings. `forkpty` combines
+`openpty` with `fork` and attaches the slave as the controlling terminal of the
+child.
+
+```c
+int mfd;
+pid_t pid = forkpty(&mfd, NULL, NULL, NULL);
+if (pid == 0) {
+    execlp("/bin/sh", "sh", NULL);
+}
+write(mfd, "echo hi\n", 8);
 ```
 
 ## Secure Password Input

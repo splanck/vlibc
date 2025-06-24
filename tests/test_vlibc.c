@@ -37,6 +37,7 @@
 #include "../include/regex.h"
 #include "../include/ftw.h"
 #include "../include/fts.h"
+#include "../include/pty.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -2046,6 +2047,30 @@ static const char *test_rand_fn(void)
     return 0;
 }
 
+static const char *test_forkpty_echo(void)
+{
+    int mfd;
+    pid_t pid = forkpty(&mfd, NULL, NULL, NULL);
+    mu_assert("forkpty", pid >= 0);
+    if (pid == 0) {
+        char buf[6] = {0};
+        ssize_t n = read(0, buf, sizeof(buf)-1);
+        if (n > 0)
+            write(1, buf, (size_t)n);
+        _exit(0);
+    }
+    const char *msg = "ping\n";
+    mu_assert("write", write(mfd, msg, 5) == 5);
+    char buf[6] = {0};
+    mu_assert("read", read(mfd, buf, 5) == 5);
+    mu_assert("echo", memcmp(buf, msg, 5) == 0);
+    close(mfd);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("exit", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    return 0;
+}
+
 static const char *test_temp_files(void)
 {
     char tmpl[] = "/tmp/vlibctestXXXXXX";
@@ -2737,6 +2762,7 @@ static const char *all_tests(void)
     mu_run_test(test_posix_spawn_sigmask);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
+    mu_run_test(test_forkpty_echo);
     mu_run_test(test_temp_files);
     mu_run_test(test_abort_fn);
     mu_run_test(test_sigaction_install);

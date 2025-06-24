@@ -88,6 +88,7 @@ SRC := \
     src/ioctl.c \
     src/isatty.c \
     src/termios.c \
+    src/pty.c \
     src/file.c \
     src/file_perm.c \
     src/flock.c \
