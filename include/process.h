@@ -28,8 +28,40 @@ void exit(int status);
 typedef void (*sighandler_t)(int);
 sighandler_t signal(int signum, sighandler_t handler);
 
-typedef struct { int __dummy; } posix_spawnattr_t;
-typedef struct { int __dummy; } posix_spawn_file_actions_t;
+/* posix_spawn attributes */
+typedef struct {
+    short flags;
+    sigset_t sigmask;
+    sigset_t sigdefault;
+    pid_t pgroup;
+} posix_spawnattr_t;
+
+int posix_spawnattr_init(posix_spawnattr_t *attr);
+int posix_spawnattr_destroy(posix_spawnattr_t *attr);
+int posix_spawnattr_setflags(posix_spawnattr_t *attr, short flags);
+int posix_spawnattr_getflags(const posix_spawnattr_t *attr, short *flags);
+int posix_spawnattr_setsigmask(posix_spawnattr_t *attr, const sigset_t *mask);
+int posix_spawnattr_getsigmask(const posix_spawnattr_t *attr, sigset_t *mask);
+
+/* spawn flags */
+#define POSIX_SPAWN_RESETIDS   0x01
+#define POSIX_SPAWN_SETPGROUP  0x02
+#define POSIX_SPAWN_SETSIGDEF  0x04
+#define POSIX_SPAWN_SETSIGMASK 0x08
+
+/* file action types */
+typedef struct {
+    struct posix_spawn_file_action *actions;
+    size_t count;
+} posix_spawn_file_actions_t;
+
+int posix_spawn_file_actions_init(posix_spawn_file_actions_t *acts);
+int posix_spawn_file_actions_destroy(posix_spawn_file_actions_t *acts);
+int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *acts, int fd,
+                                     const char *path, int oflag, mode_t mode);
+int posix_spawn_file_actions_adddup2(posix_spawn_file_actions_t *acts, int fd,
+                                     int newfd);
+int posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *acts, int fd);
 int posix_spawn(pid_t *pid, const char *path,
                 const posix_spawn_file_actions_t *file_actions,
                 const posix_spawnattr_t *attrp,

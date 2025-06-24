@@ -506,6 +506,15 @@ int posix_spawnp(pid_t *pid, const char *file,
                  const posix_spawn_file_actions_t *file_actions,
                  const posix_spawnattr_t *attrp,
                  char *const argv[], char *const envp[]);
+int posix_spawnattr_init(posix_spawnattr_t *attr);
+int posix_spawnattr_setflags(posix_spawnattr_t *attr, short flags);
+int posix_spawnattr_setsigmask(posix_spawnattr_t *attr, const sigset_t *mask);
+int posix_spawn_file_actions_init(posix_spawn_file_actions_t *acts);
+int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *acts, int fd,
+                                     const char *path, int oflag, mode_t mode);
+int posix_spawn_file_actions_adddup2(posix_spawn_file_actions_t *acts, int fd,
+                                     int newfd);
+int posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *acts, int fd);
 pid_t wait(int *status);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
@@ -538,6 +547,10 @@ These wrappers retrieve and manipulate process information. `getuid`,
 group IDs. `setuid`, `seteuid`, `setgid`, and `setegid` modify them when
 supported by the host.
 
+`posix_spawn` accepts an attribute object controlling the signal mask and
+process group of the new process. File actions can be supplied to open, close
+or duplicate file descriptors before executing the program.
+
 ### Example
 
 ```c
@@ -546,6 +559,21 @@ pid_t pid;
 char *args[] = {"/bin/echo", "hello", NULL};
 posix_spawn(&pid, "/bin/echo", NULL, NULL, args, environ);
 waitpid(pid, NULL, 0);
+
+/* Spawn echo with stdout redirected and SIGUSR1 blocked. */
+posix_spawn_file_actions_t fa;
+posix_spawn_file_actions_init(&fa);
+posix_spawn_file_actions_addopen(&fa, 1, "/tmp/out.txt",
+                                 O_WRONLY|O_CREAT|O_TRUNC, 0600);
+
+posix_spawnattr_t at;
+posix_spawnattr_init(&at);
+sigset_t m;
+sigemptyset(&m);
+sigaddset(&m, SIGUSR1);
+posix_spawnattr_setflags(&at, POSIX_SPAWN_SETSIGMASK);
+posix_spawnattr_setsigmask(&at, &m);
+posix_spawn(&pid, "/bin/echo", &fa, &at, args, environ);
 
 /* Install a handler and send the process an interrupt. */
 void on_int(int signo) { (void)signo; }
