@@ -1190,11 +1190,18 @@ struct passwd {
 
 struct passwd *getpwuid(uid_t uid);
 struct passwd *getpwnam(const char *name);
+int getpwuid_r(uid_t uid, struct passwd *pwd, char *buf, size_t buflen,
+               struct passwd **result);
+int getpwnam_r(const char *name, struct passwd *pwd, char *buf, size_t buflen,
+               struct passwd **result);
 char *getlogin(void);
 ```
 
 On BSD systems vlibc parses the file directly. The location can be
 overridden via the `VLIBC_PASSWD` environment variable for testing.
+
+`getpwuid_r()` and `getpwnam_r()` perform the same search but store
+results in caller supplied memory so they are safe for concurrent use.
 
 `getlogin()` obtains the user name for the current UID using
 `getpwuid(getuid())`.  The resulting string is cached in thread-local
@@ -1214,11 +1221,16 @@ struct group {
 
 struct group *getgrgid(gid_t gid);
 struct group *getgrnam(const char *name);
+int getgrgid_r(gid_t gid, struct group *grp, char *buf, size_t buflen,
+               struct group **result);
+int getgrnam_r(const char *name, struct group *grp, char *buf, size_t buflen,
+               struct group **result);
 ```
 
 As with the password file, BSD platforms parse the group database directly.
 The path can be overridden via the `VLIBC_GROUP` environment variable when
-running tests.
+running tests. The `*_r` variants fill caller provided buffers and are
+thread-safe.
 
 ## Time Formatting
 

@@ -141,6 +141,8 @@ SRC := \
     src/getline.c \
     src/getpass.c \
     src/getlogin.c \
+    src/pwd_r.c \
+    src/grp_r.c \
     src/pwd.c \
     src/grp.c \
     src/uid.c \
