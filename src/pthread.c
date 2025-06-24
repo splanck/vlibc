@@ -23,6 +23,14 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
     return 0;
 }
 
+int pthread_mutex_trylock(pthread_mutex_t *mutex)
+{
+    if (atomic_flag_test_and_set_explicit(&mutex->locked,
+                                          memory_order_acquire))
+        return EBUSY;
+    return 0;
+}
+
 int pthread_mutex_unlock(pthread_mutex_t *mutex)
 {
     atomic_flag_clear_explicit(&mutex->locked, memory_order_release);
