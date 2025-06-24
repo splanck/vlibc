@@ -16,6 +16,13 @@ typedef struct {
 } pthread_mutex_t;
 
 typedef struct {
+    int type;
+} pthread_mutexattr_t;
+
+#define PTHREAD_MUTEX_NORMAL 0
+#define PTHREAD_MUTEX_RECURSIVE 1
+
+typedef struct {
     atomic_int seq;
 } pthread_cond_t;
 
@@ -44,6 +51,11 @@ int pthread_mutex_destroy(pthread_mutex_t *mutex);
 int pthread_mutex_lock(pthread_mutex_t *mutex);
 int pthread_mutex_trylock(pthread_mutex_t *mutex);
 int pthread_mutex_unlock(pthread_mutex_t *mutex);
+
+int pthread_mutexattr_init(pthread_mutexattr_t *attr);
+int pthread_mutexattr_destroy(pthread_mutexattr_t *attr);
+int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type);
+int pthread_mutexattr_gettype(const pthread_mutexattr_t *attr, int *type);
 
 int pthread_cond_init(pthread_cond_t *cond, void *attr);
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);

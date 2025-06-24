@@ -630,6 +630,10 @@ int pthread_mutex_destroy(pthread_mutex_t *mutex);
 int pthread_mutex_lock(pthread_mutex_t *mutex);
 int pthread_mutex_trylock(pthread_mutex_t *mutex);
 int pthread_mutex_unlock(pthread_mutex_t *mutex);
+int pthread_mutexattr_init(pthread_mutexattr_t *attr);
+int pthread_mutexattr_destroy(pthread_mutexattr_t *attr);
+int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type);
+int pthread_mutexattr_gettype(const pthread_mutexattr_t *attr, int *type);
 
 int pthread_cond_init(pthread_cond_t *cond, void *attr);
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
@@ -665,6 +669,11 @@ initializes a mutex, `pthread_mutex_lock()` acquires it,
 `EBUSY` if the mutex is already held, and `pthread_mutex_unlock()`
 releases it.  Destroying a locked mutex with `pthread_mutex_destroy()` is
 undefined.
+
+Mutex attributes currently track only the mutex type. Use
+`pthread_mutexattr_settype()` with `PTHREAD_MUTEX_NORMAL` (the default)
+or `PTHREAD_MUTEX_RECURSIVE` and pass the attribute to
+`pthread_mutex_init()`.
 
 Condition variables provide simple waiting semantics. A thread calls
 `pthread_cond_wait()` with a locked mutex and blocks until another thread
@@ -1409,7 +1418,8 @@ state.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
    codes.
  - `perror` and `strerror` cover only common errors.
- - Thread support is limited to basic mutexes and join/detach.
+ - Thread support is limited to basic mutexes with optional type
+   attributes and join/detach.
  - Locale handling falls back to the host implementation for values other
    than `"C"` or `"POSIX"`.
  - `setjmp`/`longjmp` rely on the host C library when available.

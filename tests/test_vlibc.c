@@ -1338,6 +1338,20 @@ static const char *test_pthread_tls(void)
     return 0;
 }
 
+static const char *test_pthread_mutexattr(void)
+{
+    pthread_mutexattr_t attr;
+    int type = -1;
+    mu_assert("attr init", pthread_mutexattr_init(&attr) == 0);
+    mu_assert("attr default", pthread_mutexattr_gettype(&attr, &type) == 0 &&
+                              type == PTHREAD_MUTEX_NORMAL);
+    mu_assert("attr set", pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE) == 0);
+    mu_assert("attr get", pthread_mutexattr_gettype(&attr, &type) == 0 &&
+                             type == PTHREAD_MUTEX_RECURSIVE);
+    mu_assert("attr destroy", pthread_mutexattr_destroy(&attr) == 0);
+    return 0;
+}
+
 static pthread_rwlock_t rwlock;
 static int rwval;
 
@@ -2390,6 +2404,7 @@ static const char *all_tests(void)
     mu_run_test(test_pthread);
     mu_run_test(test_pthread_detach);
     mu_run_test(test_pthread_tls);
+    mu_run_test(test_pthread_mutexattr);
     mu_run_test(test_pthread_rwlock);
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
