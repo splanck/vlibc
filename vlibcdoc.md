@@ -1008,7 +1008,10 @@ chown("data.txt", 1000, 1000);
 fchmod(fd, 0644);
 fchown(fd, 1000, 1000);
 lchown("symlink", 1000, 1000);
+mknod("/tmp/loop0", S_IFBLK | 0600, makedev(7, 0));
 ```
+`mknod` creates special files like block or character devices when given a
+device number.
 `fchmodat` and `fchownat` perform the same operations relative to a directory
 file descriptor.
 
