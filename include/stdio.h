@@ -11,20 +11,28 @@
 #include <sys/types.h>
 
 typedef struct {
-    int fd;
-    unsigned char *buf;
-    size_t bufsize;
-    size_t bufpos;
-    size_t buflen;
-    int buf_owned;
-    int error;
-    int eof;
-    int have_ungot;
-    unsigned char ungot_char;
-    int is_mem;
-    char **mem_bufp;
-    size_t *mem_sizep;
+    int fd;                      /* underlying file descriptor */
+    unsigned char *buf;          /* optional I/O buffer */
+    size_t bufsize;              /* size of the buffer */
+    size_t bufpos;               /* current read/write position in buf */
+    size_t buflen;               /* valid data length in buf */
+    int buf_owned;               /* buffer should be freed on close */
+    int error;                   /* error indicator */
+    int eof;                     /* end-of-file indicator */
+    int have_ungot;              /* ungetc() character available */
+    unsigned char ungot_char;    /* character from ungetc() */
+    int is_mem;                  /* stream operates on memory rather than fd */
+    char **mem_bufp;             /* pointer to buffer pointer for mem streams */
+    size_t *mem_sizep;           /* pointer to size for mem streams */
 } FILE;
+
+/*
+ * A FILE may maintain an internal buffer for efficiency. Data written with
+ * fwrite() accumulates in the buffer until it is full or fflush() is called.
+ * Reads fill the buffer from the descriptor and bytes are consumed from bufpos
+ * until empty. flush_buffer() in stdio.c performs the actual write back to the
+ * descriptor or memory region when the buffer needs to be drained.
+ */
 
 #define _IOFBF 0
 #define _IOLBF 1

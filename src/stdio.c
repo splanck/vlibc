@@ -20,6 +20,11 @@ FILE *stdin = NULL;
 FILE *stdout = NULL;
 FILE *stderr = NULL;
 
+/*
+ * flush_buffer writes any pending data in the FILE's buffer to the
+ * underlying file descriptor or memory region. It is invoked when the
+ * buffer is full or when an explicit flush/seek occurs.
+ */
 static int flush_buffer(FILE *stream)
 {
     if (!stream || !stream->buf || stream->buflen == 0)
@@ -56,6 +61,12 @@ static int flush_buffer(FILE *stream)
     return 0;
 }
 
+/*
+ * fopen opens the file at the given path and returns a new FILE structure.
+ * Only simple mode strings like "r", "w" and "a" are understood. The
+ * returned stream starts without a buffer; callers typically call
+ * setvbuf() or rely on default buffering.
+ */
 FILE *fopen(const char *path, const char *mode)
 {
     int flags = -1;
