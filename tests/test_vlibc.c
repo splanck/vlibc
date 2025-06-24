@@ -651,6 +651,12 @@ static const char *test_string_helpers(void)
     mu_assert("memrchr", mr == &rbuf[3]);
     mu_assert("memrchr none", memrchr(rbuf, 5, sizeof(rbuf)) == NULL);
 
+    const char hay[] = "abcdabcd";
+    void *mm = memmem(hay, sizeof(hay) - 1, "cdab", 4);
+    mu_assert("memmem mid", mm == hay + 2);
+    mu_assert("memmem none", memmem(hay, sizeof(hay) - 1, "zz", 2) == NULL);
+    mu_assert("memmem empty", memmem(hay, sizeof(hay) - 1, "", 0) == hay);
+
     mu_assert("strspn", strspn("abcde", "abc") == 3);
     mu_assert("strcspn", strcspn("hello world", " ") == 5);
     const char *bp = strpbrk("hello", "xol");
