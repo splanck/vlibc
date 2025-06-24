@@ -2131,6 +2131,25 @@ static const char *test_qsort_strings(void)
     return 0;
 }
 
+static int int_cmp_dir(const void *a, const void *b, void *ctx)
+{
+    int dir = *(int *)ctx;
+    int ia = *(const int *)a;
+    int ib = *(const int *)b;
+    return dir * ((ia > ib) - (ia < ib));
+}
+
+static const char *test_qsort_r_desc(void)
+{
+    int arr[] = {4, 2, 7, 1, -1};
+    int dir = -1;
+    qsort_r(arr, 5, sizeof(int), int_cmp_dir, &dir);
+    int sorted[] = {7, 4, 2, 1, -1};
+    for (int i = 0; i < 5; ++i)
+        mu_assert("qsort_r", arr[i] == sorted[i]);
+    return 0;
+}
+
 static const char *test_regex_backref_basic(void)
 {
     regex_t re;
@@ -2410,6 +2429,7 @@ static const char *all_tests(void)
     mu_run_test(test_ftw_walk);
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
+    mu_run_test(test_qsort_r_desc);
     mu_run_test(test_regex_backref_basic);
     mu_run_test(test_regex_backref_fail);
     mu_run_test(test_math_functions);

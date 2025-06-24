@@ -31,6 +31,7 @@ programs. Key features include:
 - Syslog-style logging
 - Change root directories with `chroot()` when supported
 - Directory scanning helpers
+- Array sorting with `qsort`, `qsort_r` and `bsearch`
 - Standard `assert` macro for runtime checks
 - Extended math helpers
 - Descriptor-based printing with `dprintf()`/`vdprintf()`

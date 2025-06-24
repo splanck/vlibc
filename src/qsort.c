@@ -23,6 +23,20 @@ void qsort(void *base, size_t nmemb, size_t size,
     }
 }
 
+void qsort_r(void *base, size_t nmemb, size_t size,
+             int (*compar)(const void *, const void *, void *), void *ctx)
+{
+    char *b = base;
+    for (size_t i = 0; i < nmemb; i++) {
+        for (size_t j = i + 1; j < nmemb; j++) {
+            char *pi = b + i * size;
+            char *pj = b + j * size;
+            if (compar(pi, pj, ctx) > 0)
+                swap(pi, pj, size);
+        }
+    }
+}
+
 void *bsearch(const void *key, const void *base, size_t nmemb, size_t size,
               int (*compar)(const void *, const void *))
 {
