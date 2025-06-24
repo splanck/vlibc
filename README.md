@@ -276,5 +276,5 @@ This builds the test binary and exercises many of the library functions.
 ## License
 
 This project is released under the terms of the
-[GNU General Public License version 3](LICENSE).
+[BSD 2-Clause "Simplified" License](LICENSE).
 
