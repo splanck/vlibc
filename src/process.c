@@ -200,6 +200,11 @@ pid_t waitpid(pid_t pid, int *status, int options)
     return (pid_t)ret;
 }
 
+pid_t wait(int *status)
+{
+    return waitpid(-1, status, 0);
+}
+
 int kill(pid_t pid, int sig)
 {
     long ret = vlibc_syscall(SYS_kill, pid, sig, 0, 0, 0, 0);
