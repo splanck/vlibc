@@ -96,6 +96,7 @@ SRC := \
     src/path.c \
     $(SYS_SRC) \
     src/mmap.c \
+    src/msync.c \
     src/env.c \
     src/hostname.c \
     src/uname.c \
