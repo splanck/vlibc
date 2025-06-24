@@ -1546,6 +1546,21 @@ static const char *test_sleep_functions(void)
     return 0;
 }
 
+static const char *test_timer_basic(void)
+{
+    timer_t t;
+    struct itimerspec its = { {0, 0}, {0, 200000000} };
+    mu_assert("timer_create", timer_create(CLOCK_REALTIME, NULL, &t) == 0);
+    mu_assert("timer_settime", timer_settime(t, 0, &its, NULL) == 0);
+    struct timespec ts = {0, 300000000};
+    nanosleep(&ts, NULL);
+    struct itimerspec cur;
+    mu_assert("timer_gettime", timer_gettime(t, &cur) == 0);
+    mu_assert("expired", cur.it_value.tv_sec == 0 && cur.it_value.tv_nsec == 0);
+    mu_assert("timer_delete", timer_delete(t) == 0);
+    return 0;
+}
+
 static const char *test_strftime_basic(void)
 {
     struct tm tm = {
@@ -2682,6 +2697,7 @@ static const char *all_tests(void)
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
+    mu_run_test(test_timer_basic);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_strftime_extended);
     mu_run_test(test_wcsftime_basic);
