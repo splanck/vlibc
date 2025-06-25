@@ -24,6 +24,7 @@ programs. Key features include:
 - Networking sockets
 - Human-readable address errors with `gai_strerror()`
 - Interface enumeration via `getifaddrs`
+- Network byte order helpers with `htons`, `ntohs`, `htonl` and `ntohl`
 - Dynamic loading with `dlopen`, `dlsym`, `dlclose` and `dladdr`
 - Environment variable handling
 - Host name queries and changes
