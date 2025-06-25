@@ -73,8 +73,23 @@ struct termios {
 #define TCSADRAIN 1
 #define TCSAFLUSH 2
 
+/* tcflow actions */
+#define TCOOFF    0
+#define TCOON     1
+#define TCIOFF    2
+#define TCION     3
+
+/* tcflush queue selectors */
+#define TCIFLUSH  0
+#define TCOFLUSH  1
+#define TCIOFLUSH 2
+
 int tcgetattr(int fd, struct termios *t);
 int tcsetattr(int fd, int act, const struct termios *t);
 void cfmakeraw(struct termios *t);
+int tcdrain(int fd);
+int tcflow(int fd, int act);
+int tcflush(int fd, int qs);
+int tcsendbreak(int fd, int dur);
 
 #endif /* TERMIOS_H */

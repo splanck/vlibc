@@ -60,6 +60,8 @@ programs. Key features include:
 - FIFO creation with `mkfifo()` and `mkfifoat()`
 - Device node creation with `mknod()`
 - Generic descriptor control with `ioctl()`
+- Terminal attribute helpers `tcgetattr()`, `tcsetattr()`, `tcdrain()`,
+  `tcflow()`, `tcflush()` and `tcsendbreak()`
 - Pseudo-terminal helpers with `openpty()` and `forkpty()`
 - Filesystem limits with `pathconf()` and `fpathconf()`
 - Query configuration strings with `confstr()`
