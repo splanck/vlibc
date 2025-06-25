@@ -1667,6 +1667,9 @@ struct timespec res;
 clock_getres(CLOCK_MONOTONIC, &res);
 ```
 
+`difftime` subtracts two `time_t` values and returns the elapsed seconds as
+a `double`.
+
 Thread-safe variants `gmtime_r` and `localtime_r` fill a user-provided
 `struct tm` using the same conversion logic.  `tzset` reloads the active
 timezone from the `TZ` environment variable or `/etc/localtime` so
