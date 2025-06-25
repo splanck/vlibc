@@ -366,8 +366,8 @@ locale. Non-`"C"` locales work when the host `setlocale(3)` accepts them
 
 The library also includes simple conversion routines `gmtime`, `localtime`,
 `mktime`, and `ctime`. They convert between `time_t` and `struct tm` or
-produce a readable string. `localtime` ignores the system timezone so the
-result is identical to `gmtime`.
+produce a readable string. `localtime` applies the offset configured via
+`tzset()` so results follow the `TZ` environment variable or `/etc/localtime`.
 
 The goal is to offer just enough functionality for common tasks without the complexity of full locale-aware libraries.
 
@@ -1628,8 +1628,9 @@ clock_getres(CLOCK_MONOTONIC, &res);
 ```
 
 Thread-safe variants `gmtime_r` and `localtime_r` fill a user-provided
-`struct tm` using the same conversion logic.  `tzset` updates the active
-timezone by reading the `TZ` environment variable on BSD systems.
+`struct tm` using the same conversion logic.  `tzset` reloads the active
+timezone from the `TZ` environment variable or `/etc/localtime` so
+`localtime`, `mktime` and `ctime` honour the configured offset.
 
 ## Sleep Functions
 

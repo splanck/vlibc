@@ -1899,6 +1899,58 @@ static const char *test_time_r_conversions(void)
     return 0;
 }
 
+static const char *test_tz_positive(void)
+{
+    setenv("TZ", "UTC+2", 1);
+    tzset();
+    time_t t = 0;
+    struct tm tm;
+    mu_assert("pos localtime", localtime_r(&t, &tm) != NULL);
+    mu_assert("hour plus", tm.tm_hour == 2);
+    unsetenv("TZ");
+    tzset();
+    return 0;
+}
+
+static const char *test_tz_negative(void)
+{
+    setenv("TZ", "UTC-3", 1);
+    tzset();
+    time_t t = 4 * 3600;
+    struct tm tm;
+    mu_assert("neg localtime", localtime_r(&t, &tm) != NULL);
+    mu_assert("hour minus", tm.tm_hour == 1);
+    unsetenv("TZ");
+    tzset();
+    return 0;
+}
+
+static const char *test_tz_mktime_roundtrip(void)
+{
+    setenv("TZ", "UTC+1", 1);
+    tzset();
+    time_t t = 1700000000;
+    struct tm tm;
+    localtime_r(&t, &tm);
+    time_t r = mktime(&tm);
+    unsetenv("TZ");
+    tzset();
+    mu_assert("mktime round", r == t);
+    return 0;
+}
+
+static const char *test_tz_ctime(void)
+{
+    setenv("TZ", "UTC+1", 1);
+    tzset();
+    time_t t = 1700000000;
+    char *s = ctime(&t);
+    unsetenv("TZ");
+    tzset();
+    mu_assert("ctime offset", strstr(s, "23:13:20") != NULL);
+    return 0;
+}
+
 static const char *test_environment(void)
 {
     env_init(NULL);
@@ -3193,6 +3245,10 @@ static const char *all_tests(void)
     mu_run_test(test_strptime_basic);
     mu_run_test(test_time_conversions);
     mu_run_test(test_time_r_conversions);
+    mu_run_test(test_tz_positive);
+    mu_run_test(test_tz_negative);
+    mu_run_test(test_tz_mktime_roundtrip);
+    mu_run_test(test_tz_ctime);
     mu_run_test(test_environment);
     mu_run_test(test_locale_from_env);
     mu_run_test(test_gethostname_fn);

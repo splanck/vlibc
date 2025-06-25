@@ -8,6 +8,7 @@
 
 #include "time.h"
 #include "stdio.h"
+#include "time.h"  /* for __vlibc_tzoff */
 
 static int is_leap(int year)
 {
@@ -44,8 +45,10 @@ struct tm *localtime(const time_t *timep)
 }
 
 /*
- * Convert broken-down UTC time to seconds since the epoch.
- * Daylight saving time information is ignored.
+ * Convert broken-down local time to seconds since the epoch.
+ * Daylight saving time information is ignored. The configured
+ * timezone offset is subtracted so the returned time value is
+ * in UTC.
  */
 time_t mktime(struct tm *tm)
 {
@@ -67,6 +70,7 @@ time_t mktime(struct tm *tm)
     tm->tm_isdst = 0;
 
     time_t t = days * 86400 + tm->tm_hour * 3600 + tm->tm_min * 60 + tm->tm_sec;
+    t -= __vlibc_tzoff;
     return t;
 }
 
