@@ -25,16 +25,28 @@ static const int days_per_month[2][12] = {
 
 static struct tm tm_buf;
 
+/*
+ * Thread-unsafe wrapper around gmtime_r() that uses a static
+ * buffer to hold the result.
+ */
 struct tm *gmtime(const time_t *timep)
 {
     return gmtime_r(timep, &tm_buf);
 }
 
+/*
+ * Thread-unsafe wrapper around localtime_r() using a static
+ * buffer. Timezone handling matches localtime_r.
+ */
 struct tm *localtime(const time_t *timep)
 {
     return localtime_r(timep, &tm_buf);
 }
 
+/*
+ * Convert broken-down UTC time to seconds since the epoch.
+ * Daylight saving time information is ignored.
+ */
 time_t mktime(struct tm *tm)
 {
     if (!tm)
@@ -58,11 +70,16 @@ time_t mktime(struct tm *tm)
     return t;
 }
 
+/* Non-standard conversion from broken-down UTC to time_t. */
 time_t timegm(struct tm *tm)
 {
     return mktime(tm);
 }
 
+/*
+ * Format a time value in a human readable form using localtime().
+ * The result is stored in a static buffer and is not thread-safe.
+ */
 char *ctime(const time_t *timep)
 {
     static char buf[32];
