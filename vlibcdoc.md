@@ -1071,8 +1071,9 @@ if (n > 0 && n < sizeof(path))
 
 Thin wrappers around the kernel's file APIs live in `io.h`. Functions
 like `open`, `read`, `write`, `close`, `unlink`, `rename`, `symlink`,
-`mkdir`, `rmdir`, `chdir`, and the file size controls `truncate` and
-`ftruncate` simply pass their arguments to the corresponding syscalls.
+`mkdir`, `rmdir`, `chdir`, and the file size controls `truncate`,
+`ftruncate` and `posix_fallocate` simply pass their arguments to the
+corresponding syscalls or suitable fallbacks.
 `access` and `faccessat` query permissions on files without opening
 them.
 Vector I/O through `readv` and `writev` is available to gather or scatter

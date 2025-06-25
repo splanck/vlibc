@@ -96,6 +96,7 @@ SRC := \
     src/file_perm.c \
     src/flock.c \
     src/truncate.c \
+    src/posix_fallocate.c \
     src/dir.c \
     src/access.c \
     src/getcwd.c \

@@ -689,6 +689,23 @@ static const char *test_truncate_resize(void)
     return 0;
 }
 
+static const char *test_posix_fallocate_basic(void)
+{
+    const char *fname = "tmp_pfall_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+
+    int r = posix_fallocate(fd, 0, 8192);
+    mu_assert("posix_fallocate", r == 0);
+
+    struct stat st;
+    r = fstat(fd, &st);
+    mu_assert("size", r == 0 && st.st_size == 8192);
+    close(fd);
+    unlink(fname);
+    return 0;
+}
+
 static const char *test_link_readlink(void)
 {
     const char *target = "tmp_ln_target";
@@ -3470,6 +3487,7 @@ static const char *all_tests(void)
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_truncate_resize);
+    mu_run_test(test_posix_fallocate_basic);
     mu_run_test(test_link_readlink);
     mu_run_test(test_at_wrappers_basic);
     mu_run_test(test_string_helpers);
