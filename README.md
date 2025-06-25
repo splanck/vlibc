@@ -70,6 +70,7 @@ programs. Key features include:
 - Advisory file locking with `flock()`
 - FIFO creation with `mkfifo()` and `mkfifoat()`
 - Device node creation with `mknod()` and `mknodat()`
+- File space reservation with `posix_fallocate()`
 - Generic descriptor control with `ioctl()`
 - Terminal attribute helpers `tcgetattr()`, `tcsetattr()`, `tcdrain()`,
   `tcflow()`, `tcflush()` and `tcsendbreak()`

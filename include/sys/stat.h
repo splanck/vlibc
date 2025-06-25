@@ -27,5 +27,7 @@ int mkfifo(const char *path, mode_t mode);
 int mkfifoat(int dirfd, const char *path, mode_t mode);
 /* Create special files relative to a directory via SYS_mknodat. */
 int mknodat(int dirfd, const char *path, mode_t mode, dev_t dev);
+/* Reserve space in a file ensuring allocation of the specified range. */
+int posix_fallocate(int fd, off_t offset, off_t len);
 
 #endif /* SYS_STAT_H */
