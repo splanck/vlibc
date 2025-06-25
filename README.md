@@ -28,6 +28,7 @@ programs. Key features include:
 - Lightweight spin locks with `pthread_spin_lock()` and
   `pthread_spin_unlock()`
 - Query the current thread ID with `pthread_self()` and compare IDs with `pthread_equal()`
+- Terminate threads with `pthread_exit()` or request cancellation via `pthread_cancel()`
 - Networking sockets (`socket`, `bind`, `listen`, `accept`, `connect`,
   `getsockname`, `getpeername` and `shutdown`)
 - Human-readable address errors with `gai_strerror()`

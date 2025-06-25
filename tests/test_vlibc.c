@@ -1651,6 +1651,43 @@ static const char *test_pthread_detach(void)
     return 0;
 }
 
+static void *exit_worker(void *arg)
+{
+    pthread_exit(arg);
+    return NULL;
+}
+
+static const char *test_pthread_exit(void)
+{
+    pthread_t t;
+    int value = 55;
+    pthread_create(&t, NULL, exit_worker, &value);
+    void *ret = NULL;
+    pthread_join(t, &ret);
+    mu_assert("exit retval", ret == &value);
+    return 0;
+}
+
+static void *cancel_worker(void *arg)
+{
+    (void)arg;
+    for (;;)
+        usleep(1000);
+    return NULL;
+}
+
+static const char *test_pthread_cancel(void)
+{
+    pthread_t t;
+    pthread_create(&t, NULL, cancel_worker, NULL);
+    usleep(10000);
+    pthread_cancel(t);
+    void *ret = NULL;
+    pthread_join(t, &ret);
+    mu_assert("canceled", ret == PTHREAD_CANCELED);
+    return 0;
+}
+
 static pthread_key_t tls_key;
 static pthread_once_t once_ctl = PTHREAD_ONCE_INIT;
 static int once_count;
@@ -3556,6 +3593,8 @@ static const char *all_tests(void)
     mu_run_test(test_ferror_flag);
     mu_run_test(test_pthread);
     mu_run_test(test_pthread_detach);
+    mu_run_test(test_pthread_exit);
+    mu_run_test(test_pthread_cancel);
     mu_run_test(test_pthread_tls);
     mu_run_test(test_pthread_mutexattr);
     mu_run_test(test_pthread_rwlock);

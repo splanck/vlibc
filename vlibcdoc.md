@@ -829,6 +829,8 @@ int pthread_join(pthread_t thread, void **retval);
 int pthread_detach(pthread_t thread);
 pthread_t pthread_self(void);
 int pthread_equal(pthread_t a, pthread_t b);
+void pthread_exit(void *retval);
+int pthread_cancel(pthread_t thread);
 
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
 int pthread_mutex_destroy(pthread_mutex_t *mutex);
@@ -893,6 +895,11 @@ returned by the start routine. It should only be called once per thread.
 
 `pthread_detach()` marks a thread so that its resources are reclaimed
 automatically when it terminates. Detached threads cannot be joined.
+
+`pthread_exit()` terminates the calling thread immediately and supplies the
+given value to any `pthread_join()` waiting on it. Another thread can request
+cancellation with `pthread_cancel()`. When the target reaches a cancellation
+point it exits and the join result is `PTHREAD_CANCELED`.
 
 Mutex routines provide minimal mutual exclusion. `pthread_mutex_init()`
 initializes a mutex, `pthread_mutex_lock()` acquires it,
