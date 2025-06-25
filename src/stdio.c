@@ -285,6 +285,24 @@ off_t ftello(FILE *stream)
     return (off_t)ftell(stream);
 }
 
+int fgetpos(FILE *stream, fpos_t *pos)
+{
+    if (!stream || !pos)
+        return -1;
+    off_t off = ftello(stream);
+    if (off == (off_t)-1)
+        return -1;
+    *pos = (fpos_t)off;
+    return 0;
+}
+
+int fsetpos(FILE *stream, const fpos_t *pos)
+{
+    if (!stream || !pos)
+        return -1;
+    return fseeko(stream, (off_t)*pos, SEEK_SET);
+}
+
 void rewind(FILE *stream)
 {
     if (!stream)

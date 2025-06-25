@@ -52,6 +52,7 @@ programs. Key features include:
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Memory-backed streams with `open_memstream()` and `fmemopen()`
 - Large-file aware seeks
+- Store and restore file positions with `fgetpos()` and `fsetpos()`
 - Zero-copy file transfers with `sendfile()`
 - Memory synchronization with `msync()`
 - POSIX shared memory objects with `shm_open()` and `shm_unlink()`

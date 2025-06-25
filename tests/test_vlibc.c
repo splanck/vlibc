@@ -1250,6 +1250,39 @@ static const char *test_fseek_rewind(void)
     return 0;
 }
 
+static const char *test_fgetpos_fsetpos(void)
+{
+    FILE *f = fopen("tmp_fpos", "w+");
+    mu_assert("fopen fpos", f != NULL);
+
+    const char *msg = "abcdef";
+    size_t w = fwrite(msg, 1, strlen(msg), f);
+    mu_assert("fwrite fpos", w == strlen(msg));
+
+    rewind(f);
+    char buf[4] = {0};
+    size_t r = fread(buf, 1, 3, f);
+    mu_assert("fread first", r == 3);
+    mu_assert("content first", strncmp(buf, "abc", 3) == 0);
+
+    fpos_t pos;
+    mu_assert("fgetpos ret", fgetpos(f, &pos) == 0);
+
+    r = fread(buf, 1, 3, f);
+    mu_assert("fread second", r == 3);
+    mu_assert("content second", strncmp(buf, "def", 3) == 0);
+
+    mu_assert("fsetpos ret", fsetpos(f, &pos) == 0);
+    memset(buf, 0, sizeof(buf));
+    r = fread(buf, 1, 3, f);
+    mu_assert("fread restore", r == 3);
+    mu_assert("content restore", strncmp(buf, "def", 3) == 0);
+
+    fclose(f);
+    unlink("tmp_fpos");
+    return 0;
+}
+
 static const char *test_fgetc_fputc(void)
 {
     FILE *f = fopen("tmp_char", "w+");
@@ -3028,6 +3061,7 @@ static const char *all_tests(void)
     mu_run_test(test_scanf_functions);
     mu_run_test(test_vscanf_variants);
     mu_run_test(test_fseek_rewind);
+    mu_run_test(test_fgetpos_fsetpos);
     mu_run_test(test_fgetc_fputc);
     mu_run_test(test_fgets_fputs);
     mu_run_test(test_fgetwc_fputwc);
