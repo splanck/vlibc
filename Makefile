@@ -133,6 +133,7 @@ SRC := \
     src/pthread_spin.c \
     src/pthread_barrier.c \
     src/semaphore.c \
+    src/semaphore_named.c \
     src/dirent.c \
     src/default_shell.c \
     src/popen.c \

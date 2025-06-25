@@ -864,6 +864,11 @@ int sem_destroy(sem_t *sem);
 int sem_wait(sem_t *sem);
 int sem_trywait(sem_t *sem);
 int sem_post(sem_t *sem);
+sem_t *sem_open(const char *name, int oflag, ...);
+int sem_close(sem_t *sem);
+int sem_unlink(const char *name);
+int sem_getvalue(sem_t *sem, int *value);
+int sem_timedwait(sem_t *sem, const struct timespec *abstime);
 
 int pthread_barrier_init(pthread_barrier_t *barrier, void *attr,
                          unsigned count);
@@ -920,6 +925,10 @@ pattern as mutexes.
 Semaphores provide a simple counting mechanism for coordinating threads. They
 use an atomic counter and block with `nanosleep` when no resources are
 available.
+Named semaphores can be opened with `sem_open`. On BSD systems the native
+interfaces are used while other platforms allocate an in-process semaphore and
+ignore the name. Such fallbacks are not shared between processes and
+`sem_unlink` simply succeeds.
 
 Barriers synchronize a fixed number of threads at predetermined points. After
 calling `pthread_barrier_init()` with the participant count, each thread invokes
@@ -1830,10 +1839,12 @@ state.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
    codes.
  - `perror` and `strerror` support the full set of standard errno values.
- - Thread support is limited to basic mutexes, condition variables,
-   semaphores, barriers and join/detach.
- - Locale handling falls back to the host implementation for values other
-   than `"C"` or `"POSIX"`.
+- Thread support is limited to basic mutexes, condition variables,
+  semaphores, barriers and join/detach.
+- Named semaphores fall back to process-local objects on non-BSD systems and are
+  not shareable across processes.
+- Locale handling falls back to the host implementation for values other
+  than `"C"` or `"POSIX"`.
 - `setjmp`/`longjmp` rely on the host C library when available.
   Only an x86_64 fallback implementation is provided.
 - Regular expressions cover only a subset of POSIX syntax. Capture
