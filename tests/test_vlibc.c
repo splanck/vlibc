@@ -894,6 +894,20 @@ static const char *test_strcoll_xfrm(void)
     return 0;
 }
 
+static const char *test_ctype_extra(void)
+{
+    mu_assert("isprint", isprint('A'));
+    mu_assert("isprint space", isprint(' '));
+    mu_assert("iscntrl", iscntrl('\n'));
+    mu_assert("ispunct", ispunct('!'));
+    mu_assert("isgraph", isgraph('!'));
+    mu_assert("!isgraph space", !isgraph(' '));
+    mu_assert("isblank space", isblank(' '));
+    mu_assert("isblank tab", isblank('\t'));
+    mu_assert("!isblank nl", !isblank('\n'));
+    return 0;
+}
+
 static const char *test_widechar_basic(void)
 {
     wchar_t wc = 0;
@@ -952,6 +966,11 @@ static const char *test_wctype_checks(void)
     mu_assert("iswupper", iswupper(L'A'));
     mu_assert("iswlower", iswlower(L'z'));
     mu_assert("iswxdigit", iswxdigit(L'F'));
+    mu_assert("iswprint", iswprint(L'!'));
+    mu_assert("iswcntrl", iswcntrl(L'\n'));
+    mu_assert("iswpunct", iswpunct(L'!'));
+    mu_assert("iswgraph", iswgraph(L'!'));
+    mu_assert("iswblank", iswblank(L'\t'));
     mu_assert("towlower", towlower(L'A') == L'a');
     mu_assert("towupper", towupper(L'a') == L'A');
     return 0;
@@ -3403,6 +3422,7 @@ static const char *all_tests(void)
     mu_run_test(test_memccpy_mempcpy);
     mu_run_test(test_strndup_basic);
     mu_run_test(test_strcoll_xfrm);
+    mu_run_test(test_ctype_extra);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_widechar_conv);
     mu_run_test(test_widechar_width);

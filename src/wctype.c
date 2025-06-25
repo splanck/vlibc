@@ -131,3 +131,88 @@ wint_t towupper(wint_t wc)
     return wc;
 }
 
+/* Check if wide character is printable. */
+int iswprint(wint_t wc)
+{
+    if (wc < 0)
+        return 0;
+    if ((unsigned)wc < 0x80)
+        return isprint((unsigned char)wc);
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_iswprint(wint_t) __asm("iswprint");
+    return host_iswprint(wc);
+#else
+    return (wc >= 0x20 && wc < 0x7F);
+#endif
+}
+
+/* Check if wide character is a control character. */
+int iswcntrl(wint_t wc)
+{
+    if (wc < 0)
+        return 0;
+    if ((unsigned)wc < 0x80)
+        return iscntrl((unsigned char)wc);
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_iswcntrl(wint_t) __asm("iswcntrl");
+    return host_iswcntrl(wc);
+#else
+    return (wc < 0x20) || (wc == 0x7F);
+#endif
+}
+
+/* Check if wide character is punctuation. */
+int iswpunct(wint_t wc)
+{
+    if (wc < 0)
+        return 0;
+    if ((unsigned)wc < 0x80)
+        return ispunct((unsigned char)wc);
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_iswpunct(wint_t) __asm("iswpunct");
+    return host_iswpunct(wc);
+#else
+    if ((wc >= 0x21 && wc <= 0x2F) ||
+        (wc >= 0x3A && wc <= 0x40) ||
+        (wc >= 0x5B && wc <= 0x60) ||
+        (wc >= 0x7B && wc <= 0x7E))
+        return 1;
+    return 0;
+#endif
+}
+
+/* Check if wide character has a visible representation. */
+int iswgraph(wint_t wc)
+{
+    if (wc < 0)
+        return 0;
+    if ((unsigned)wc < 0x80)
+        return isgraph((unsigned char)wc);
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_iswgraph(wint_t) __asm("iswgraph");
+    return host_iswgraph(wc);
+#else
+    return (wc >= 0x21 && wc < 0x7F);
+#endif
+}
+
+/* Check if wide character is blank (space or tab). */
+int iswblank(wint_t wc)
+{
+    if (wc == L' ' || wc == L'\t')
+        return 1;
+    if ((unsigned)wc < 0x80)
+        return 0;
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_iswblank(wint_t) __asm("iswblank");
+    return host_iswblank(wc);
+#else
+    return 0;
+#endif
+}
+
