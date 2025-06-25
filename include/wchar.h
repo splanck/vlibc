@@ -15,23 +15,40 @@ typedef int wchar_t;
 #define __wchar_t_defined
 #endif
 
+/* Opaque multibyte conversion state */
 typedef struct { int __dummy; } mbstate_t;
 
+/* Convert a multibyte sequence to a wide character */
 int mbtowc(wchar_t *pwc, const char *s, size_t n);
+/* Convert a wide character to a multibyte sequence */
 int wctomb(char *s, wchar_t wc);
+/* Length of a wide-character string */
 size_t wcslen(const wchar_t *s);
+/* Copy a wide-character string */
 wchar_t *wcscpy(wchar_t *dest, const wchar_t *src);
+/* Bounded wide string copy */
 wchar_t *wcsncpy(wchar_t *dest, const wchar_t *src, size_t n);
+/* Compare wide-character strings */
 int wcscmp(const wchar_t *s1, const wchar_t *s2);
+/* Bounded wide string comparison */
 int wcsncmp(const wchar_t *s1, const wchar_t *s2, size_t n);
+/* Duplicate a wide-character string */
 wchar_t *wcsdup(const wchar_t *s);
+/* Display width of a wide character */
 int wcwidth(wchar_t wc);
+/* Display width of at most n wide chars */
 int wcswidth(const wchar_t *s, size_t n);
+/* Convert multibyte to wide character with state */
 size_t mbrtowc(wchar_t *pwc, const char *s, size_t n, mbstate_t *ps);
+/* Convert wide char to multibyte with state */
 size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps);
+/* Convert a multibyte string to wide chars */
 size_t mbstowcs(wchar_t *dst, const char *src, size_t n);
+/* Convert wide char string to multibyte */
 size_t wcstombs(char *dst, const wchar_t *src, size_t n);
+/* Return length of next multibyte sequence */
 size_t mbrlen(const char *s, size_t n, mbstate_t *ps);
+/* Check whether state is initial */
 int mbsinit(const mbstate_t *ps);
 
 /* Wide-character formatted output */
@@ -52,6 +69,7 @@ int vswscanf(const wchar_t *str, const wchar_t *format, va_list ap);
 
 /* Time formatting */
 #include "time.h"
+/* Format time information using wide characters */
 size_t wcsftime(wchar_t *s, size_t max, const wchar_t *format,
                 const struct tm *tm);
 

@@ -8,6 +8,7 @@
 
 #include "wctype.h"
 
+/* Check if wide character is alphabetic. */
 int iswalpha(wint_t wc)
 {
     if (wc < 0)
@@ -27,16 +28,19 @@ int iswalpha(wint_t wc)
 #endif
 }
 
+/* Check if wide character is a decimal digit. */
 int iswdigit(wint_t wc)
 {
     return (wc >= L'0' && wc <= L'9');
 }
 
+/* Check if wide character is alphanumeric. */
 int iswalnum(wint_t wc)
 {
     return iswalpha(wc) || iswdigit(wc);
 }
 
+/* Check if wide character is whitespace. */
 int iswspace(wint_t wc)
 {
     switch (wc) {
@@ -49,6 +53,7 @@ int iswspace(wint_t wc)
     }
 }
 
+/* Check if wide character is uppercase. */
 int iswupper(wint_t wc)
 {
     if (wc < 0)
@@ -66,6 +71,7 @@ int iswupper(wint_t wc)
 #endif
 }
 
+/* Check if wide character is lowercase. */
 int iswlower(wint_t wc)
 {
     if (wc < 0)
@@ -83,6 +89,7 @@ int iswlower(wint_t wc)
 #endif
 }
 
+/* Check if wide character is a hexadecimal digit. */
 int iswxdigit(wint_t wc)
 {
     if (wc >= L'0' && wc <= L'9')
@@ -94,6 +101,7 @@ int iswxdigit(wint_t wc)
     return 0;
 }
 
+/* Convert wide character to lowercase. */
 wint_t towlower(wint_t wc)
 {
     if (iswupper(wc))
@@ -108,6 +116,7 @@ wint_t towlower(wint_t wc)
     return wc;
 }
 
+/* Convert wide character to uppercase. */
 wint_t towupper(wint_t wc)
 {
     if (iswlower(wc))

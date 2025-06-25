@@ -9,6 +9,7 @@
 #include "wchar.h"
 #include "memory.h"
 
+/* Convert multibyte sequence to wide character. */
 int mbtowc(wchar_t *pwc, const char *s, size_t n)
 {
     if (!s)
@@ -20,6 +21,7 @@ int mbtowc(wchar_t *pwc, const char *s, size_t n)
     return *s ? 1 : 0;
 }
 
+/* Convert wide character to multibyte sequence. */
 int wctomb(char *s, wchar_t wc)
 {
     if (!s)
@@ -30,6 +32,7 @@ int wctomb(char *s, wchar_t wc)
     return 1;
 }
 
+/* Return the length of wide-character string. */
 size_t wcslen(const wchar_t *s)
 {
     const wchar_t *p = s;
@@ -38,6 +41,7 @@ size_t wcslen(const wchar_t *s)
     return (size_t)(p - s);
 }
 
+/* Return column width of wide character or -1 if non-printable. */
 int wcwidth(wchar_t wc)
 {
     if (wc == 0)
@@ -56,6 +60,7 @@ int wcwidth(wchar_t wc)
 #endif
 }
 
+/* Sum of column widths of up to n wide characters. */
 int wcswidth(const wchar_t *s, size_t n)
 {
     int width = 0;
@@ -68,6 +73,7 @@ int wcswidth(const wchar_t *s, size_t n)
     return width;
 }
 
+/* Copy a wide-character string. */
 wchar_t *wcscpy(wchar_t *dest, const wchar_t *src)
 {
     wchar_t *d = dest;
@@ -76,6 +82,7 @@ wchar_t *wcscpy(wchar_t *dest, const wchar_t *src)
     return dest;
 }
 
+/* Copy at most n wide characters, padding with zeros. */
 wchar_t *wcsncpy(wchar_t *dest, const wchar_t *src, size_t n)
 {
     wchar_t *d = dest;
@@ -89,6 +96,7 @@ wchar_t *wcsncpy(wchar_t *dest, const wchar_t *src, size_t n)
     return dest;
 }
 
+/* Compare two wide-character strings. */
 int wcscmp(const wchar_t *s1, const wchar_t *s2)
 {
     while (*s1 && *s1 == *s2) {
@@ -98,6 +106,7 @@ int wcscmp(const wchar_t *s1, const wchar_t *s2)
     return (int)(*s1 - *s2);
 }
 
+/* Compare up to n wide characters. */
 int wcsncmp(const wchar_t *s1, const wchar_t *s2, size_t n)
 {
     while (n--) {
@@ -111,6 +120,7 @@ int wcsncmp(const wchar_t *s1, const wchar_t *s2, size_t n)
     return 0;
 }
 
+/* Duplicate a wide-character string. */
 wchar_t *wcsdup(const wchar_t *s)
 {
     size_t len = wcslen(s);

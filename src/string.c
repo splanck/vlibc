@@ -9,6 +9,7 @@
 #include "string.h"
 #include "memory.h"
 
+/* Return the length of a NUL terminated string. */
 size_t vstrlen(const char *s)
 {
     const char *p = s;
@@ -17,6 +18,7 @@ size_t vstrlen(const char *s)
     return (size_t)(p - s);
 }
 
+/* Like strlen but stops after maxlen characters. */
 size_t strnlen(const char *s, size_t maxlen)
 {
     const char *p = s;
@@ -25,6 +27,7 @@ size_t strnlen(const char *s, size_t maxlen)
     return (size_t)(p - s);
 }
 
+/* Copy src string to dest, returning dest. */
 char *vstrcpy(char *dest, const char *src)
 {
     char *d = dest;
@@ -35,6 +38,7 @@ char *vstrcpy(char *dest, const char *src)
     return dest;
 }
 
+/* Compare two strings up to n characters. */
 int vstrncmp(const char *s1, const char *s2, size_t n)
 {
     while (n--) {
@@ -48,11 +52,13 @@ int vstrncmp(const char *s1, const char *s2, size_t n)
     return 0;
 }
 
+/* Wrapper around vstrncmp for complete comparison. */
 int strcmp(const char *s1, const char *s2)
 {
     return vstrncmp(s1, s2, (size_t)-1);
 }
 
+/* Find the first occurrence of c in s. */
 char *strchr(const char *s, int c)
 {
     unsigned char ch = (unsigned char)c;
@@ -66,6 +72,7 @@ char *strchr(const char *s, int c)
     return NULL;
 }
 
+/* Allocate a duplicate of s using malloc. */
 char *strdup(const char *s)
 {
     size_t len = vstrlen(s);
@@ -76,6 +83,7 @@ char *strdup(const char *s)
     return dup;
 }
 
+/* Bounded string copy that NUL pads the result. */
 char *strncpy(char *dest, const char *src, size_t n)
 {
     char *d = dest;
@@ -89,6 +97,7 @@ char *strncpy(char *dest, const char *src, size_t n)
     return dest;
 }
 
+/* Append src to dest. */
 char *strcat(char *dest, const char *src)
 {
     char *d = dest;
@@ -100,6 +109,7 @@ char *strcat(char *dest, const char *src)
     return dest;
 }
 
+/* Append at most n characters from src to dest. */
 char *strncat(char *dest, const char *src, size_t n)
 {
     char *d = dest;
@@ -111,8 +121,10 @@ char *strncat(char *dest, const char *src, size_t n)
     return dest;
 }
 
+/* Fallback storage for strtok when strtok_r is not used. */
 static char *strtok_static;
 
+/* Reentrant tokenizer splitting a string using delimiters. */
 char *strtok_r(char *str, const char *delim, char **saveptr)
 {
     char *s;
@@ -151,6 +163,7 @@ char *strtok_r(char *str, const char *delim, char **saveptr)
     return token;
 }
 
+/* Non-reentrant tokenizer using a static state. */
 char *strtok(char *str, const char *delim)
 {
     return strtok_r(str, delim, &strtok_static);
