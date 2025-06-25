@@ -127,3 +127,17 @@ int unsetenv(const char *name)
         environ[i] = environ[i + 1];
     return 0;
 }
+
+int clearenv(void)
+{
+    if (!environ)
+        return 0;
+    for (char **e = environ; *e; ++e)
+        free(*e);
+    free(environ);
+    environ = malloc(sizeof(char *));
+    if (!environ)
+        return -1;
+    environ[0] = NULL;
+    return 0;
+}

@@ -20,6 +20,7 @@ char *getenv(const char *name);
 int setenv(const char *name, const char *value, int overwrite);
 int putenv(const char *str);
 int unsetenv(const char *name);
+int clearenv(void);
 
 /* Host name helpers */
 int gethostname(char *name, size_t len);
