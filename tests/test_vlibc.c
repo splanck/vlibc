@@ -2979,6 +2979,39 @@ static const char *test_regex_backref_fail(void)
     return 0;
 }
 
+static const char *test_regex_posix_class(void)
+{
+    regex_t re;
+    regmatch_t m[1];
+    regcomp(&re, "[[:digit:]]+", 0);
+    int r = regexec(&re, "abc123def", 1, m, 0);
+    regfree(&re);
+    mu_assert("regex class match", r == 0);
+    mu_assert("class offsets", m[0].rm_so == 3 && m[0].rm_eo == 6);
+    return 0;
+}
+
+static const char *test_regex_alternation(void)
+{
+    regex_t re;
+    regcomp(&re, "foo(bar|baz)", 0);
+    int r = regexec(&re, "foobaz", 0, NULL, 0);
+    regfree(&re);
+    mu_assert("regex alt", r == 0);
+    return 0;
+}
+
+static const char *test_regex_range(void)
+{
+    regex_t re;
+    regcomp(&re, "a{2,3}b", 0);
+    mu_assert("range1", regexec(&re, "aab", 0, NULL, 0) == 0);
+    mu_assert("range2", regexec(&re, "aaab", 0, NULL, 0) == 0);
+    mu_assert("range3", regexec(&re, "ab", 0, NULL, 0) == REG_NOMATCH);
+    regfree(&re);
+    return 0;
+}
+
 static const char *test_math_functions(void)
 {
     mu_assert("fabs", fabs(-3.5) == 3.5);
@@ -3342,6 +3375,9 @@ static const char *all_tests(void)
     mu_run_test(test_qsort_r_desc);
     mu_run_test(test_regex_backref_basic);
     mu_run_test(test_regex_backref_fail);
+    mu_run_test(test_regex_posix_class);
+    mu_run_test(test_regex_alternation);
+    mu_run_test(test_regex_range);
     mu_run_test(test_math_functions);
     mu_run_test(test_abs_div_functions);
     mu_run_test(test_fp_checks);
