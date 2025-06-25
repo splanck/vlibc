@@ -539,6 +539,12 @@ regfree(&r);
 series approximations
 and are suitable for basic calculations but may lack high precision.
 
+`math.h` also defines macros to classify floating-point values. `isnan(x)`
+returns non-zero when `x` is not a number, `isinf(x)` detects positive or
+negative infinity, and `isfinite(x)` reports true only for finite values.  When
+the compiler supplies built-ins for these checks the macros map directly to
+them, otherwise simple fallback tests are used.
+
 ## Process Control
 
 Process-related functionality resides in the **process** module. It provides
