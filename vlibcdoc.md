@@ -734,6 +734,13 @@ int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
 
+typedef struct { atomic_flag locked; } pthread_spinlock_t;
+int pthread_spin_init(pthread_spinlock_t *lock, int pshared);
+int pthread_spin_lock(pthread_spinlock_t *lock);
+int pthread_spin_trylock(pthread_spinlock_t *lock);
+int pthread_spin_unlock(pthread_spinlock_t *lock);
+int pthread_spin_destroy(pthread_spinlock_t *lock);
+
 typedef struct { atomic_int count; } sem_t;
 int sem_init(sem_t *sem, int pshared, unsigned value);
 int sem_destroy(sem_t *sem);
@@ -774,6 +781,12 @@ Mutex attributes currently track only the mutex type. Use
 `pthread_mutexattr_settype()` with `PTHREAD_MUTEX_NORMAL` (the default)
 or `PTHREAD_MUTEX_RECURSIVE` and pass the attribute to
 `pthread_mutex_init()`.
+
+Spin locks provide even lighter mutual exclusion. `pthread_spin_lock()`
+and `pthread_spin_trylock()` busy-wait until the lock becomes
+available and should only guard short sections of code. They do not
+support process-shared locks or advanced features like priority
+inheritance.
 
 Condition variables provide simple waiting semantics. A thread calls
 `pthread_cond_wait()` with a locked mutex and blocks until another thread

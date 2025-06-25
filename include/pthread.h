@@ -110,6 +110,21 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
 /* Destroy a read-write lock object (no-op). */
 
+typedef struct {
+    atomic_flag locked;
+} pthread_spinlock_t;
+int pthread_spin_init(pthread_spinlock_t *lock, int pshared);
+/* Initialize a spin lock. "pshared" is ignored and only process-private
+ * locks are supported. */
+int pthread_spin_lock(pthread_spinlock_t *lock);
+/* Acquire the spin lock, busy-waiting until it becomes available. */
+int pthread_spin_trylock(pthread_spinlock_t *lock);
+/* Try to acquire the spin lock without blocking. Returns EBUSY if held. */
+int pthread_spin_unlock(pthread_spinlock_t *lock);
+/* Release the spin lock. */
+int pthread_spin_destroy(pthread_spinlock_t *lock);
+/* Destroy a spin lock object (no-op). */
+
 int pthread_key_create(pthread_key_t *key, void (*destructor)(void *));
 /* Allocate a new thread-specific data key. */
 int pthread_key_delete(pthread_key_t key);
