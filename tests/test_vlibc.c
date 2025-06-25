@@ -416,6 +416,35 @@ static const char *test_sendfile_copy(void)
     return 0;
 }
 
+#ifdef __NetBSD__
+static const char *test_sendfile_socket(void)
+{
+    const char *src = "tmp_sf_sock_src";
+    int in = open(src, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    mu_assert("open src", in >= 0);
+    const char *msg = "netbsd";
+    mu_assert("write src", write(in, msg, strlen(msg)) == (ssize_t)strlen(msg));
+    lseek(in, 0, SEEK_SET);
+
+    int sv[2];
+    mu_assert("socketpair", socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0);
+
+    off_t sent = 0;
+    int r = sendfile(in, sv[0], 0, strlen(msg), NULL, &sent, 0);
+    mu_assert("sendfile", r == 0 && sent == (off_t)strlen(msg));
+
+    char buf[16] = {0};
+    mu_assert("recv", read(sv[1], buf, sizeof(buf)) == (ssize_t)strlen(msg));
+    mu_assert("content", strcmp(buf, msg) == 0);
+
+    close(in);
+    close(sv[0]);
+    close(sv[1]);
+    unlink(src);
+    return 0;
+}
+#endif
+
 static const char *test_socket(void)
 {
     int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -3748,6 +3777,9 @@ static const char *all_tests(void)
     mu_run_test(test_pread_pwrite);
     mu_run_test(test_readv_writev);
     mu_run_test(test_sendfile_copy);
+#ifdef __NetBSD__
+    mu_run_test(test_sendfile_socket);
+#endif
     mu_run_test(test_dup3_cloexec);
     mu_run_test(test_pipe2_cloexec);
     mu_run_test(test_byte_order);
