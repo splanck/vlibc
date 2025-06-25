@@ -771,6 +771,26 @@ static const char *test_strlcpy_cat(void)
     return 0;
 }
 
+static const char *test_stpcpy_functions(void)
+{
+    char buf[8];
+    char *p = stpcpy(buf, "hi");
+    mu_assert("stpcpy end", p == buf + 2);
+    mu_assert("stpcpy copy", strcmp(buf, "hi") == 0);
+
+    char buf2[6];
+    p = stpncpy(buf2, "hello", 5);
+    mu_assert("stpncpy end", p == buf2 + 5);
+    mu_assert("stpncpy copy", strcmp(buf2, "hello") == 0);
+
+    char buf3[4];
+    p = stpncpy(buf3, "xyz123", 3);
+    mu_assert("stpncpy trunc", p == buf3 + 3);
+    mu_assert("stpncpy trunc str", strncmp(buf3, "xyz", 3) == 0);
+
+    return 0;
+}
+
 static const char *test_strndup_basic(void)
 {
     char *p = strndup("hello", 10);
@@ -2925,6 +2945,7 @@ static const char *all_tests(void)
     mu_run_test(test_string_helpers);
     mu_run_test(test_string_casecmp);
     mu_run_test(test_strlcpy_cat);
+    mu_run_test(test_stpcpy_functions);
     mu_run_test(test_strndup_basic);
     mu_run_test(test_strcoll_xfrm);
     mu_run_test(test_widechar_basic);

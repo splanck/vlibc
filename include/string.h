@@ -36,6 +36,10 @@ char *strncpy(char *dest, const char *src, size_t n);
 char *strcat(char *dest, const char *src);
 /* Append at most n characters */
 char *strncat(char *dest, const char *src, size_t n);
+/* Copy and return pointer to trailing NUL */
+char *stpcpy(char *dest, const char *src);
+/* Bounded copy returning pointer to end */
+char *stpncpy(char *dest, const char *src, size_t n);
 /* Safe string copy */
 size_t strlcpy(char *dst, const char *src, size_t size);
 /* Safe string concatenation */
