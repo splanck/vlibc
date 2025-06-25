@@ -91,6 +91,9 @@ extern double host_log2(double) __asm("log2");
 extern double host_fmin(double, double) __asm("fmin");
 extern double host_fmax(double, double) __asm("fmax");
 extern double host_copysign(double, double) __asm("copysign");
+extern double host_hypot(double, double) __asm("hypot");
+extern double host_round(double) __asm("round");
+extern double host_trunc(double) __asm("trunc");
 #endif
 
 double fmod(double x, double y)
@@ -176,5 +179,44 @@ double copysign(double x, double y)
     if ((y < 0 && x > 0) || (y >= 0 && x < 0))
         x = -x;
     return x;
+#endif
+}
+
+double hypot(double x, double y)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_hypot(x, y);
+#else
+    return sqrt(x * x + y * y);
+#endif
+}
+
+double round(double x)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_round(x);
+#else
+    double i = floor(x);
+    double frac = x - i;
+    if (x >= 0.0) {
+        if (frac >= 0.5)
+            i += 1.0;
+    } else {
+        if (frac <= -0.5)
+            i -= 1.0;
+    }
+    return i;
+#endif
+}
+
+double trunc(double x)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_trunc(x);
+#else
+    return (x >= 0.0) ? floor(x) : ceil(x);
 #endif
 }

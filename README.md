@@ -45,7 +45,7 @@ programs. Key features include:
 - Path expansion helpers with `glob()` and `wordexp()`
 - Array sorting with `qsort`, `qsort_r` and `bsearch`
 - Standard `assert` macro for runtime checks
-- Extended math helpers
+- Extended math helpers including `hypot`, `round` and `trunc`
 - Floating-point classification with `isnan()`, `isinf()` and `isfinite()`
 - String-to-number conversions with `strtol`, `strtoul`, `strtoll`,
   `strtoull`, `strtof`, `strtod` and `strtold`

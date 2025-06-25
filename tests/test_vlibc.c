@@ -2783,6 +2783,12 @@ static const char *test_math_functions(void)
     double l = log(5.0);
     mu_assert("exp/log", fabs(exp(l) - 5.0) < 1e-6);
     mu_assert("log/exp", fabs(log(exp(1.0)) - 1.0) < 1e-6);
+    mu_assert("hypot", fabs(hypot(3.0, 4.0) - 5.0) < 1e-6);
+    mu_assert("round", round(2.3) == 2.0);
+    mu_assert("round half", round(2.5) == 3.0);
+    mu_assert("round neg", round(-1.6) == -2.0);
+    mu_assert("trunc", trunc(2.9) == 2.0);
+    mu_assert("trunc neg", trunc(-2.9) == -2.0);
     return 0;
 }
 
