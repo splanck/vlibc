@@ -1899,6 +1899,17 @@ static const char *test_time_r_conversions(void)
     return 0;
 }
 
+static const char *test_difftime_basic(void)
+{
+    time_t a = 10;
+    time_t b = 42;
+    double d = difftime(b, a);
+    mu_assert("difftime pos", fabs(d - 32.0) < 1e-9);
+    d = difftime(a, b);
+    mu_assert("difftime neg", fabs(d + 32.0) < 1e-9);
+    return 0;
+}
+
 static const char *test_tz_positive(void)
 {
     setenv("TZ", "UTC+2", 1);
@@ -3335,6 +3346,7 @@ static const char *all_tests(void)
     mu_run_test(test_strptime_basic);
     mu_run_test(test_time_conversions);
     mu_run_test(test_time_r_conversions);
+    mu_run_test(test_difftime_basic);
     mu_run_test(test_tz_positive);
     mu_run_test(test_tz_negative);
     mu_run_test(test_tz_mktime_roundtrip);

@@ -106,3 +106,12 @@ char *ctime(const time_t *timep)
              tm->tm_year + 1900);
     return buf;
 }
+
+/*
+ * Return the difference between two time values in seconds as a
+ * double precision floating point number.
+ */
+double difftime(time_t end, time_t start)
+{
+    return (double)end - (double)start;
+}

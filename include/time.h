@@ -177,6 +177,8 @@ time_t mktime(struct tm *tm);
 /* Convert a broken-down UTC time to seconds since the epoch. */
 time_t timegm(struct tm *tm);
 /* Non-standard alias for mktime(). */
+double difftime(time_t end, time_t start);
+/* Difference between two times in seconds. */
 char *ctime(const time_t *timep);
 /* Format a time value using localtime() into a static string. */
 
