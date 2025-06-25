@@ -107,6 +107,7 @@ SRC := \
     src/mmap.c \
     src/msync.c \
     src/shm.c \
+    src/mqueue.c \
     src/env.c \
     src/hostname.c \
     src/uname.c \
