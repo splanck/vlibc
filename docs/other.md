@@ -1,0 +1,74 @@
+## Logging
+
+`syslog.h` provides simple helpers to send log messages to `/dev/log` on
+BSD-style systems. Call `openlog` once with an identifier then use `syslog`
+with a priority and `printf`-style format:
+
+```c
+openlog("myapp", LOG_PID, LOG_USER);
+syslog(LOG_INFO, "started with %d workers", workers);
+closelog();
+```
+
+The underlying function `vsyslog` accepts a `va_list` so you can wrap the
+logger with custom helpers:
+
+```c
+static void debug(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vsyslog(LOG_DEBUG, fmt, ap);
+    va_end(ap);
+}
+```
+
+Messages are written using a Unix datagram socket so applications can integrate
+with the host's syslog daemon.
+
+## Raw System Calls
+
+The `syscall` function from `syscall.h` invokes the host's `syscall()`
+wrapper when available. Platform specific implementations may override
+this if the operating system lacks a compatible interface.
+
+## Non-local Jumps
+
+When possible vlibc defers to the host C library's `setjmp` and `longjmp`.
+For targets lacking a native implementation, custom versions live under
+`src/arch/<arch>/setjmp.c`.
+
+```c
+int setjmp(jmp_buf env);
+void longjmp(jmp_buf env, int val);
+```
+
+Jumping across signal handlers may leave blocked signals in an undefined
+state.
+
+## Limitations
+
+ - The I/O routines perform simple optional buffering and provide only
+   basic error reporting.
+ - Process creation currently relies on Linux-specific syscalls.
+ - BSD support is experimental and some subsystems may not compile yet.
+ - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
+   codes.
+ - `perror` and `strerror` support the full set of standard errno values.
+- Thread support is limited to basic mutexes, condition variables,
+  semaphores, barriers and join/detach.
+- Named semaphores fall back to process-local objects on non-BSD systems and are
+  not shareable across processes.
+- Locale handling falls back to the host implementation for values other
+  than `"C"` or `"POSIX"`.
+- `setjmp`/`longjmp` rely on the host C library when available.
+  Only an x86_64 fallback implementation is provided.
+- Regular expressions cover only a subset of POSIX syntax. Capture
+  groups and numeric backreferences are supported but more advanced
+  features remain unimplemented.
+- The `crypt` helper only implements the traditional DES algorithm when
+  BSD's extended `crypt` is unavailable.
+
+## Conclusion
+
+vlibc is intentionally small and focused. This documentation will evolve as the project grows, but the guiding principles of minimalism and clarity will remain the same. Contributions are welcome as long as they align with these goals.
