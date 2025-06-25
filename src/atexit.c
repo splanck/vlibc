@@ -13,11 +13,22 @@
 static void (*handlers[ATEXIT_MAX])(void);
 static int handler_count = 0;
 
+static void (*quick_handlers[ATEXIT_MAX])(void);
+static int quick_count = 0;
+
 int atexit(void (*fn)(void))
 {
     if (!fn || handler_count >= ATEXIT_MAX)
         return -1;
     handlers[handler_count++] = fn;
+    return 0;
+}
+
+int at_quick_exit(void (*func)(void))
+{
+    if (!func || quick_count >= ATEXIT_MAX)
+        return -1;
+    quick_handlers[quick_count++] = func;
     return 0;
 }
 
@@ -27,4 +38,20 @@ void __run_atexit(void)
         if (handlers[i])
             handlers[i]();
     }
+}
+
+static void __run_quick_exit(void)
+{
+    for (int i = quick_count - 1; i >= 0; --i) {
+        if (quick_handlers[i])
+            quick_handlers[i]();
+    }
+}
+
+extern void _exit(int);
+
+void quick_exit(int status)
+{
+    __run_quick_exit();
+    _exit(status);
 }

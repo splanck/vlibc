@@ -2753,6 +2753,26 @@ static const char *test_atexit_handler(void)
     return 0;
 }
 
+static const char *test_quick_exit_handler(void)
+{
+    mu_assert("pipe", pipe(exit_pipe) == 0);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        close(exit_pipe[0]);
+        at_quick_exit(atexit_handler);
+        quick_exit(0);
+    }
+    close(exit_pipe[1]);
+    char buf;
+    ssize_t r = read(exit_pipe[0], &buf, 1);
+    close(exit_pipe[0]);
+    waitpid(pid, NULL, 0);
+    mu_assert("handler ran", r == 1 && buf == 'x');
+
+    return 0;
+}
+
 static const char *test_getcwd_chdir(void)
 {
     char orig[256];
@@ -3509,6 +3529,7 @@ static const char *all_tests(void)
     mu_run_test(test_shm_basic);
     mu_run_test(test_mqueue_basic);
     mu_run_test(test_atexit_handler);
+    mu_run_test(test_quick_exit_handler);
     mu_run_test(test_getcwd_chdir);
     mu_run_test(test_realpath_basic);
     mu_run_test(test_pathconf_basic);
