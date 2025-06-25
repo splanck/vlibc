@@ -26,6 +26,8 @@ typedef struct {
     size_t *mem_sizep;           /* pointer to size for mem streams */
 } FILE;
 
+typedef off_t fpos_t;
+
 /*
  * A FILE may maintain an internal buffer for efficiency. Data written with
  * fwrite() accumulates in the buffer until it is full or fflush() is called.
@@ -53,6 +55,8 @@ int fseek(FILE *stream, long offset, int whence);
 long ftell(FILE *stream);
 int fseeko(FILE *stream, off_t offset, int whence);
 off_t ftello(FILE *stream);
+int fgetpos(FILE *stream, fpos_t *pos);
+int fsetpos(FILE *stream, const fpos_t *pos);
 void rewind(FILE *stream);
 int fgetc(FILE *stream);
 int fputc(int c, FILE *stream);
