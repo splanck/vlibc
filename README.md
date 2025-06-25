@@ -21,6 +21,7 @@ programs. Key features include:
 - Non-blocking mutex acquisition with `pthread_mutex_trylock()`
 - Timed waits on conditions with `pthread_cond_timedwait()`
 - Wait for specific signals with `sigwait()` and `sigtimedwait()`
+- Send queued signals with `sigqueue()`
 - Set mutex types with `pthread_mutexattr_settype()`
 - Counting semaphores with `sem_init()`/`sem_wait()`/`sem_post()`
 - Named semaphores with `sem_open()`/`sem_close()`/`sem_unlink()`
