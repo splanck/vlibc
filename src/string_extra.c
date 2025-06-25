@@ -247,3 +247,25 @@ char *strsep(char **stringp, const char *delim)
     return tok;
 }
 
+char *stpcpy(char *dest, const char *src)
+{
+    char *d = dest;
+    while ((*d++ = *src++) != '\0')
+        ;
+    return d - 1;
+}
+
+char *stpncpy(char *dest, const char *src, size_t n)
+{
+    char *d = dest;
+    while (n && *src) {
+        *d++ = *src++;
+        --n;
+    }
+    if (n) {
+        vmemset(d, 0, n);
+        return d;
+    }
+    return d;
+}
+

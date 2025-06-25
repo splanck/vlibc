@@ -311,7 +311,7 @@ mq_unlink("/example");
 
 The **string** module provides fundamental operations needed by most C programs:
 
-- `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat`, `strncat`, `strlcpy` and `strlcat` equivalents.
+- `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat`, `strncat`, `strlcpy`, `strlcat`, `stpcpy` and `stpncpy` equivalents.
 - `strdup` and `strndup` helpers allocate new copies of strings.
 - Search helpers `strstr`, `strrchr`, `memchr`, `memrchr`, and `memmem` for locating substrings or bytes.
 - Prefix scanners `strspn` and `strcspn` along with `strpbrk` for finding any character from a set.

@@ -129,6 +129,7 @@ vlibc ships common routines like `strdup`, `strndup`, `strlcpy`, and `strlcat`.
 Search helpers `strstr`, `strrchr`, `memchr`, `memrchr`, and `memmem` locate substrings or
 bytes. Tokenizers `strtok`, `strtok_r`, and the lightweight `strsep` help split
 strings based on delimiters.
+Copy helpers `stpcpy` and `stpncpy` return the end pointer after copying.
 
 Launching a program in a new process with `posix_spawn` is similarly easy:
 
