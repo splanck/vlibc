@@ -1813,7 +1813,8 @@ setitimer(ITIMER_REAL, &it, NULL);
 `timer_create` provides a more flexible POSIX timer API. After creating a
 `timer_t` handle, call `timer_settime` to arm it and `timer_gettime` to query
 the remaining time. vlibc maps these helpers to the Linux `timer_create(2)`
-syscall or to BSD `kqueue` timers.
+syscall. On NetBSD the native timer syscalls are preferred, while the other
+BSDs use `kqueue` timers as a fallback when the syscalls are unavailable.
 
 ```c
 timer_t t;

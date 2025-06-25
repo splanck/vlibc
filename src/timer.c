@@ -20,7 +20,7 @@
 #endif
 
 struct vlibc_timer {
-#ifdef __linux__
+#if defined(__linux__) || defined(__NetBSD__)
     long id;
 #else
     int kq;
@@ -51,7 +51,25 @@ int timer_create(clockid_t clockid, struct sigevent *sevp, timer_t *timerid)
     t->id = id;
     *timerid = t;
     return 0;
-#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+#elif defined(__NetBSD__)
+    struct vlibc_timer *t = malloc(sizeof(*t));
+    if (!t) {
+        errno = ENOMEM;
+        return -1;
+    }
+    extern int host_timer_create(clockid_t, struct sigevent *, timer_t *) __asm__("timer_create");
+    timer_t hid;
+    int r = host_timer_create(clockid, sevp, &hid);
+    if (r < 0) {
+        int err = errno;
+        free(t);
+        errno = err;
+        return -1;
+    }
+    t->id = (long)hid;
+    *timerid = t;
+    return 0;
+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
     struct vlibc_timer *t = malloc(sizeof(*t));
     if (!t) {
         errno = ENOMEM;
@@ -92,7 +110,18 @@ int timer_delete(timer_t timerid)
         return -1;
     }
     return 0;
-#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+#elif defined(__NetBSD__)
+    struct vlibc_timer *t = (struct vlibc_timer *)timerid;
+    extern int host_timer_delete(timer_t) __asm__("timer_delete");
+    int r = host_timer_delete((timer_t)t->id);
+    int err = errno;
+    free(t);
+    if (r < 0) {
+        errno = err;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
     int r = close(timerid->kq);
     int err = errno;
     free(timerid);
@@ -125,7 +154,11 @@ int timer_settime(timer_t timerid, int flags,
         return -1;
     }
     return 0;
-#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+#elif defined(__NetBSD__)
+    struct vlibc_timer *t = (struct vlibc_timer *)timerid;
+    extern int host_timer_settime(timer_t, int, const struct itimerspec *, struct itimerspec *) __asm__("timer_settime");
+    return host_timer_settime((timer_t)t->id, flags, new_value, old_value);
+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
     struct vlibc_timer *t = (struct vlibc_timer *)timerid;
     struct kevent kev;
     int ms = new_value->it_value.tv_sec * 1000 +
@@ -156,7 +189,11 @@ int timer_gettime(timer_t timerid, struct itimerspec *curr_value)
         return -1;
     }
     return 0;
-#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+#elif defined(__NetBSD__)
+    struct vlibc_timer *t = (struct vlibc_timer *)timerid;
+    extern int host_timer_gettime(timer_t, struct itimerspec *) __asm__("timer_gettime");
+    return host_timer_gettime((timer_t)t->id, curr_value);
+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
     /* querying remaining time is not supported, return zero */
     curr_value->it_value.tv_sec = 0;
     curr_value->it_value.tv_nsec = 0;
