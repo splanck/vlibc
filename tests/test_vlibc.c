@@ -41,6 +41,7 @@
 #include "../include/process.h"
 #include "../include/getopt.h"
 #include "../include/math.h"
+#include "../include/complex.h"
 #include "../include/locale.h"
 #include "../include/regex.h"
 #include "../include/ftw.h"
@@ -3466,6 +3467,18 @@ static const char *test_math_functions(void)
     return 0;
 }
 
+static const char *test_complex_cabs_cexp(void)
+{
+    double_complex z = {3.0, 4.0};
+    mu_assert("cabs", fabs(cabs(z) - 5.0) < 1e-6);
+
+    double_complex i_pi = {0.0, 3.14159265358979323846};
+    double_complex r = cexp(i_pi);
+    mu_assert("cexp real", fabs(r.real + 1.0) < 1e-6);
+    mu_assert("cexp imag", fabs(r.imag) < 1e-6);
+    return 0;
+}
+
 static const char *test_abs_div_functions(void)
 {
     mu_assert("abs pos", abs(5) == 5);
@@ -3840,6 +3853,7 @@ static const char *all_tests(void)
     mu_run_test(test_regex_alternation);
     mu_run_test(test_regex_range);
     mu_run_test(test_math_functions);
+    mu_run_test(test_complex_cabs_cexp);
     mu_run_test(test_abs_div_functions);
     mu_run_test(test_fp_checks);
     mu_run_test(test_getopt_basic);

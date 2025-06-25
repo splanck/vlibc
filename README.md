@@ -55,6 +55,7 @@ programs. Key features include:
 - Array resizing with `recallocarray()` which zeroes new memory
 - Standard `assert` macro for runtime checks
 - Extended math helpers including `hypot`, `round` and `trunc`
+- Simple complex math with `cabs`, `carg`, `cexp`, `ccos` and `csin`
 - Floating-point classification with `isnan()`, `isinf()` and `isfinite()`
 - Extended character checks like `isprint`, `ispunct`, `iscntrl`,
   `isgraph` and `isblank`
