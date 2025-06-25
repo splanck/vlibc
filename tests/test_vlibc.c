@@ -58,6 +58,7 @@
 #include "../include/sys/mman.h"
 #include "../include/sys/shm.h"
 #include "../include/mqueue.h"
+#include "../include/sched.h"
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
@@ -1767,6 +1768,12 @@ static const char *test_sleep_functions(void)
     return 0;
 }
 
+static const char *test_sched_yield_basic(void)
+{
+    mu_assert("sched_yield", sched_yield() == 0);
+    return 0;
+}
+
 static const char *test_timer_basic(void)
 {
     timer_t t;
@@ -3359,6 +3366,7 @@ static const char *all_tests(void)
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
+    mu_run_test(test_sched_yield_basic);
     mu_run_test(test_timer_basic);
     mu_run_test(test_getrusage_self);
     mu_run_test(test_strftime_basic);

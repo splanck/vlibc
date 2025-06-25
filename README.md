@@ -71,6 +71,7 @@ programs. Key features include:
 - Filesystem limits with `pathconf()` and `fpathconf()`
 - Query configuration strings with `confstr()`
 - Simple alarm timers with `alarm()`
+- Yield the processor with `sched_yield()`
 - POSIX interval timers with `timer_create` and `timer_settime()`
 - Resource usage statistics with `getrusage()`
 - Basic character set conversion with `iconv`
