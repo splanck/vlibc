@@ -91,5 +91,6 @@ int sigwait(const sigset_t *set, int *sig);
 int sigwaitinfo(const sigset_t *set, siginfo_t *info);
 int sigtimedwait(const sigset_t *set, siginfo_t *info,
                  const struct timespec *timeout);
+int sigqueue(pid_t pid, int signo, const union sigval value);
 
 #endif /* SIGNAL_H */

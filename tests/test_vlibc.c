@@ -2882,8 +2882,30 @@ static const char *test_sigtimedwait_timeout(void)
     struct timespec ts = {0, 100000000};
     sigemptyset(&set);
     sigaddset(&set, SIGUSR2);
-    int r = sigtimedwait(&set, &info, &ts);
+int r = sigtimedwait(&set, &info, &ts);
     mu_assert("timeout", r == -1 && errno == EAGAIN);
+    return 0;
+}
+
+static const char *test_sigqueue_value(void)
+{
+    sigset_t set;
+    siginfo_t info;
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        sigprocmask(SIG_BLOCK, &set, NULL);
+        sigwaitinfo(&set, &info);
+        int val = ((union sigval *)&info._pad[3])->sival_int;
+        _exit(val == 123 ? 0 : 1);
+    }
+    union sigval v; v.sival_int = 123;
+    mu_assert("sigqueue", sigqueue(pid, SIGUSR1, v) == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("sigqueue child", WIFEXITED(status) && WEXITSTATUS(status) == 0);
     return 0;
 }
 
@@ -3822,6 +3844,7 @@ static const char *all_tests(void)
     mu_run_test(test_sigprocmask_block);
     mu_run_test(test_sigwait_basic);
     mu_run_test(test_sigtimedwait_timeout);
+    mu_run_test(test_sigqueue_value);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_shm_basic);
     mu_run_test(test_mqueue_basic);

@@ -700,6 +700,7 @@ int sigwait(const sigset_t *set, int *sig);
 int sigwaitinfo(const sigset_t *set, siginfo_t *info);
 int sigtimedwait(const sigset_t *set, siginfo_t *info,
                  const struct timespec *timeout);
+int sigqueue(pid_t pid, int signo, const union sigval value);
 int system(const char *command);
 int daemon(int nochdir, int noclose);
 int atexit(void (*fn)(void));
@@ -711,6 +712,8 @@ These wrappers retrieve and manipulate process information. `getuid`,
 `geteuid`, `getgid`, and `getegid` return the real and effective user and
 group IDs. `setuid`, `seteuid`, `setgid`, and `setegid` modify them when
 supported by the host.
+`sigqueue` delivers a queued signal with a small data payload when the
+platform exposes `rt_sigqueueinfo` or falls back to the native implementation.
 
 `posix_spawn` accepts an attribute object controlling the signal mask and
 process group of the new process. File actions can be supplied to open, close

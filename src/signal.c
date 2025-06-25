@@ -10,6 +10,7 @@
 #include "errno.h"
 #include <sys/syscall.h>
 #include "syscall.h"
+#include "memory.h"
 #include <stddef.h>
 
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
@@ -214,4 +215,33 @@ int sigwait(const sigset_t *set, int *sig)
     if (sig)
         *sig = info.si_signo;
     return 0;
+}
+
+int sigqueue(pid_t pid, int signo, const union sigval value)
+{
+#ifdef SYS_rt_sigqueueinfo
+    siginfo_t info;
+    vmemset(&info, 0, sizeof(info));
+    info.si_signo = signo;
+    info.si_code = -1; /* SI_QUEUE */
+    size_t off = 3 * sizeof(int) + 2 * sizeof(int);
+    if (sizeof(void *) > sizeof(int))
+        off = (off + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
+    *(union sigval *)((char *)&info + off) = value;
+    long ret = vlibc_syscall(SYS_rt_sigqueueinfo, pid, signo,
+                             (long)&info, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__) || defined(__APPLE__)
+    extern int host_sigqueue(pid_t, int, const union sigval) __asm("sigqueue");
+    return host_sigqueue(pid, signo, value);
+#else
+    (void)pid; (void)signo; (void)value;
+    errno = ENOSYS;
+    return -1;
+#endif
 }
