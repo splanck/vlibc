@@ -140,12 +140,25 @@ int chdir(const char *path)
 int sendfile(int fd, int s, off_t offset, size_t nbytes,
              struct sf_hdtr *hdtr, off_t *sbytes, int flags)
 {
+#if defined(__NetBSD__)
+    extern int host_sendfile(int, int, off_t, size_t,
+                             struct sf_hdtr *, off_t *, int)
+        __asm("sendfile");
+    int hret = host_sendfile(fd, s, offset, nbytes, hdtr, sbytes, flags);
+    if (hret >= 0)
+        return hret;
+    if (errno != ENOSYS && errno != EINVAL && errno != EOPNOTSUPP &&
+        errno != ENOTSOCK) {
+        return -1;
+    }
+#endif
 #if defined(SYS_sendfile) && !defined(__linux__)
     long ret = vlibc_syscall(SYS_sendfile, fd, s, offset, nbytes,
                              (long)hdtr, (long)sbytes);
     if (ret >= 0)
         return (int)ret;
-    if (ret != -ENOSYS && ret != -EINVAL && ret != -EOPNOTSUPP && ret != -ENOTSOCK) {
+    if (ret != -ENOSYS && ret != -EINVAL && ret != -EOPNOTSUPP &&
+        ret != -ENOTSOCK) {
         errno = -ret;
         return -1;
     }
