@@ -121,3 +121,97 @@ char *strsignal(int signum)
     }
     return "Unknown signal";
 }
+
+/* Retrieve the set of pending signals */
+int sigpending(sigset_t *set)
+{
+#ifdef SYS_rt_sigpending
+    long ret = vlibc_syscall(SYS_rt_sigpending, (long)set,
+                             sizeof(sigset_t), 0, 0, 0, 0);
+#elif defined(SYS_sigpending)
+    long ret = vlibc_syscall(SYS_sigpending, (long)set, 0, 0, 0, 0, 0);
+#else
+    long ret = -ENOSYS;
+#endif
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+}
+
+/* Suspend execution until a signal arrives */
+int sigsuspend(const sigset_t *mask)
+{
+#ifdef SYS_rt_sigsuspend
+    long ret = vlibc_syscall(SYS_rt_sigsuspend, (long)mask,
+                             sizeof(sigset_t), 0, 0, 0, 0);
+#elif defined(SYS_sigsuspend)
+    long ret = vlibc_syscall(SYS_sigsuspend, (long)mask, 0, 0, 0, 0, 0);
+#else
+    long ret = -ENOSYS;
+#endif
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+}
+
+/* Pause the process until a signal is caught */
+int pause(void)
+{
+#ifdef SYS_pause
+    long ret = vlibc_syscall(SYS_pause, 0, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+    sigset_t mask;
+    sigemptyset(&mask);
+    return sigsuspend(&mask);
+#endif
+}
+
+/* Wait for a signal from the set with optional timeout */
+int sigtimedwait(const sigset_t *set, siginfo_t *info,
+                 const struct timespec *timeout)
+{
+#ifdef SYS_rt_sigtimedwait_time64
+    long ret = vlibc_syscall(SYS_rt_sigtimedwait_time64, (long)set,
+                             (long)info, (long)timeout,
+                             sizeof(sigset_t), 0, 0);
+#elif defined(SYS_rt_sigtimedwait)
+    long ret = vlibc_syscall(SYS_rt_sigtimedwait, (long)set,
+                             (long)info, (long)timeout,
+                             sizeof(sigset_t), 0, 0);
+#else
+    (void)set; (void)info; (void)timeout;
+    long ret = -ENOSYS;
+#endif
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+}
+
+/* Wait for a signal from the set */
+int sigwaitinfo(const sigset_t *set, siginfo_t *info)
+{
+    return sigtimedwait(set, info, NULL);
+}
+
+/* Wait for a signal and return it */
+int sigwait(const sigset_t *set, int *sig)
+{
+    siginfo_t info;
+    int r = sigtimedwait(set, &info, NULL);
+    if (r < 0)
+        return errno;
+    if (sig)
+        *sig = info.si_signo;
+    return 0;
+}

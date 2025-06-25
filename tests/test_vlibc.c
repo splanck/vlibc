@@ -2280,6 +2280,47 @@ static const char *test_sigprocmask_block(void)
     return 0;
 }
 
+static void *send_signal(void *arg)
+{
+    int sig = *(int *)arg;
+    struct timespec ts = {0, 100000000};
+    nanosleep(&ts, NULL);
+    kill(getpid(), sig);
+    return NULL;
+}
+
+static const char *test_sigwait_basic(void)
+{
+    sigset_t set;
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+    mu_assert("block", sigprocmask(SIG_BLOCK, &set, NULL) == 0);
+
+    pthread_t t;
+    int sig = SIGUSR1;
+    pthread_create(&t, NULL, send_signal, &sig);
+
+    int caught = 0;
+    int r = sigwait(&set, &caught);
+    pthread_join(t, NULL);
+
+    sigprocmask(SIG_UNBLOCK, &set, NULL);
+    mu_assert("sigwait", r == 0 && caught == SIGUSR1);
+    return 0;
+}
+
+static const char *test_sigtimedwait_timeout(void)
+{
+    sigset_t set;
+    siginfo_t info;
+    struct timespec ts = {0, 100000000};
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR2);
+    int r = sigtimedwait(&set, &info, &ts);
+    mu_assert("timeout", r == -1 && errno == EAGAIN);
+    return 0;
+}
+
 static const char *test_mprotect_anon(void)
 {
     size_t len = 4096;
@@ -2994,6 +3035,8 @@ static const char *all_tests(void)
     mu_run_test(test_abort_fn);
     mu_run_test(test_sigaction_install);
     mu_run_test(test_sigprocmask_block);
+    mu_run_test(test_sigwait_basic);
+    mu_run_test(test_sigtimedwait_timeout);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_shm_basic);
     mu_run_test(test_mqueue_basic);

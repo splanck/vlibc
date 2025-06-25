@@ -7,6 +7,7 @@
 #define SIGNAL_H
 
 #include <sys/types.h>
+#include "time.h"
 
 /* basic signal numbers */
 #define SIGHUP    1
@@ -75,5 +76,20 @@ int sigaddset(sigset_t *set, int signo);
 int sigdelset(sigset_t *set, int signo);
 int sigismember(const sigset_t *set, int signo);
 char *strsignal(int signum);
+
+typedef struct siginfo {
+    int si_signo;
+    int si_errno;
+    int si_code;
+    int _pad[29];
+} siginfo_t;
+
+int pause(void);
+int sigsuspend(const sigset_t *mask);
+int sigpending(sigset_t *set);
+int sigwait(const sigset_t *set, int *sig);
+int sigwaitinfo(const sigset_t *set, siginfo_t *info);
+int sigtimedwait(const sigset_t *set, siginfo_t *info,
+                 const struct timespec *timeout);
 
 #endif /* SIGNAL_H */
