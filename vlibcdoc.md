@@ -11,54 +11,55 @@ This document outlines the architecture, planned modules, and API design for **v
 5. [Memory Mapping](#memory-mapping)
 6. [Shared Memory](#shared-memory)
 7. [POSIX Message Queues](#posix-message-queues)
-8. [String Handling](#string-handling)
-9. [Character Classification](#character-classification)
-10. [Option Parsing](#option-parsing)
-11. [Random Numbers](#random-numbers)
-12. [rand48 API](#rand48-api)
-13. [Sorting Helpers](#sorting-helpers)
-14. [Utilities](#utilities)
-15. [Regular Expressions](#regular-expressions)
-16. [Math Functions](#math-functions)
-17. [Process Control](#process-control)
-18. [Error Reporting](#error-reporting)
-19. [Errno Access](#errno-access)
-20. [Threading](#threading)
-21. [Dynamic Loading](#dynamic-loading)
-22. [Environment Variables](#environment-variables)
-23. [System Information](#system-information)
-24. [Basic File I/O](#basic-file-io)
-25. [File Descriptor Helpers](#file-descriptor-helpers)
-26. [File Control](#file-control)
-27. [File Locking](#file-locking)
-28. [Terminal Attributes](#terminal-attributes)
-29. [Pseudo-terminals](#pseudo-terminals)
-30. [Secure Password Input](#secure-password-input)
-31. [Standard Streams](#standard-streams)
-32. [Temporary Files](#temporary-files)
-33. [Networking](#networking)
-34. [I/O Multiplexing](#io-multiplexing)
-35. [File Permissions](#file-permissions)
-36. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-37. [File Status](#file-status)
-38. [Directory Iteration](#directory-iteration)
-39. [Path Canonicalization](#path-canonicalization)
-40. [Path Utilities](#path-utilities)
-41. [User Database](#user-database)
-42. [Group Database](#group-database)
-43. [Time Formatting](#time-formatting)
-44. [Locale Support](#locale-support)
-45. [Time Retrieval](#time-retrieval)
-46. [Sleep Functions](#sleep-functions)
-47. [Interval Timers](#interval-timers)
-48. [Raw System Calls](#raw-system-calls)
-49. [Non-local Jumps](#non-local-jumps)
-50. [Limitations](#limitations)
-51. [Conclusion](#conclusion)
-52. [Logging](#logging)
-53. [Path Expansion](#path-expansion)
-54. [Filesystem Statistics](#filesystem-statistics)
-55. [Resource Limits](#resource-limits)
+8. [IPC Key Generation](#ipc-key-generation)
+9. [String Handling](#string-handling)
+10. [Character Classification](#character-classification)
+11. [Option Parsing](#option-parsing)
+12. [Random Numbers](#random-numbers)
+13. [rand48 API](#rand48-api)
+14. [Sorting Helpers](#sorting-helpers)
+15. [Utilities](#utilities)
+16. [Regular Expressions](#regular-expressions)
+17. [Math Functions](#math-functions)
+18. [Process Control](#process-control)
+19. [Error Reporting](#error-reporting)
+20. [Errno Access](#errno-access)
+21. [Threading](#threading)
+22. [Dynamic Loading](#dynamic-loading)
+23. [Environment Variables](#environment-variables)
+24. [System Information](#system-information)
+25. [Basic File I/O](#basic-file-io)
+26. [File Descriptor Helpers](#file-descriptor-helpers)
+27. [File Control](#file-control)
+28. [File Locking](#file-locking)
+29. [Terminal Attributes](#terminal-attributes)
+30. [Pseudo-terminals](#pseudo-terminals)
+31. [Secure Password Input](#secure-password-input)
+32. [Standard Streams](#standard-streams)
+33. [Temporary Files](#temporary-files)
+34. [Networking](#networking)
+35. [I/O Multiplexing](#io-multiplexing)
+36. [File Permissions](#file-permissions)
+37. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+38. [File Status](#file-status)
+39. [Directory Iteration](#directory-iteration)
+40. [Path Canonicalization](#path-canonicalization)
+41. [Path Utilities](#path-utilities)
+42. [User Database](#user-database)
+43. [Group Database](#group-database)
+44. [Time Formatting](#time-formatting)
+45. [Locale Support](#locale-support)
+46. [Time Retrieval](#time-retrieval)
+47. [Sleep Functions](#sleep-functions)
+48. [Interval Timers](#interval-timers)
+49. [Raw System Calls](#raw-system-calls)
+50. [Non-local Jumps](#non-local-jumps)
+51. [Limitations](#limitations)
+52. [Conclusion](#conclusion)
+53. [Logging](#logging)
+54. [Path Expansion](#path-expansion)
+55. [Filesystem Statistics](#filesystem-statistics)
+56. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -308,6 +309,20 @@ mq_receive(mq, buf, sizeof(buf), NULL);
 mq_close(mq);
 mq_unlink("/example");
 ```
+
+## IPC Key Generation
+
+`ftok` derives a System V IPC key from an existing file. The project
+identifier is masked to 8 bits and combined with the file's device and
+inode numbers:
+
+```c
+key_t key = ftok("/tmp/myapp.lock", 1);
+/* use key with msgget/shmget/semget */
+```
+
+If the path cannot be stat'ed the function returns `(key_t)-1` and sets
+`errno`.
 
 ## String Handling
 
@@ -1791,4 +1806,3 @@ state.
 ## Conclusion
 
 vlibc is intentionally small and focused. This documentation will evolve as the project grows, but the guiding principles of minimalism and clarity will remain the same. Contributions are welcome as long as they align with these goals.
-

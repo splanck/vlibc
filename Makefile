@@ -215,6 +215,8 @@ install: $(LIB)
 	install -d $(DESTDIR)$(PREFIX)/include/sys
 	# install system headers including wait.h
 	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys
+	# ensure the new ipc.h header is installed
+	install -m 644 include/sys/ipc.h $(DESTDIR)$(PREFIX)/include/sys
 
 clean:
 	rm -f $(OBJ) $(LIB) $(TEST_BIN) $(PLUGIN_SO)

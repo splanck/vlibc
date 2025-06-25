@@ -57,6 +57,7 @@
 #include "../include/sys/resource.h"
 #include "../include/sys/mman.h"
 #include "../include/sys/shm.h"
+#include "../include/sys/ipc.h"
 #include "../include/mqueue.h"
 
 /* use host printf for test output */
@@ -2603,6 +2604,26 @@ static const char *test_mqueue_basic(void)
     return 0;
 }
 
+static const char *test_ftok_generation(void)
+{
+    struct stat st;
+    mu_assert("stat", stat("README.md", &st) == 0);
+    key_t expect = ((0x55 & 0xff) << 24) |
+                   ((st.st_dev & 0xff) << 16) |
+                   (st.st_ino & 0xffff);
+    key_t k = ftok("README.md", 0x55);
+    mu_assert("value", k == expect);
+    return 0;
+}
+
+static const char *test_ftok_error(void)
+{
+    errno = 0;
+    key_t k = ftok("/no/such/file", 1);
+    mu_assert("fail", k == (key_t)-1 && errno == ENOENT);
+    return 0;
+}
+
 static const char *test_atexit_handler(void)
 {
     mu_assert("pipe", pipe(exit_pipe) == 0);
@@ -3371,6 +3392,8 @@ static const char *all_tests(void)
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_shm_basic);
     mu_run_test(test_mqueue_basic);
+    mu_run_test(test_ftok_generation);
+    mu_run_test(test_ftok_error);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_getcwd_chdir);
     mu_run_test(test_realpath_basic);
