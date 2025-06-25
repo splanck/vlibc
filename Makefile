@@ -147,6 +147,7 @@ SRC := \
     src/getopt_long.c \
     src/getopt_long_only.c \
     src/locale.c \
+    src/locale_extra.c \
     src/wchar.c \
     src/wchar_conv.c \
     src/wchar_io.c \

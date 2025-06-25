@@ -38,4 +38,15 @@ struct lconv {
 char *setlocale(int category, const char *locale);
 struct lconv *localeconv(void);
 
+typedef struct __vlibc_locale *locale_t;
+
+#ifndef LC_GLOBAL_LOCALE
+#define LC_GLOBAL_LOCALE ((locale_t)-1)
+#endif
+
+locale_t newlocale(int category_mask, const char *locale, locale_t base);
+locale_t duplocale(locale_t loc);
+void freelocale(locale_t loc);
+locale_t uselocale(locale_t newloc);
+
 #endif /* LOCALE_H */
