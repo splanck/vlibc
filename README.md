@@ -51,6 +51,7 @@ programs. Key features include:
   `strtoull`, `strtof`, `strtod` and `strtold`
 - Integer helpers `abs`, `labs`, `llabs` and division results with `div`,
   `ldiv` and `lldiv`
+- POSIX-style 48-bit random numbers via the `rand48` family
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Memory-backed streams with `open_memstream()` and `fmemopen()`
 - Large-file aware seeks

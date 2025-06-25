@@ -15,49 +15,50 @@ This document outlines the architecture, planned modules, and API design for **v
 9. [Character Classification](#character-classification)
 10. [Option Parsing](#option-parsing)
 11. [Random Numbers](#random-numbers)
-12. [Sorting Helpers](#sorting-helpers)
-13. [Utilities](#utilities)
-14. [Regular Expressions](#regular-expressions)
-15. [Math Functions](#math-functions)
-16. [Process Control](#process-control)
-17. [Error Reporting](#error-reporting)
-18. [Errno Access](#errno-access)
-19. [Threading](#threading)
-20. [Dynamic Loading](#dynamic-loading)
-21. [Environment Variables](#environment-variables)
-22. [System Information](#system-information)
-23. [Basic File I/O](#basic-file-io)
-24. [File Descriptor Helpers](#file-descriptor-helpers)
-25. [File Control](#file-control)
-26. [File Locking](#file-locking)
-27. [Terminal Attributes](#terminal-attributes)
-28. [Pseudo-terminals](#pseudo-terminals)
-29. [Secure Password Input](#secure-password-input)
-30. [Standard Streams](#standard-streams)
-31. [Temporary Files](#temporary-files)
-32. [Networking](#networking)
-33. [I/O Multiplexing](#io-multiplexing)
-34. [File Permissions](#file-permissions)
-35. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-36. [File Status](#file-status)
-37. [Directory Iteration](#directory-iteration)
-38. [Path Canonicalization](#path-canonicalization)
-39. [Path Utilities](#path-utilities)
-40. [User Database](#user-database)
-41. [Group Database](#group-database)
-42. [Time Formatting](#time-formatting)
-43. [Locale Support](#locale-support)
-44. [Time Retrieval](#time-retrieval)
-45. [Sleep Functions](#sleep-functions)
-46. [Interval Timers](#interval-timers)
-47. [Raw System Calls](#raw-system-calls)
-48. [Non-local Jumps](#non-local-jumps)
-49. [Limitations](#limitations)
-50. [Conclusion](#conclusion)
-51. [Logging](#logging)
-52. [Path Expansion](#path-expansion)
-53. [Filesystem Statistics](#filesystem-statistics)
-54. [Resource Limits](#resource-limits)
+12. [rand48 API](#rand48-api)
+13. [Sorting Helpers](#sorting-helpers)
+14. [Utilities](#utilities)
+15. [Regular Expressions](#regular-expressions)
+16. [Math Functions](#math-functions)
+17. [Process Control](#process-control)
+18. [Error Reporting](#error-reporting)
+19. [Errno Access](#errno-access)
+20. [Threading](#threading)
+21. [Dynamic Loading](#dynamic-loading)
+22. [Environment Variables](#environment-variables)
+23. [System Information](#system-information)
+24. [Basic File I/O](#basic-file-io)
+25. [File Descriptor Helpers](#file-descriptor-helpers)
+26. [File Control](#file-control)
+27. [File Locking](#file-locking)
+28. [Terminal Attributes](#terminal-attributes)
+29. [Pseudo-terminals](#pseudo-terminals)
+30. [Secure Password Input](#secure-password-input)
+31. [Standard Streams](#standard-streams)
+32. [Temporary Files](#temporary-files)
+33. [Networking](#networking)
+34. [I/O Multiplexing](#io-multiplexing)
+35. [File Permissions](#file-permissions)
+36. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+37. [File Status](#file-status)
+38. [Directory Iteration](#directory-iteration)
+39. [Path Canonicalization](#path-canonicalization)
+40. [Path Utilities](#path-utilities)
+41. [User Database](#user-database)
+42. [Group Database](#group-database)
+43. [Time Formatting](#time-formatting)
+44. [Locale Support](#locale-support)
+45. [Time Retrieval](#time-retrieval)
+46. [Sleep Functions](#sleep-functions)
+47. [Interval Timers](#interval-timers)
+48. [Raw System Calls](#raw-system-calls)
+49. [Non-local Jumps](#non-local-jumps)
+50. [Limitations](#limitations)
+51. [Conclusion](#conclusion)
+52. [Logging](#logging)
+53. [Path Expansion](#path-expansion)
+54. [Filesystem Statistics](#filesystem-statistics)
+55. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -472,6 +473,28 @@ produces the identical sequence of numbers, each in the range `0` to
 random generator. `arc4random_buf()` fills an arbitrary buffer with secure
 random bytes. The `rand_r()` variant operates like `rand()` but stores its
 state in a user-provided variable so it can be used in threaded code.
+
+## rand48 API
+
+The `rand48` functions implement a 48-bit linear congruential generator
+compatible with POSIX.  They share a global state initialized with
+`srand48()`:
+
+```c
+double drand48(void);
+double erand48(unsigned short state[3]);
+long lrand48(void);
+long nrand48(unsigned short state[3]);
+void srand48(long seedval);
+unsigned short *seed48(unsigned short state[3]);
+void lcong48(unsigned short param[7]);
+```
+
+`drand48()` returns a floating-point value in the range `[0.0,1.0)`.
+`lrand48()` produces a non-negative long integer.  The `erand48()` and
+`nrand48()` variants operate on a caller supplied state array instead of
+the global seed.  Calling `seed48()` swaps the generator state and
+`lcong48()` allows customizing the multiplier and additive constants.
 
 ## Sorting Helpers
 

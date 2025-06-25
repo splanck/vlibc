@@ -64,6 +64,13 @@ void srand(unsigned seed);
 unsigned int arc4random(void);
 void arc4random_buf(void *buf, size_t len);
 int rand_r(unsigned *state);
+double drand48(void);
+double erand48(unsigned short xseed[3]);
+long lrand48(void);
+long nrand48(unsigned short xseed[3]);
+void srand48(long seedval);
+unsigned short *seed48(unsigned short seed16v[3]);
+void lcong48(unsigned short param[7]);
 
 /* Register a function to run at normal process exit */
 int atexit(void (*fn)(void));
