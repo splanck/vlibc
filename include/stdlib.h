@@ -75,6 +75,9 @@ void lcong48(unsigned short param[7]);
 /* Register a function to run at normal process exit */
 int atexit(void (*fn)(void));
 
+int at_quick_exit(void (*func)(void));
+void quick_exit(int status);
+
 /* Terminate the process with SIGABRT */
 void abort(void);
 

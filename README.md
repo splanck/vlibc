@@ -76,6 +76,8 @@ programs. Key features include:
 - POSIX interval timers with `timer_create` and `timer_settime()`
 - Resource usage statistics with `getrusage()`
 - Basic character set conversion with `iconv`
+- Register quick-exit handlers with `at_quick_exit()` and trigger them via
+  `quick_exit()`
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
 functions depend on system calls that are currently implemented for Linux. BSD

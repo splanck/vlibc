@@ -756,9 +756,18 @@ pipe connected to the child. Use mode `"r"` to read its output or `"w"`
 to send data to its stdin.
 `abort()` sends `SIGABRT` to the current process and does not invoke
 `atexit` handlers.
+
 `exit()` terminates the process after running any handlers registered with `atexit()`. The handlers execute in reverse registration order. `_exit()` bypasses them.
 The design favors straightforward semantics over comprehensive POSIX
 conformance.
+
+### Quick-Exit Handlers
+
+Handlers registered via `at_quick_exit` run when `quick_exit` is called. They
+execute in reverse order of registration and are intended for simple cleanup
+prior to terminating the process immediately. After running the handlers
+`quick_exit` invokes `_exit` without flushing stdio buffers or calling regular
+`atexit` handlers.
 
 ## Error Reporting
 
