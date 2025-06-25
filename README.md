@@ -45,6 +45,7 @@ programs. Key features include:
 - File tree traversal with `fts`
 - Path expansion helpers with `glob()` and `wordexp()`
 - Array sorting with `qsort`, `qsort_r` and `bsearch`
+- Array resizing with `recallocarray()` which zeroes new memory
 - Standard `assert` macro for runtime checks
 - Extended math helpers including `hypot`, `round` and `trunc`
 - Floating-point classification with `isnan()`, `isinf()` and `isfinite()`

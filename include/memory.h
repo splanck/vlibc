@@ -18,6 +18,8 @@ void *calloc(size_t nmemb, size_t size);
 void *realloc(void *ptr, size_t size);
 /* Resize an array with overflow check. */
 void *reallocarray(void *ptr, size_t nmemb, size_t size);
+/* Resize an array and zero any newly allocated memory. */
+void *recallocarray(void *ptr, size_t nmemb, size_t size);
 /* Allocate aligned memory and record the original pointer. */
 int posix_memalign(void **memptr, size_t alignment, size_t size);
 

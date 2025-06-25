@@ -192,6 +192,21 @@ static const char *test_reallocarray_basic(void)
     return 0;
 }
 
+static const char *test_recallocarray_grow(void)
+{
+    int *p = recallocarray(NULL, 2, sizeof(int));
+    mu_assert("alloc", p != NULL);
+    p[0] = 1;
+    p[1] = 2;
+    p = recallocarray(p, 4, sizeof(int));
+    mu_assert("recalloc", p != NULL);
+    mu_assert("preserve0", p[0] == 1);
+    mu_assert("preserve1", p[1] == 2);
+    mu_assert("zero", p[2] == 0 && p[3] == 0);
+    free(p);
+    return 0;
+}
+
 static const char *test_memory_ops(void)
 {
     char buf[8];
@@ -3301,6 +3316,7 @@ static const char *all_tests(void)
     mu_run_test(test_posix_memalign);
     mu_run_test(test_reallocarray_overflow);
     mu_run_test(test_reallocarray_basic);
+    mu_run_test(test_recallocarray_grow);
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
