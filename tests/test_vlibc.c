@@ -56,6 +56,7 @@
 #include "../include/sys/resource.h"
 #include "../include/sys/mman.h"
 #include "../include/sys/shm.h"
+#include "../include/mqueue.h"
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
@@ -2220,6 +2221,29 @@ static const char *test_shm_basic(void)
     return 0;
 }
 
+static const char *test_mqueue_basic(void)
+{
+    const char *name = "/vlibc_test_mq";
+    struct mq_attr attr = {0};
+    attr.mq_maxmsg = 4;
+    attr.mq_msgsize = 32;
+    mqd_t mq = mq_open(name, O_CREAT | O_RDWR, 0600, &attr);
+    mu_assert("mq_open", mq >= 0);
+
+    const char *msg = "hello";
+    mu_assert("mq_send", mq_send(mq, msg, strlen(msg) + 1, 1) == 0);
+
+    char buf[32];
+    unsigned prio = 0;
+    ssize_t r = mq_receive(mq, buf, sizeof(buf), &prio);
+    mu_assert("mq_receive", r > 0);
+    mu_assert("mq_msg", strcmp(buf, msg) == 0 && prio == 1);
+
+    mu_assert("mq_close", mq_close(mq) == 0);
+    mu_assert("mq_unlink", mq_unlink(name) == 0);
+    return 0;
+}
+
 static const char *test_atexit_handler(void)
 {
     mu_assert("pipe", pipe(exit_pipe) == 0);
@@ -2874,6 +2898,7 @@ static const char *all_tests(void)
     mu_run_test(test_sigprocmask_block);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_shm_basic);
+    mu_run_test(test_mqueue_basic);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_getcwd_chdir);
     mu_run_test(test_realpath_basic);

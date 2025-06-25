@@ -10,52 +10,53 @@ This document outlines the architecture, planned modules, and API design for **v
 4. [Memory Management](#memory-management)
 5. [Memory Mapping](#memory-mapping)
 6. [Shared Memory](#shared-memory)
-7. [String Handling](#string-handling)
-8. [Character Classification](#character-classification)
-9. [Option Parsing](#option-parsing)
-10. [Random Numbers](#random-numbers)
-11. [Sorting Helpers](#sorting-helpers)
-12. [Regular Expressions](#regular-expressions)
-13. [Math Functions](#math-functions)
-14. [Process Control](#process-control)
-15. [Error Reporting](#error-reporting)
-16. [Errno Access](#errno-access)
-17. [Threading](#threading)
-18. [Dynamic Loading](#dynamic-loading)
-19. [Environment Variables](#environment-variables)
-20. [System Information](#system-information)
-21. [Basic File I/O](#basic-file-io)
-22. [File Descriptor Helpers](#file-descriptor-helpers)
-23. [File Control](#file-control)
-24. [File Locking](#file-locking)
-25. [Terminal Attributes](#terminal-attributes)
-26. [Pseudo-terminals](#pseudo-terminals)
-27. [Secure Password Input](#secure-password-input)
-28. [Standard Streams](#standard-streams)
-29. [Temporary Files](#temporary-files)
-30. [Networking](#networking)
-31. [I/O Multiplexing](#io-multiplexing)
-32. [File Permissions](#file-permissions)
-33. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-34. [File Status](#file-status)
-35. [Directory Iteration](#directory-iteration)
-36. [Path Canonicalization](#path-canonicalization)
-37. [Path Utilities](#path-utilities)
-38. [User Database](#user-database)
-39. [Group Database](#group-database)
-40. [Time Formatting](#time-formatting)
-41. [Locale Support](#locale-support)
-42. [Time Retrieval](#time-retrieval)
-43. [Sleep Functions](#sleep-functions)
-44. [Interval Timers](#interval-timers)
-45. [Raw System Calls](#raw-system-calls)
-46. [Non-local Jumps](#non-local-jumps)
-47. [Limitations](#limitations)
-48. [Conclusion](#conclusion)
-49. [Logging](#logging)
-50. [Path Expansion](#path-expansion)
-51. [Filesystem Statistics](#filesystem-statistics)
-52. [Resource Limits](#resource-limits)
+7. [POSIX Message Queues](#posix-message-queues)
+8. [String Handling](#string-handling)
+9. [Character Classification](#character-classification)
+10. [Option Parsing](#option-parsing)
+11. [Random Numbers](#random-numbers)
+12. [Sorting Helpers](#sorting-helpers)
+13. [Regular Expressions](#regular-expressions)
+14. [Math Functions](#math-functions)
+15. [Process Control](#process-control)
+16. [Error Reporting](#error-reporting)
+17. [Errno Access](#errno-access)
+18. [Threading](#threading)
+19. [Dynamic Loading](#dynamic-loading)
+20. [Environment Variables](#environment-variables)
+21. [System Information](#system-information)
+22. [Basic File I/O](#basic-file-io)
+23. [File Descriptor Helpers](#file-descriptor-helpers)
+24. [File Control](#file-control)
+25. [File Locking](#file-locking)
+26. [Terminal Attributes](#terminal-attributes)
+27. [Pseudo-terminals](#pseudo-terminals)
+28. [Secure Password Input](#secure-password-input)
+29. [Standard Streams](#standard-streams)
+30. [Temporary Files](#temporary-files)
+31. [Networking](#networking)
+32. [I/O Multiplexing](#io-multiplexing)
+33. [File Permissions](#file-permissions)
+34. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+35. [File Status](#file-status)
+36. [Directory Iteration](#directory-iteration)
+37. [Path Canonicalization](#path-canonicalization)
+38. [Path Utilities](#path-utilities)
+39. [User Database](#user-database)
+40. [Group Database](#group-database)
+41. [Time Formatting](#time-formatting)
+42. [Locale Support](#locale-support)
+43. [Time Retrieval](#time-retrieval)
+44. [Sleep Functions](#sleep-functions)
+45. [Interval Timers](#interval-timers)
+46. [Raw System Calls](#raw-system-calls)
+47. [Non-local Jumps](#non-local-jumps)
+48. [Limitations](#limitations)
+49. [Conclusion](#conclusion)
+50. [Logging](#logging)
+51. [Path Expansion](#path-expansion)
+52. [Filesystem Statistics](#filesystem-statistics)
+53. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -286,6 +287,24 @@ void *mem = mmap(NULL, 4096, PROT_READ | PROT_WRITE,
 munmap(mem, 4096);
 close(fd);
 shm_unlink(name);
+```
+
+## POSIX Message Queues
+
+Message queues allow processes to exchange fixed-size messages. Create or
+open a queue with `mq_open` and use `mq_send`/`mq_receive` to transfer
+data:
+
+```c
+struct mq_attr attr = {0};
+attr.mq_maxmsg = 4;
+attr.mq_msgsize = 32;
+mqd_t mq = mq_open("/example", O_CREAT | O_RDWR, 0600, &attr);
+mq_send(mq, "hi", 3, 0);
+char buf[32];
+mq_receive(mq, buf, sizeof(buf), NULL);
+mq_close(mq);
+mq_unlink("/example");
 ```
 
 ## String Handling
