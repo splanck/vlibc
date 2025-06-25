@@ -1553,6 +1553,37 @@ static const char *test_pthread_barrier(void)
     return 0;
 }
 
+static pthread_spinlock_t spin;
+static int spin_counter;
+
+static void *spin_worker(void *arg)
+{
+    (void)arg;
+    for (int i = 0; i < 1000; ++i) {
+        pthread_spin_lock(&spin);
+        spin_counter++;
+        pthread_spin_unlock(&spin);
+    }
+    return NULL;
+}
+
+static const char *test_pthread_spinlock(void)
+{
+    pthread_t t1, t2;
+    pthread_spin_init(&spin, 0);
+    spin_counter = 0;
+    pthread_create(&t1, NULL, spin_worker, NULL);
+    pthread_create(&t2, NULL, spin_worker, NULL);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    mu_assert("spin count", spin_counter == 2000);
+    mu_assert("trylock avail", pthread_spin_trylock(&spin) == 0);
+    mu_assert("trylock busy", pthread_spin_trylock(&spin) == EBUSY);
+    pthread_spin_unlock(&spin);
+    pthread_spin_destroy(&spin);
+    return 0;
+}
+
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
@@ -2919,6 +2950,7 @@ static const char *all_tests(void)
     mu_run_test(test_pthread_mutexattr);
     mu_run_test(test_pthread_rwlock);
     mu_run_test(test_pthread_barrier);
+    mu_run_test(test_pthread_spinlock);
     mu_run_test(test_semaphore_basic);
     mu_run_test(test_semaphore_trywait);
     mu_run_test(test_select_pipe);

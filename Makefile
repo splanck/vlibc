@@ -127,6 +127,7 @@ SRC := \
     src/utime.c \
     src/pthread.c \
     src/pthread_rwlock.c \
+    src/pthread_spin.c \
     src/pthread_barrier.c \
     src/semaphore.c \
     src/dirent.c \

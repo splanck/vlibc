@@ -21,6 +21,8 @@ programs. Key features include:
 - Set mutex types with `pthread_mutexattr_settype()`
 - Counting semaphores with `sem_init()`/`sem_wait()`/`sem_post()`
 - Thread barriers with `pthread_barrier_init()` and `pthread_barrier_wait()`
+- Lightweight spin locks with `pthread_spin_lock()` and
+  `pthread_spin_unlock()`
 - Query the current thread ID with `pthread_self()` and compare IDs with `pthread_equal()`
 - Networking sockets
 - Human-readable address errors with `gai_strerror()`
