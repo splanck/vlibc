@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/* Create a pair of connected sockets */
 int socketpair(int domain, int type, int protocol, int sv[2])
 {
     long ret = vlibc_syscall(SYS_socketpair, domain, type, protocol,
