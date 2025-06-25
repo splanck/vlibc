@@ -83,6 +83,12 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
 ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
                  struct sockaddr *src, socklen_t *addrlen);
 /* Receive a message from a specific source. */
+int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+/* Query the local address of a socket. */
+int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+/* Query the remote address of a connected socket. */
+int shutdown(int sockfd, int how);
+/* Disable sends and/or receives on a socket. */
 int setsockopt(int sockfd, int level, int optname,
                const void *optval, socklen_t optlen);
 /* Set options on a socket. */

@@ -138,3 +138,70 @@ ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
     }
     return (ssize_t)ret;
 }
+
+/* Retrieve the local address of a socket */
+int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+#ifdef SYS_getsockname
+    long ret = vlibc_syscall(SYS_getsockname, sockfd, (long)addr,
+                             (long)addrlen, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_getsockname(int, struct sockaddr *, socklen_t *)
+        __asm__("getsockname");
+    return host_getsockname(sockfd, addr, addrlen);
+#else
+    (void)sockfd; (void)addr; (void)addrlen; errno = ENOSYS; return -1;
+#endif
+#endif
+}
+
+/* Retrieve the remote address of a connected socket */
+int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+#ifdef SYS_getpeername
+    long ret = vlibc_syscall(SYS_getpeername, sockfd, (long)addr,
+                             (long)addrlen, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_getpeername(int, struct sockaddr *, socklen_t *)
+        __asm__("getpeername");
+    return host_getpeername(sockfd, addr, addrlen);
+#else
+    (void)sockfd; (void)addr; (void)addrlen; errno = ENOSYS; return -1;
+#endif
+#endif
+}
+
+/* Shutdown all or part of a full-duplex connection */
+int shutdown(int sockfd, int how)
+{
+#ifdef SYS_shutdown
+    long ret = vlibc_syscall(SYS_shutdown, sockfd, how, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_shutdown(int, int) __asm__("shutdown");
+    return host_shutdown(sockfd, how);
+#else
+    (void)sockfd; (void)how; errno = ENOSYS; return -1;
+#endif
+#endif
+}
