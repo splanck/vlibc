@@ -54,6 +54,7 @@ endif
 SRC := \
     src/errno.c \
     src/error.c \
+    src/err.c \
     src/init.c \
     src/io.c \
     src/stdio.c \

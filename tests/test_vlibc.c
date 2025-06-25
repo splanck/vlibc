@@ -52,6 +52,7 @@
 #include "../include/termios.h"
 #include <unistd.h>
 #include <stdio.h>
+#include "../include/err.h"
 #include <errno.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -2453,6 +2454,102 @@ static const char *test_error_reporting(void)
     return 0;
 }
 
+static int call_vwarn(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vwarn(fmt, ap);
+    va_end(ap);
+    return 0;
+}
+
+static const char *test_warn_functions(void)
+{
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+    int old = dup(2);
+    mu_assert("dup", old >= 0);
+    dup2(p[1], 2);
+    close(p[1]);
+    errno = ENOENT;
+    warn("missing %s", "file");
+    dup2(old, 2);
+    close(old);
+    char buf[80] = {0};
+    ssize_t n = read(p[0], buf, sizeof(buf) - 1);
+    close(p[0]);
+    mu_assert("warn output", n > 0 && strcmp(buf, "missing file: No such file or directory\n") == 0);
+
+    mu_assert("pipe", pipe(p) == 0);
+    old = dup(2);
+    mu_assert("dup", old >= 0);
+    dup2(p[1], 2);
+    close(p[1]);
+    warnx("fatal %d", 5);
+    dup2(old, 2);
+    close(old);
+    memset(buf, 0, sizeof(buf));
+    n = read(p[0], buf, sizeof(buf) - 1);
+    close(p[0]);
+    mu_assert("warnx output", n > 0 && strcmp(buf, "fatal 5\n") == 0);
+
+    mu_assert("pipe", pipe(p) == 0);
+    old = dup(2);
+    dup2(p[1], 2);
+    close(p[1]);
+    errno = ENOENT;
+    call_vwarn("try %s", "again");
+    dup2(old, 2);
+    close(old);
+    memset(buf, 0, sizeof(buf));
+    n = read(p[0], buf, sizeof(buf) - 1);
+    close(p[0]);
+    mu_assert("vwarn output", n > 0 && strcmp(buf, "try again: No such file or directory\n") == 0);
+
+    return 0;
+}
+
+static const char *test_err_functions(void)
+{
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        dup2(p[1], 2);
+        close(p[0]);
+        errno = ENOENT;
+        err(7, "open %s", "file");
+    }
+    close(p[1]);
+    char buf[80] = {0};
+    ssize_t n = read(p[0], buf, sizeof(buf) - 1);
+    close(p[0]);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("err exit", WIFEXITED(status) && WEXITSTATUS(status) == 7);
+    mu_assert("err output", n > 0 && strcmp(buf, "open file: No such file or directory\n") == 0);
+
+    mu_assert("pipe", pipe(p) == 0);
+    pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        dup2(p[1], 2);
+        close(p[0]);
+        errx(3, "fatal %s", "bug");
+    }
+    close(p[1]);
+    memset(buf, 0, sizeof(buf));
+    n = read(p[0], buf, sizeof(buf) - 1);
+    close(p[0]);
+    status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("errx exit", WIFEXITED(status) && WEXITSTATUS(status) == 3);
+    mu_assert("errx output", n > 0 && strcmp(buf, "fatal bug\n") == 0);
+
+    return 0;
+}
+
 static const char *test_strsignal_names(void)
 {
     mu_assert("SIGHUP", strcmp(strsignal(SIGHUP), "Hangup") == 0);
@@ -3921,6 +4018,8 @@ static const char *all_tests(void)
     mu_run_test(test_uname_fn);
     mu_run_test(test_confstr_path);
     mu_run_test(test_error_reporting);
+    mu_run_test(test_warn_functions);
+    mu_run_test(test_err_functions);
     mu_run_test(test_strsignal_names);
     mu_run_test(test_system_fn);
     mu_run_test(test_execv_fn);

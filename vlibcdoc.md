@@ -167,6 +167,7 @@ dirent.h     - directory iteration
 dlfcn.h      - runtime loading of shared libraries
 env.h        - environment variable access
 errno.h      - standard error codes
+err.h        - err/warn convenience helpers
 getopt.h     - option parsing
 io.h         - unbuffered I/O primitives
 locale.h     - locale helpers
@@ -813,6 +814,20 @@ int strerror_r(int errnum, char *buf, size_t buflen);
 void perror(const char *s);
 const char *strsignal(int signum);
 ```
+
+Additional helpers mirror the traditional BSD `err.h` API:
+
+```c
+void warn(const char *fmt, ...);
+void warnx(const char *fmt, ...);
+void err(int status, const char *fmt, ...) __attribute__((noreturn));
+void errx(int status, const char *fmt, ...) __attribute__((noreturn));
+```
+
+`warn` prints the formatted message followed by the text for the current
+`errno`. The `err` variants behave similarly but terminate the process with
+the provided exit status. The `warnx`/`errx` forms omit the `errno`
+description.
 
 
 `strerror()` returns a string describing `errnum` or "Unknown error" for

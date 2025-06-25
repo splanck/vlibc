@@ -49,6 +49,7 @@ programs. Key features include:
 - Secure password input with `getpass()`
 - Password hashing with `crypt()`
 - Syslog-style logging
+- Simplified `err`/`warn` helpers for fatal and nonfatal messages
 - Change root directories with `chroot()` when supported
 - Directory scanning helpers
 - File tree traversal with `fts`
