@@ -1166,6 +1166,9 @@ int pipefd[2];
 pipe(pipefd);
 ```
 
+Flush pending writes with `fsync(fd)` or the data-only variant
+`fdatasync(fd)`. Both return 0 on success.
+
 Use `isatty(fd)` to query whether a descriptor refers to a terminal.
 
 ## File Control

@@ -50,5 +50,9 @@ int rmdir(const char *pathname);
 int chdir(const char *path);
 int access(const char *pathname, int mode);
 int faccessat(int dirfd, const char *pathname, int mode, int flags);
+/* Flush all pending writes for a descriptor using SYS_fsync or host fsync. */
+int fsync(int fd);
+/* Synchronize file data only via SYS_fdatasync or host fdatasync. */
+int fdatasync(int fd);
 
 #endif /* IO_H */
