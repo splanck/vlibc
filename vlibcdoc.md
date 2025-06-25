@@ -1283,8 +1283,8 @@ specifying a directory file descriptor in addition to the path.
 
 The socket layer exposes thin wrappers around the kernel's networking
 syscalls including `socket`, `bind`, `listen`, `accept`, `connect`,
-`socketpair`, `send`, `recv`, `sendto`, `recvfrom`, `setsockopt`, and
-`getsockopt`.
+`getsockname`, `getpeername`, `shutdown`, `socketpair`, `send`, `recv`,
+`sendto`, `recvfrom`, `setsockopt`, and `getsockopt`.
 Address resolution is handled
 via `getaddrinfo`, `freeaddrinfo`, and `getnameinfo`.
 

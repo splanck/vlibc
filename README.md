@@ -25,7 +25,8 @@ programs. Key features include:
 - Lightweight spin locks with `pthread_spin_lock()` and
   `pthread_spin_unlock()`
 - Query the current thread ID with `pthread_self()` and compare IDs with `pthread_equal()`
-- Networking sockets
+- Networking sockets (`socket`, `bind`, `listen`, `accept`, `connect`,
+  `getsockname`, `getpeername` and `shutdown`)
 - Human-readable address errors with `gai_strerror()`
 - Interface enumeration via `getifaddrs`
 - Network byte order helpers with `htons`, `ntohs`, `htonl` and `ntohl`

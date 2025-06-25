@@ -425,6 +425,48 @@ static const char *test_socketpair_basic(void)
     return 0;
 }
 
+static const char *test_socket_addresses(void)
+{
+    int srv = socket(AF_INET, SOCK_STREAM, 0);
+    mu_assert("srv socket", srv >= 0);
+
+    struct sockaddr_in sa = {0};
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = htonl(0x7F000001);
+    sa.sin_port = 0;
+    mu_assert("bind", bind(srv, (struct sockaddr *)&sa, sizeof(sa)) == 0);
+    mu_assert("listen", listen(srv, 1) == 0);
+
+    struct sockaddr_in bound = {0};
+    socklen_t blen = sizeof(bound);
+    mu_assert("getsockname", getsockname(srv,
+                                         (struct sockaddr *)&bound,
+                                         &blen) == 0);
+    mu_assert("family", bound.sin_family == AF_INET);
+
+    int cli = socket(AF_INET, SOCK_STREAM, 0);
+    mu_assert("cli socket", cli >= 0);
+    mu_assert("connect", connect(cli, (struct sockaddr *)&bound,
+                                 sizeof(bound)) == 0);
+
+    int conn = accept(srv, NULL, NULL);
+    mu_assert("accept", conn >= 0);
+
+    struct sockaddr_in peer = {0};
+    socklen_t plen = sizeof(peer);
+    mu_assert("getpeername", getpeername(cli,
+                                         (struct sockaddr *)&peer,
+                                         &plen) == 0);
+    mu_assert("peer", peer.sin_family == AF_INET);
+
+    mu_assert("shutdown", shutdown(cli, SHUT_RDWR) == 0);
+
+    close(conn);
+    close(cli);
+    close(srv);
+    return 0;
+}
+
 static const char *test_dup3_cloexec(void)
 {
     const char *fname = "tmp_dup3_file";
@@ -3329,6 +3371,7 @@ static const char *all_tests(void)
     mu_run_test(test_isatty_stdin);
     mu_run_test(test_socket);
     mu_run_test(test_socketpair_basic);
+    mu_run_test(test_socket_addresses);
     mu_run_test(test_sendmsg_recvmsg);
     mu_run_test(test_udp_send_recv);
     mu_run_test(test_inet_pton_ntop);
