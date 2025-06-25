@@ -538,6 +538,19 @@ static const char *test_inet_pton_ntop(void)
     return 0;
 }
 
+static const char *test_inet_aton_ntoa(void)
+{
+    struct in_addr addr;
+    int r = inet_aton("192.0.2.5", &addr);
+    mu_assert("inet_aton", r == 1);
+    char *s = inet_ntoa(addr);
+    mu_assert("inet_ntoa", strcmp(s, "192.0.2.5") == 0);
+    struct in_addr back;
+    r = inet_aton(s, &back);
+    mu_assert("inet_aton round", r == 1 && back.s_addr == addr.s_addr);
+    return 0;
+}
+
 static const char *test_errno_open(void)
 {
     int fd = open("/this/file/does/not/exist", O_RDONLY);
@@ -2785,6 +2798,7 @@ static const char *all_tests(void)
     mu_run_test(test_sendmsg_recvmsg);
     mu_run_test(test_udp_send_recv);
     mu_run_test(test_inet_pton_ntop);
+    mu_run_test(test_inet_aton_ntoa);
     mu_run_test(test_errno_open);
     mu_run_test(test_errno_stat);
     mu_run_test(test_stat_wrappers);

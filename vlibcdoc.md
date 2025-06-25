@@ -170,7 +170,8 @@ math.h       - basic math routines
 memory.h     - heap allocation
 assert.h     - runtime assertion checks
 netdb.h      - address resolution helpers
-arpa/inet.h  - IPv4/IPv6 presentation conversion helpers
+arpa/inet.h  - IPv4/IPv6 presentation conversion helpers (`inet_pton`,
+                `inet_ntop`, `inet_aton`, `inet_ntoa`)
 netinet/in.h - network byte order helpers
 ftw.h        - directory tree traversal helpers
 fts.h        - file tree walk helpers
@@ -1095,9 +1096,16 @@ Address resolution is handled
 via `getaddrinfo`, `freeaddrinfo`, and `getnameinfo`.
 
 Utilities `inet_pton` and `inet_ntop` convert between IPv4 or IPv6
-presentation strings and binary network format.
-Use `htons`, `ntohs`, `htonl`, and `ntohl` to convert between host and
-network byte order.
+presentation strings and binary network format. Legacy helpers
+`inet_aton` and `inet_ntoa` perform the same conversion for IPv4
+addresses only. Use `htons`, `ntohs`, `htonl`, and `ntohl` to convert
+between host and network byte order.
+
+```c
+struct in_addr ip;
+if (inet_aton("127.0.0.1", &ip))
+    printf("%s\n", inet_ntoa(ip));
+```
 
 ```c
 struct addrinfo *ai;
