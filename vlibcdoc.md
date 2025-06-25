@@ -9,52 +9,53 @@ This document outlines the architecture, planned modules, and API design for **v
 3. [Provided Headers](#provided-headers)
 4. [Memory Management](#memory-management)
 5. [Memory Mapping](#memory-mapping)
-6. [String Handling](#string-handling)
-7. [Character Classification](#character-classification)
-8. [Option Parsing](#option-parsing)
-9. [Random Numbers](#random-numbers)
-10. [Sorting Helpers](#sorting-helpers)
-11. [Regular Expressions](#regular-expressions)
-12. [Math Functions](#math-functions)
-13. [Process Control](#process-control)
-14. [Error Reporting](#error-reporting)
-15. [Errno Access](#errno-access)
-16. [Threading](#threading)
-17. [Dynamic Loading](#dynamic-loading)
-18. [Environment Variables](#environment-variables)
-19. [System Information](#system-information)
-20. [Basic File I/O](#basic-file-io)
-21. [File Descriptor Helpers](#file-descriptor-helpers)
-22. [File Control](#file-control)
-23. [File Locking](#file-locking)
-24. [Terminal Attributes](#terminal-attributes)
-25. [Pseudo-terminals](#pseudo-terminals)
-26. [Secure Password Input](#secure-password-input)
-27. [Standard Streams](#standard-streams)
-28. [Temporary Files](#temporary-files)
-29. [Networking](#networking)
-30. [I/O Multiplexing](#io-multiplexing)
-31. [File Permissions](#file-permissions)
-32. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-33. [File Status](#file-status)
-34. [Directory Iteration](#directory-iteration)
-35. [Path Canonicalization](#path-canonicalization)
-36. [Path Utilities](#path-utilities)
-37. [User Database](#user-database)
-38. [Group Database](#group-database)
-39. [Time Formatting](#time-formatting)
-40. [Locale Support](#locale-support)
-41. [Time Retrieval](#time-retrieval)
-42. [Sleep Functions](#sleep-functions)
-43. [Interval Timers](#interval-timers)
-44. [Raw System Calls](#raw-system-calls)
-45. [Non-local Jumps](#non-local-jumps)
-45. [Limitations](#limitations)
-46. [Conclusion](#conclusion)
-47. [Logging](#logging)
-48. [Path Expansion](#path-expansion)
-49. [Filesystem Statistics](#filesystem-statistics)
-50. [Resource Limits](#resource-limits)
+6. [Shared Memory](#shared-memory)
+7. [String Handling](#string-handling)
+8. [Character Classification](#character-classification)
+9. [Option Parsing](#option-parsing)
+10. [Random Numbers](#random-numbers)
+11. [Sorting Helpers](#sorting-helpers)
+12. [Regular Expressions](#regular-expressions)
+13. [Math Functions](#math-functions)
+14. [Process Control](#process-control)
+15. [Error Reporting](#error-reporting)
+16. [Errno Access](#errno-access)
+17. [Threading](#threading)
+18. [Dynamic Loading](#dynamic-loading)
+19. [Environment Variables](#environment-variables)
+20. [System Information](#system-information)
+21. [Basic File I/O](#basic-file-io)
+22. [File Descriptor Helpers](#file-descriptor-helpers)
+23. [File Control](#file-control)
+24. [File Locking](#file-locking)
+25. [Terminal Attributes](#terminal-attributes)
+26. [Pseudo-terminals](#pseudo-terminals)
+27. [Secure Password Input](#secure-password-input)
+28. [Standard Streams](#standard-streams)
+29. [Temporary Files](#temporary-files)
+30. [Networking](#networking)
+31. [I/O Multiplexing](#io-multiplexing)
+32. [File Permissions](#file-permissions)
+33. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+34. [File Status](#file-status)
+35. [Directory Iteration](#directory-iteration)
+36. [Path Canonicalization](#path-canonicalization)
+37. [Path Utilities](#path-utilities)
+38. [User Database](#user-database)
+39. [Group Database](#group-database)
+40. [Time Formatting](#time-formatting)
+41. [Locale Support](#locale-support)
+42. [Time Retrieval](#time-retrieval)
+43. [Sleep Functions](#sleep-functions)
+44. [Interval Timers](#interval-timers)
+45. [Raw System Calls](#raw-system-calls)
+46. [Non-local Jumps](#non-local-jumps)
+47. [Limitations](#limitations)
+48. [Conclusion](#conclusion)
+49. [Logging](#logging)
+50. [Path Expansion](#path-expansion)
+51. [Filesystem Statistics](#filesystem-statistics)
+52. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -266,6 +267,24 @@ int msync(void *addr, size_t length, int flags);
 their access protections.  `msync` flushes modified pages back to their
 underlying file.  When the raw syscall is unavailable the BSD wrapper is
 used instead, so some platforms may ignore unsupported flags.
+
+## Shared Memory
+
+`shm_open` creates or opens a named object in the system's shared memory
+namespace. After sizing it with `ftruncate`, map the object with `mmap`
+and unlink it when no longer needed:
+
+```c
+const char *name = "/example";
+int fd = shm_open(name, O_CREAT | O_RDWR, 0600);
+ftruncate(fd, 4096);
+void *mem = mmap(NULL, 4096, PROT_READ | PROT_WRITE,
+                 MAP_SHARED, fd, 0);
+/* use memory */
+munmap(mem, 4096);
+close(fd);
+shm_unlink(name);
+```
 
 ## String Handling
 
