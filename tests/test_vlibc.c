@@ -792,6 +792,26 @@ static const char *test_stpcpy_functions(void)
     return 0;
 }
 
+static const char *test_memccpy_mempcpy(void)
+{
+    char src[] = "abcde";
+    char buf[6] = {0};
+    char *p = memccpy(buf, src, 'c', sizeof(src));
+    mu_assert("memccpy ptr", p == buf + 3);
+    mu_assert("memccpy copy", buf[0] == 'a' && buf[1] == 'b' && buf[2] == 'c');
+
+    char dst[5];
+    char *end = mempcpy(dst, "wxyz", 4);
+    mu_assert("mempcpy end", end == dst + 4);
+    mu_assert("mempcpy copy", memcmp(dst, "wxyz", 4) == 0);
+
+    char other[4] = {0};
+    p = memccpy(other, src, 'z', 4);
+    mu_assert("memccpy not found", p == NULL && memcmp(other, "abcd", 4) == 0);
+
+    return 0;
+}
+
 static const char *test_strndup_basic(void)
 {
     char *p = strndup("hello", 10);
@@ -3101,6 +3121,7 @@ static const char *all_tests(void)
     mu_run_test(test_string_casecmp);
     mu_run_test(test_strlcpy_cat);
     mu_run_test(test_stpcpy_functions);
+    mu_run_test(test_memccpy_mempcpy);
     mu_run_test(test_strndup_basic);
     mu_run_test(test_strcoll_xfrm);
     mu_run_test(test_widechar_basic);

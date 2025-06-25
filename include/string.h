@@ -57,6 +57,10 @@ int vmemcmp(const void *s1, const void *s2, size_t n);
 void *memcpy(void *dest, const void *src, size_t n);
 /* Memory move allowing overlap */
 void *memmove(void *dest, const void *src, size_t n);
+/* Copy until byte found */
+void *memccpy(void *dest, const void *src, int c, size_t n);
+/* Copy returning pointer past end */
+void *mempcpy(void *dest, const void *src, size_t n);
 /* Fill region of memory */
 void *memset(void *s, int c, size_t n);
 /* Compare two memory regions */

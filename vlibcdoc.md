@@ -323,6 +323,8 @@ The **string** module provides fundamental operations needed by most C programs:
   not `"C"` or `"POSIX"`.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
+- `memccpy` stops copying when a byte value is found and returns a pointer past
+  it. `mempcpy` copies `n` bytes and returns the destination end pointer.
 - The low-level memory helpers `vmemcpy`, `vmemmove`, `vmemset`, and `vmemcmp` operate on raw byte buffers. `vmemcpy` copies bytes from a source to a destination, `vmemmove` handles overlaps safely, `vmemset` fills a region with a byte value, and `vmemcmp` compares two buffers. The standard `memcpy`, `memmove`, `memset`, and `memcmp` functions simply call these implementations.
 - Basic locale handling reads the `LC_ALL` and `LANG` environment variables.
   `setlocale` defaults to those values and, on BSD systems, falls back to the
@@ -348,6 +350,9 @@ const char *text = "hello world";
 size_t first_word = strcspn(text, " ");
 char *vowel = strpbrk(text, "aeiou");
 size_t prefix = strspn("abc123", "abc");
+char dest[8];
+char *end = memccpy(dest, "stop!", '!', 5);
+end = mempcpy(dest, "end", 3);
 ```
 
 Basic time formatting is available via `strftime` and the matching
