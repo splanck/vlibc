@@ -923,6 +923,16 @@ static const char *test_memccpy_mempcpy(void)
     return 0;
 }
 
+static const char *test_memccpy_zero(void)
+{
+    char dst[4] = {1, 2, 3, 4};
+    char orig[4];
+    memcpy(orig, dst, sizeof(dst));
+    char *p = memccpy(dst, "xx", 'x', 0);
+    mu_assert("memccpy zero", p == NULL && memcmp(dst, orig, sizeof(dst)) == 0);
+    return 0;
+}
+
 static const char *test_strndup_basic(void)
 {
     char *p = strndup("hello", 10);
@@ -3639,6 +3649,7 @@ static const char *all_tests(void)
     mu_run_test(test_strlcpy_cat);
     mu_run_test(test_stpcpy_functions);
     mu_run_test(test_memccpy_mempcpy);
+    mu_run_test(test_memccpy_zero);
     mu_run_test(test_strndup_basic);
     mu_run_test(test_strcoll_xfrm);
     mu_run_test(test_ctype_extra);
