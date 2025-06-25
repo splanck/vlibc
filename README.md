@@ -41,6 +41,7 @@ programs. Key features include:
 - Login name retrieval with `getlogin()`
 - Thread-safe user and group lookups with `getpwuid_r`, `getpwnam_r`,
   `getgrgid_r`, and `getgrnam_r`
+- Enumerate all users or groups with `getpwent()` and `getgrent()`
 - Secure password input with `getpass()`
 - Password hashing with `crypt()`
 - Syslog-style logging

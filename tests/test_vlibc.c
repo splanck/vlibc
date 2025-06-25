@@ -3064,6 +3064,58 @@ static const char *test_group_lookup(void)
     return 0;
 }
 
+static const char *test_passwd_enum(void)
+{
+    char tmpl[] = "/tmp/pwtenumXXXXXX";
+    int fd = mkstemp(tmpl);
+    mu_assert("mkstemp", fd >= 0);
+    const char data[] =
+        "root:x:0:0:root:/root:/bin/sh\n"
+        "alice:x:1000:1000:Alice:/home/alice:/bin/sh\n";
+    mu_assert("write", write(fd, data, sizeof(data) - 1) == (ssize_t)(sizeof(data) - 1));
+    close(fd);
+
+    setenv("VLIBC_PASSWD", tmpl, 1);
+
+    setpwent();
+    struct passwd *pw = getpwent();
+    mu_assert("first", pw && pw->pw_uid == 0 && strcmp(pw->pw_name, "root") == 0);
+    pw = getpwent();
+    mu_assert("second", pw && pw->pw_uid == 1000 && strcmp(pw->pw_name, "alice") == 0);
+    mu_assert("end", getpwent() == NULL);
+    endpwent();
+
+    unsetenv("VLIBC_PASSWD");
+    unlink(tmpl);
+    return 0;
+}
+
+static const char *test_group_enum(void)
+{
+    char tmpl[] = "/tmp/grpenumXXXXXX";
+    int fd = mkstemp(tmpl);
+    mu_assert("mkstemp", fd >= 0);
+    const char data[] =
+        "root:x:0:\n"
+        "staff:x:50:alice,bob\n";
+    mu_assert("write", write(fd, data, sizeof(data) - 1) == (ssize_t)(sizeof(data) - 1));
+    close(fd);
+
+    setenv("VLIBC_GROUP", tmpl, 1);
+
+    setgrent();
+    struct group *gr = getgrent();
+    mu_assert("first", gr && gr->gr_gid == 0 && strcmp(gr->gr_name, "root") == 0);
+    gr = getgrent();
+    mu_assert("second", gr && gr->gr_gid == 50 && gr->gr_mem && strcmp(gr->gr_mem[1], "bob") == 0);
+    mu_assert("end", getgrent() == NULL);
+    endgrent();
+
+    unsetenv("VLIBC_GROUP");
+    unlink(tmpl);
+    return 0;
+}
+
 static const char *test_getlogin_fn(void)
 {
     char *name = getlogin();
@@ -3622,6 +3674,8 @@ static const char *all_tests(void)
     mu_run_test(test_pathconf_basic);
     mu_run_test(test_passwd_lookup);
     mu_run_test(test_group_lookup);
+    mu_run_test(test_passwd_enum);
+    mu_run_test(test_group_enum);
     mu_run_test(test_getlogin_fn);
     mu_run_test(test_crypt_des);
     mu_run_test(test_crypt_md5);

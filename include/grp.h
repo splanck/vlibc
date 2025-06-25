@@ -22,5 +22,8 @@ int getgrgid_r(gid_t gid, struct group *grp, char *buf, size_t buflen,
                struct group **result);
 int getgrnam_r(const char *name, struct group *grp, char *buf, size_t buflen,
                struct group **result);
+void setgrent(void);
+struct group *getgrent(void);
+void endgrent(void);
 
 #endif /* GRP_H */

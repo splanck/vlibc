@@ -88,6 +88,25 @@ struct passwd *getpwnam(const char *name)
     return lookup(name, 0, 1);
 }
 
+extern void host_setpwent(void) __asm("setpwent");
+extern struct passwd *host_getpwent(void) __asm("getpwent");
+extern void host_endpwent(void) __asm("endpwent");
+
+void setpwent(void)
+{
+    host_setpwent();
+}
+
+struct passwd *getpwent(void)
+{
+    return host_getpwent();
+}
+
+void endpwent(void)
+{
+    host_endpwent();
+}
+
 #else
 
 extern struct passwd *host_getpwuid(uid_t) __asm("getpwuid");
@@ -101,6 +120,74 @@ struct passwd *getpwuid(uid_t uid)
 struct passwd *getpwnam(const char *name)
 {
     return host_getpwnam(name);
+}
+
+static const char *passwd_path(void)
+{
+    const char *p = getenv("VLIBC_PASSWD");
+    if (p && *p)
+        return p;
+    return "/etc/passwd";
+}
+
+static struct passwd pw;
+static char linebuf[256];
+static char filebuf[4096];
+static char *next_line;
+
+static struct passwd *parse_line(const char *line)
+{
+    strncpy(linebuf, line, sizeof(linebuf) - 1);
+    linebuf[sizeof(linebuf) - 1] = '\0';
+
+    char *save;
+    pw.pw_name = strtok_r(linebuf, ":", &save);
+    pw.pw_passwd = strtok_r(NULL, ":", &save);
+    char *uid_s = strtok_r(NULL, ":", &save);
+    char *gid_s = strtok_r(NULL, ":", &save);
+    pw.pw_gecos = strtok_r(NULL, ":", &save);
+    pw.pw_dir = strtok_r(NULL, ":", &save);
+    pw.pw_shell = strtok_r(NULL, ":\n", &save);
+    if (!pw.pw_name || !pw.pw_passwd || !uid_s || !gid_s ||
+        !pw.pw_gecos || !pw.pw_dir || !pw.pw_shell)
+        return NULL;
+    pw.pw_uid = (uid_t)atoi(uid_s);
+    pw.pw_gid = (gid_t)atoi(gid_s);
+    return &pw;
+}
+
+void setpwent(void)
+{
+    int fd = open(passwd_path(), O_RDONLY, 0);
+    if (fd < 0) {
+        next_line = NULL;
+        return;
+    }
+    ssize_t n = read(fd, filebuf, sizeof(filebuf) - 1);
+    close(fd);
+    if (n <= 0) {
+        next_line = NULL;
+        return;
+    }
+    filebuf[n] = '\0';
+    next_line = filebuf;
+}
+
+struct passwd *getpwent(void)
+{
+    if (!next_line)
+        setpwent();
+    if (!next_line)
+        return NULL;
+    char *line = strtok_r(next_line, "\n", &next_line);
+    if (!line)
+        return NULL;
+    return parse_line(line);
+}
+
+void endpwent(void)
+{
+    next_line = NULL;
 }
 
 #endif
