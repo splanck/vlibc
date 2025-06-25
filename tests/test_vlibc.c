@@ -720,6 +720,42 @@ static const char *test_link_readlink(void)
     return 0;
 }
 
+static const char *test_at_wrappers_basic(void)
+{
+    const char *file = "tmp_at_file";
+    const char *ln1  = "tmp_at_link";
+    const char *ln2  = "tmp_at_link2";
+    const char *node = "tmp_at_node";
+
+    int dfd = open(".", O_RDONLY);
+    mu_assert("open dir", dfd >= 0);
+
+    int fd = openat(dfd, file, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    mu_assert("openat", fd >= 0);
+    write(fd, "a", 1);
+    close(fd);
+
+    mu_assert("linkat", linkat(dfd, file, dfd, ln1, 0) == 0);
+    mu_assert("renameat", renameat(dfd, ln1, dfd, ln2) == 0);
+#ifndef S_IFREG
+#define S_IFREG 0100000
+#endif
+    mu_assert("mknodat", mknodat(dfd, node, S_IFREG | 0600, 0) == 0);
+
+    fd = openat(dfd, ln2, O_RDONLY);
+    mu_assert("open renamed", fd >= 0);
+    close(fd);
+    fd = openat(dfd, node, O_RDONLY);
+    mu_assert("open node", fd >= 0);
+    close(fd);
+
+    unlinkat(dfd, file, 0);
+    unlinkat(dfd, ln2, 0);
+    unlinkat(dfd, node, 0);
+    close(dfd);
+    return 0;
+}
+
 static const char *test_string_helpers(void)
 {
     mu_assert("strcmp equal", strcmp("abc", "abc") == 0);
@@ -3435,6 +3471,7 @@ static const char *all_tests(void)
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_truncate_resize);
     mu_run_test(test_link_readlink);
+    mu_run_test(test_at_wrappers_basic);
     mu_run_test(test_string_helpers);
     mu_run_test(test_string_casecmp);
     mu_run_test(test_strlcpy_cat);

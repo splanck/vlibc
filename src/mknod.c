@@ -16,6 +16,10 @@
 extern int host_mknod(const char *path, mode_t mode, dev_t dev) __asm__("mknod");
 #endif
 
+#ifndef SYS_mknodat
+extern int host_mknodat(int dirfd, const char *path, mode_t mode, dev_t dev) __asm__("mknodat");
+#endif
+
 int mknod(const char *path, mode_t mode, dev_t dev)
 {
 #ifdef SYS_mknod
@@ -31,6 +35,27 @@ int mknod(const char *path, mode_t mode, dev_t dev)
     return host_mknod(path, mode, dev);
 #else
     (void)path; (void)mode; (void)dev; errno = ENOSYS; return -1;
+#endif
+#endif
+}
+
+int mknodat(int dirfd, const char *path, mode_t mode, dev_t dev)
+{
+#ifdef SYS_mknodat
+    long ret = vlibc_syscall(SYS_mknodat, dirfd, (long)path, mode, dev, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    return host_mknodat(dirfd, path, mode, dev);
+#else
+    (void)dirfd; (void)path; (void)mode; (void)dev;
+    errno = ENOSYS;
+    return -1;
 #endif
 #endif
 }

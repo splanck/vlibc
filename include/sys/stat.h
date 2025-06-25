@@ -25,5 +25,7 @@ int lstat(const char *path, struct stat *buf);
 int mknod(const char *path, mode_t mode, dev_t dev);
 int mkfifo(const char *path, mode_t mode);
 int mkfifoat(int dirfd, const char *path, mode_t mode);
+/* Create special files relative to a directory via SYS_mknodat. */
+int mknodat(int dirfd, const char *path, mode_t mode, dev_t dev);
 
 #endif /* SYS_STAT_H */

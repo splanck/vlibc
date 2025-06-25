@@ -34,7 +34,11 @@ int unlink(const char *pathname);
 /* Remove a pathname using SYS_unlinkat or host unlinkat on BSD. */
 int unlinkat(int dirfd, const char *pathname, int flags);
 int rename(const char *oldpath, const char *newpath);
+/* Rename relative to directory FDs using SYS_renameat with BSD fallback. */
+int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath);
 int link(const char *oldpath, const char *newpath);
+/* Create a hard link relative to directory FDs via SYS_linkat. */
+int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags);
 int symlink(const char *target, const char *linkpath);
 /* Create a symlink relative to dirfd via SYS_symlinkat with host fallback. */
 int symlinkat(const char *target, int dirfd, const char *linkpath);

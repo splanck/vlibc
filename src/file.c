@@ -39,6 +39,33 @@ int rename(const char *oldpath, const char *newpath)
     return (int)ret;
 }
 
+/*
+ * renameat wrapper calling SYS_renameat with BSD fallback when
+ * the syscall is unavailable.
+ */
+int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath)
+{
+#ifdef SYS_renameat
+    long ret = vlibc_syscall(SYS_renameat, olddirfd, (long)oldpath,
+                             newdirfd, (long)newpath, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_renameat(int, const char *, int, const char *) __asm__("renameat");
+    return host_renameat(olddirfd, oldpath, newdirfd, newpath);
+#else
+    (void)olddirfd; (void)oldpath; (void)newdirfd; (void)newpath;
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
+}
+
 int link(const char *oldpath, const char *newpath)
 {
     long ret = vlibc_syscall(SYS_linkat, AT_FDCWD, (long)oldpath, AT_FDCWD,
@@ -48,6 +75,34 @@ int link(const char *oldpath, const char *newpath)
         return -1;
     }
     return (int)ret;
+}
+
+/*
+ * linkat wrapper issuing SYS_linkat with a BSD fallback when
+ * the syscall is missing.
+ */
+int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath,
+           int flags)
+{
+#ifdef SYS_linkat
+    long ret = vlibc_syscall(SYS_linkat, olddirfd, (long)oldpath, newdirfd,
+                             (long)newpath, flags);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_linkat(int, const char *, int, const char *, int) __asm__("linkat");
+    return host_linkat(olddirfd, oldpath, newdirfd, newpath, flags);
+#else
+    (void)olddirfd; (void)oldpath; (void)newdirfd; (void)newpath; (void)flags;
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
 }
 
 int symlink(const char *target, const char *linkpath)

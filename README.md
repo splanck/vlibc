@@ -8,7 +8,8 @@ Designed as a minimal libc implementation for UNIX-like systems, vlibc
 packs only the most essential runtime components needed by portable C
 programs. Key features include:
 
-- File I/O wrappers
+- File I/O wrappers including directory-relative helpers like `openat`,
+  `unlinkat`, `linkat`, `renameat` and `mknodat()`
 - Permission checks with `access()` and `faccessat()`
 - Process creation and control
 - Wait for children with `wait()` or `waitpid()` and decode results
@@ -67,7 +68,7 @@ programs. Key features include:
 - POSIX message queues with `mq_open()`, `mq_send()` and `mq_receive()`
 - Advisory file locking with `flock()`
 - FIFO creation with `mkfifo()` and `mkfifoat()`
-- Device node creation with `mknod()`
+- Device node creation with `mknod()` and `mknodat()`
 - Generic descriptor control with `ioctl()`
 - Terminal attribute helpers `tcgetattr()`, `tcsetattr()`, `tcdrain()`,
   `tcflow()`, `tcflush()` and `tcsendbreak()`

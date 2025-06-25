@@ -1423,9 +1423,9 @@ file descriptor.
 ## Filesystem *at Wrappers
 
 These helpers mirror the basic file operations but operate relative to a
-directory file descriptor.  `openat`, `unlinkat`, `mkdirat`, `symlinkat` and
-`fstatat` behave like their traditional counterparts and accept `AT_FDCWD` to
-use the current working directory.
+directory file descriptor.  `openat`, `unlinkat`, `mkdirat`, `symlinkat`,
+`linkat`, `renameat`, `mknodat` and `fstatat` behave like their traditional
+counterparts and accept `AT_FDCWD` to use the current working directory.
 
 ```c
 int dfd = open("/tmp", O_DIRECTORY);
