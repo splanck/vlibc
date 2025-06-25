@@ -14,8 +14,10 @@
 /*
  * This implementation is adapted from the public domain tiny-regex-c
  * project. It builds a very small NFA for the pattern and performs a
- * backtracking search. Only a subset of BRE/ERE syntax is supported:
- * '.', '*', '+', '?', '^', '$' and basic character classes.
+ * backtracking search. Originally only a subset of BRE/ERE syntax was
+ * supported: '.', '*', '+', '?', '^', '$' and basic character classes.
+ * This version adds simple alternation, grouping and repetition ranges
+ * "{m,n}" along with POSIX character classes.
  */
 
 struct token {
@@ -34,14 +36,347 @@ enum {
     CAP_OPEN, CAP_CLOSE, BACKREF
 };
 
-struct regex_impl {
+struct regex_alt {
     struct token *pat;
     unsigned char *ccl;
+};
+
+struct regex_impl {
+    struct regex_alt *alts;
+    size_t nalt;
 };
 
 /* helper prototypes */
 static int matchpattern(struct token *pat, const char *text, int *matchlen,
                         const char *string, regmatch_t *caps);
+
+static int compile_single(struct regex_alt *alt, const char *pattern,
+                          size_t *groups_out)
+{
+    size_t len = strlen(pattern);
+    size_t patcap = len * 8 + 1;
+    alt->pat = malloc(patcap * sizeof(struct token));
+    alt->ccl = malloc(len * 2 + 1);
+    if (!alt->pat || !alt->ccl)
+        return -1;
+    size_t ccl_idx = 1; /* first byte reserved */
+    size_t i = 0, j = 0;
+    int stack[10];
+    int depth = 0;
+    size_t groups = 0;
+    while (pattern[i] && j + 1 < patcap - 1) {
+        char c = pattern[i];
+        switch (c) {
+        case '^': alt->pat[j].type = BEGIN; break;
+        case '$': alt->pat[j].type = END;   break;
+        case '.': alt->pat[j].type = DOT;   break;
+        case '*': alt->pat[j].type = STAR;  break;
+        case '+': alt->pat[j].type = PLUS;  break;
+        case '?': alt->pat[j].type = QUESTION; break;
+        case '\\':
+            if (pattern[i+1]) {
+                i++;
+                if (pattern[i] >= '1' && pattern[i] <= '9') {
+                    alt->pat[j].type = BACKREF;
+                    alt->pat[j].u.group = pattern[i] - '0';
+                } else switch (pattern[i]) {
+                case 'd': alt->pat[j].type = DIGIT; break;
+                case 'D': alt->pat[j].type = NOT_DIGIT; break;
+                case 'w': alt->pat[j].type = ALPHA; break;
+                case 'W': alt->pat[j].type = NOT_ALPHA; break;
+                case 's': alt->pat[j].type = SPACE; break;
+                case 'S': alt->pat[j].type = NOT_SPACE; break;
+                default:  alt->pat[j].type = CHAR; alt->pat[j].u.ch = pattern[i]; break;
+                }
+            }
+            break;
+        case '(': {
+            if (groups < 9) {
+                groups++; depth++; stack[depth-1] = groups;
+                alt->pat[j].type = CAP_OPEN;
+                alt->pat[j].u.group = groups;
+            } else {
+                alt->pat[j].type = CHAR; alt->pat[j].u.ch = c;
+            }
+            break; }
+        case ')': {
+            if (depth > 0) {
+                int id = stack[--depth];
+                alt->pat[j].type = CAP_CLOSE;
+                alt->pat[j].u.group = id;
+            } else {
+                alt->pat[j].type = CHAR; alt->pat[j].u.ch = c;
+            }
+            break; }
+        case '[': {
+            size_t start = ccl_idx;
+            if (pattern[i+1] == '^') { alt->pat[j].type = INV_CHAR_CLASS; i++; }
+            else alt->pat[j].type = CHAR_CLASS;
+            while (pattern[++i] && pattern[i] != ']') {
+                if (pattern[i] == '\\' && pattern[i+1]) {
+                    alt->ccl[ccl_idx++] = pattern[i++];
+                }
+                alt->ccl[ccl_idx++] = pattern[i];
+            }
+            alt->ccl[ccl_idx++] = 0;
+            alt->pat[j].u.ccl = &alt->ccl[start];
+            break; }
+        default:
+            alt->pat[j].type = CHAR; alt->pat[j].u.ch = c; break;
+        }
+        i++; j++; if (ccl_idx + 1 >= len * 2) break;
+    }
+    alt->pat[j].type = UNUSED;
+    if (groups_out) *groups_out = groups;
+    return 0;
+}
+
+/* pattern expansion helpers */
+struct strlist {
+    char **items;
+    size_t count;
+    size_t cap;
+};
+
+static void list_add(struct strlist *l, char *s)
+{
+    if (l->count >= l->cap) {
+        size_t nc = l->cap ? l->cap * 2 : 4;
+        char **n = realloc(l->items, nc * sizeof(char *));
+        if (!n)
+            return;
+        l->items = n;
+        l->cap = nc;
+    }
+    l->items[l->count++] = s;
+}
+
+static void list_free(struct strlist *l)
+{
+    for (size_t i = 0; i < l->count; i++)
+        free(l->items[i]);
+    free(l->items);
+    l->items = NULL;
+    l->count = l->cap = 0;
+}
+
+static int match_posix_class(char c, const char *name, size_t len)
+{
+    if (len == 5 && strncmp(name, "alnum", 5) == 0) return isalnum((unsigned char)c);
+    if (len == 5 && strncmp(name, "alpha", 5) == 0) return isalpha((unsigned char)c);
+    if (len == 5 && strncmp(name, "digit", 5) == 0) return isdigit((unsigned char)c);
+    if (len == 5 && strncmp(name, "lower", 5) == 0) return islower((unsigned char)c);
+    if (len == 5 && strncmp(name, "upper", 5) == 0) return isupper((unsigned char)c);
+    if (len == 5 && strncmp(name, "space", 5) == 0) return isspace((unsigned char)c);
+    if (len == 6 && strncmp(name, "xdigit", 6) == 0) return isxdigit((unsigned char)c);
+    if (len == 5 && strncmp(name, "print", 5) == 0) return isprint((unsigned char)c);
+    if (len == 5 && strncmp(name, "graph", 5) == 0) return isgraph((unsigned char)c);
+    if (len == 5 && strncmp(name, "cntrl", 5) == 0) return iscntrl((unsigned char)c);
+    if (len == 5 && strncmp(name, "punct", 5) == 0) return ispunct((unsigned char)c);
+    if (len == 5 && strncmp(name, "blank", 5) == 0) return c == ' ' || c == '\t';
+    return 0;
+}
+
+/* Expand repetition ranges like {m,n} in PAT. Only positive numbers and
+ * m <= n are supported. The returned string must be freed by the caller. */
+static char *expand_ranges(const char *pat)
+{
+    size_t len = strlen(pat);
+    size_t cap = len * 4 + 1; /* grow heuristic */
+    char *out = malloc(cap);
+    size_t o = 0;
+    for (size_t i = 0; i < len; ) {
+        size_t item_start = i;
+        size_t item_end = i;
+        if (pat[i] == '\\' && i + 1 < len) {
+            item_end = i + 2;
+        } else if (pat[i] == '[') {
+            item_end = i + 1;
+            while (item_end < len && pat[item_end] != ']') {
+                if (pat[item_end] == '\\' && item_end + 1 < len)
+                    item_end += 2;
+                else
+                    item_end++;
+            }
+            if (item_end < len)
+                item_end++;
+        } else if (pat[i] == '(') {
+            int depth = 1;
+            item_end = i + 1;
+            while (item_end < len && depth > 0) {
+                if (pat[item_end] == '\\' && item_end + 1 < len)
+                    item_end += 2;
+                else if (pat[item_end] == '(')
+                    depth++, item_end++;
+                else if (pat[item_end] == ')')
+                    depth--, item_end++;
+                else
+                    item_end++;
+            }
+        } else {
+            item_end = i + 1;
+        }
+        size_t item_len = item_end - item_start;
+        i = item_end;
+        int m = -1, n = -1;
+        if (i < len && pat[i] == '{' && isdigit((unsigned char)pat[i+1])) {
+            size_t p = i + 1;
+            m = 0;
+            while (p < len && isdigit((unsigned char)pat[p])) {
+                m = m * 10 + (pat[p] - '0');
+                p++;
+            }
+            if (p < len && pat[p] == ',') {
+                p++;
+                n = 0;
+                while (p < len && isdigit((unsigned char)pat[p])) {
+                    n = n * 10 + (pat[p] - '0');
+                    p++;
+                }
+                if (p < len && pat[p] == '}') {
+                    i = p + 1;
+                } else {
+                    m = -1; /* treat as literal */
+                }
+            } else {
+                m = -1;
+            }
+        }
+
+        /* ensure capacity */
+        size_t need = item_len;
+        if (m >= 0 && n >= m)
+            need = item_len * (size_t)n + (n - m); /* for '?' */
+        if (o + need + 1 >= cap) {
+            cap = (cap + need + 1) * 2;
+            out = realloc(out, cap);
+        }
+
+        if (m >= 0 && n >= m) {
+            for (int k = 0; k < m; k++) {
+                memcpy(out + o, pat + item_start, item_len);
+                o += item_len;
+            }
+            for (int k = 0; k < n - m; k++) {
+                memcpy(out + o, pat + item_start, item_len);
+                o += item_len;
+                out[o++] = '?';
+            }
+        } else {
+            memcpy(out + o, pat + item_start, item_len);
+            o += item_len;
+        }
+    }
+    out[o] = '\0';
+    return out;
+}
+
+/* Recursively expand alternation operators. The resulting list must be
+ * freed with list_free(). */
+static void expand_alts(const char *pat, struct strlist *out)
+{
+    int level = 0, cls = 0;
+    size_t start = 0, len = strlen(pat);
+    struct strlist seg = {0};
+    for (size_t i = 0; i < len; i++) {
+        char c = pat[i];
+        if (c == '\\' && i + 1 < len) { i++; continue; }
+        if (cls) { if (c == ']') cls = 0; continue; }
+        if (c == '[') { cls = 1; continue; }
+        if (c == '(') { level++; continue; }
+        if (c == ')' && level > 0) { level--; continue; }
+        if (c == '|' && level == 0) {
+            char *s = strndup(pat + start, i - start);
+            list_add(&seg, s);
+            start = i + 1;
+        }
+    }
+    char *s = strndup(pat + start, len - start);
+    list_add(&seg, s);
+
+    if (seg.count > 1) {
+        for (size_t i = 0; i < seg.count; i++) {
+            expand_alts(seg.items[i], out);
+        }
+        list_free(&seg);
+        return;
+    }
+
+    /* no top-level alternation: process groups */
+    struct strlist cur = {0};
+    list_add(&cur, strdup(""));
+    for (size_t i = 0; i < len; ) {
+        if (pat[i] == '\\' && i + 1 < len) {
+            for (size_t j = 0; j < cur.count; j++) {
+                size_t l = strlen(cur.items[j]);
+                cur.items[j] = realloc(cur.items[j], l + 3);
+                cur.items[j][l] = pat[i];
+                cur.items[j][l+1] = pat[i+1];
+                cur.items[j][l+2] = '\0';
+            }
+            i += 2;
+        } else if (pat[i] == '[') {
+            size_t j = i + 1;
+            int cls2 = 1;
+            while (j < len && cls2) {
+                if (pat[j] == '\\' && j + 1 < len) j += 2;
+                else if (pat[j] == ']') cls2 = 0, j++;
+                else j++;
+            }
+            size_t ilen = j - i;
+            for (size_t k = 0; k < cur.count; k++) {
+                size_t l = strlen(cur.items[k]);
+                cur.items[k] = realloc(cur.items[k], l + ilen + 1);
+                memcpy(cur.items[k] + l, pat + i, ilen);
+                cur.items[k][l+ilen] = '\0';
+            }
+            i = j;
+        } else if (pat[i] == '(') {
+            size_t j = i + 1; int depth = 1;
+            while (j < len && depth) {
+                if (pat[j] == '\\' && j + 1 < len) j += 2;
+                else if (pat[j] == '(') { depth++; j++; }
+                else if (pat[j] == ')') { depth--; j++; }
+                else j++;
+            }
+            char *inside = strndup(pat + i + 1, j - i - 2);
+            struct strlist sub = {0};
+            expand_alts(inside, &sub);
+            free(inside);
+            struct strlist newl = {0};
+            for (size_t k = 0; k < cur.count; k++) {
+                for (size_t m = 0; m < sub.count; m++) {
+                    size_t l = strlen(cur.items[k]);
+                    size_t ilen = strlen(sub.items[m]);
+                    char *ns = malloc(l + ilen + 3);
+                    memcpy(ns, cur.items[k], l);
+                    ns[l] = '(';
+                    memcpy(ns + l + 1, sub.items[m], ilen);
+                    ns[l + ilen + 1] = ')';
+                    ns[l + ilen + 2] = '\0';
+                    list_add(&newl, ns);
+                }
+                free(cur.items[k]);
+            }
+            free(cur.items);
+            cur = newl;
+            list_free(&sub);
+            i = j;
+        } else {
+            for (size_t k = 0; k < cur.count; k++) {
+                size_t l = strlen(cur.items[k]);
+                cur.items[k] = realloc(cur.items[k], l + 2);
+                cur.items[k][l] = pat[i];
+                cur.items[k][l+1] = '\0';
+            }
+            i++;
+        }
+    }
+    for (size_t i = 0; i < cur.count; i++)
+        list_add(out, cur.items[i]);
+    free(cur.items);
+    list_free(&seg);
+}
 
 static int matchdigit(char c) { return isdigit((unsigned char)c); }
 static int matchalpha(char c) { return isalnum((unsigned char)c) || c == '_'; }
@@ -83,6 +418,15 @@ static int matchmeta(char c, const char *str)
 static int matchclass(char c, const char *str)
 {
     do {
+        if (str[0] == '[' && str[1] == ':') {
+            const char *end = strstr(str + 2, ":]");
+            if (end) {
+                if (match_posix_class(c, str + 2, (size_t)(end - (str + 2))))
+                    return 1;
+                str = end + 2;
+                continue;
+            }
+        }
         if (matchrange(c, str))
             return 1;
         else if (str[0] == '\\') {
@@ -208,82 +552,31 @@ static int matchpattern(struct token *pat, const char *text, int *matchlen,
 int regcomp(regex_t *preg, const char *pattern, int cflags)
 {
     (void)cflags;
-    size_t len = strlen(pattern);
-    struct regex_impl *ri = calloc(1, sizeof(*ri));
-    if (!ri)
+    char *expanded = expand_ranges(pattern);
+    struct strlist alts = {0};
+    expand_alts(expanded, &alts);
+    free(expanded);
+    if (alts.count == 0)
         return -1;
-    ri->pat = malloc((len + 1) * sizeof(struct token));
-    ri->ccl = malloc(len * 2 + 1);
-    if (!ri->pat || !ri->ccl) {
-        free(ri->pat); free(ri->ccl); free(ri); return -1; }
-    size_t ccl_idx = 1; /* first byte reserved */
-    size_t i = 0, j = 0;
-    int stack[10];
-    int depth = 0;
+    struct regex_impl *ri = calloc(1, sizeof(*ri));
+    if (!ri) { list_free(&alts); return -1; }
+    ri->alts = calloc(alts.count, sizeof(struct regex_alt));
+    ri->nalt = alts.count;
+    if (!ri->alts) { free(ri); list_free(&alts); return -1; }
     size_t groups = 0;
-    while (pattern[i] && j + 1 < len) {
-        char c = pattern[i];
-        switch (c) {
-        case '^': ri->pat[j].type = BEGIN; break;
-        case '$': ri->pat[j].type = END;   break;
-        case '.': ri->pat[j].type = DOT;   break;
-        case '*': ri->pat[j].type = STAR;  break;
-        case '+': ri->pat[j].type = PLUS;  break;
-        case '?': ri->pat[j].type = QUESTION; break;
-        case '\\':
-            if (pattern[i+1]) {
-                i++;
-                if (pattern[i] >= '1' && pattern[i] <= '9') {
-                    ri->pat[j].type = BACKREF;
-                    ri->pat[j].u.group = pattern[i] - '0';
-                } else switch (pattern[i]) {
-                case 'd': ri->pat[j].type = DIGIT; break;
-                case 'D': ri->pat[j].type = NOT_DIGIT; break;
-                case 'w': ri->pat[j].type = ALPHA; break;
-                case 'W': ri->pat[j].type = NOT_ALPHA; break;
-                case 's': ri->pat[j].type = SPACE; break;
-                case 'S': ri->pat[j].type = NOT_SPACE; break;
-                default:  ri->pat[j].type = CHAR; ri->pat[j].u.ch = pattern[i]; break;
-                }
+    for (size_t i = 0; i < alts.count; i++) {
+        if (compile_single(&ri->alts[i], alts.items[i], &groups) != 0) {
+            for (size_t k = 0; k <= i; k++) {
+                free(ri->alts[k].pat);
+                free(ri->alts[k].ccl);
             }
-            break;
-        case '(': {
-            if (groups < 9) {
-                groups++; depth++; stack[depth-1] = groups;
-                ri->pat[j].type = CAP_OPEN;
-                ri->pat[j].u.group = groups;
-            } else {
-                ri->pat[j].type = CHAR; ri->pat[j].u.ch = c;
-            }
-            break; }
-        case ')': {
-            if (depth > 0) {
-                int id = stack[--depth];
-                ri->pat[j].type = CAP_CLOSE;
-                ri->pat[j].u.group = id;
-            } else {
-                ri->pat[j].type = CHAR; ri->pat[j].u.ch = c;
-            }
-            break; }
-        case '[': {
-            size_t start = ccl_idx;
-            if (pattern[i+1] == '^') { ri->pat[j].type = INV_CHAR_CLASS; i++; }
-            else ri->pat[j].type = CHAR_CLASS;
-            while (pattern[++i] && pattern[i] != ']') {
-                if (pattern[i] == '\\' && pattern[i+1]) {
-                    ri->ccl[ccl_idx++] = pattern[i++];
-                }
-                ri->ccl[ccl_idx++] = pattern[i];
-            }
-            ri->ccl[ccl_idx++] = 0;
-            ri->pat[j].u.ccl = &ri->ccl[start];
-            break; }
-        default:
-            ri->pat[j].type = CHAR; ri->pat[j].u.ch = c; break;
+            free(ri->alts);
+            free(ri);
+            list_free(&alts);
+            return -1;
         }
-        i++; j++; if (ccl_idx + 1 >= len*2) break;
     }
-    ri->pat[j].type = UNUSED;
+    list_free(&alts);
     preg->impl = ri;
     preg->re_nsub = groups;
     return 0;
@@ -304,17 +597,20 @@ int regexec(const regex_t *preg, const char *string,
         if (caps)
             memset(caps, -1, (preg->re_nsub + 1) * sizeof(regmatch_t));
     }
-    if (ri->pat[0].type == BEGIN) {
-        if (matchpattern(&ri->pat[1], string, &len, string, caps))
-            pos = 0;
-    } else {
-        const char *t = string; int idx = -1;
-        do {
-            idx++; len = 0;
-            if (caps)
-                memset(caps, -1, (preg->re_nsub + 1) * sizeof(regmatch_t));
-            if (matchpattern(ri->pat, t, &len, string, caps)) { pos = idx; break; }
-        } while (*t++);
+    for (size_t a = 0; a < ri->nalt && pos < 0; a++) {
+        struct token *pat = ri->alts[a].pat;
+        if (pat[0].type == BEGIN) {
+            if (matchpattern(&pat[1], string, &len, string, caps))
+                pos = 0;
+        } else {
+            const char *t = string; int idx = -1; int l;
+            do {
+                idx++; l = 0;
+                if (caps)
+                    memset(caps, -1, (preg->re_nsub + 1) * sizeof(regmatch_t));
+                if (matchpattern(pat, t, &l, string, caps)) { pos = idx; len = l; break; }
+            } while (*t++);
+        }
     }
     if (pos < 0)
     {
@@ -336,8 +632,11 @@ void regfree(regex_t *preg)
     if (!preg || !preg->impl)
         return;
     struct regex_impl *ri = (struct regex_impl *)preg->impl;
-    free(ri->pat);
-    free(ri->ccl);
+    for (size_t i = 0; i < ri->nalt; i++) {
+        free(ri->alts[i].pat);
+        free(ri->alts[i].ccl);
+    }
+    free(ri->alts);
     free(ri);
     preg->impl = NULL;
 }

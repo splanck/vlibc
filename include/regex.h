@@ -20,9 +20,14 @@ typedef struct {
     int rm_eo; /* end offset */
 } regmatch_t;
 
-/* compile pattern into preg.
- * Parentheses create numbered capture groups that can be
- * referenced in the pattern via \1, \2, ...
+/* compile pattern into preg. Supported syntax includes:
+ *  - literals and '.' wildcard
+ *  - character classes with [] and POSIX classes like [:digit:]
+ *  - repetition *, +, ?, and {m,n}
+ *  - alternation with '|'
+ *  - grouping via parentheses which also create numbered
+ *    capture groups referenced as \1, \2, ...
+ *  - anchors ^ and $
  */
 int regcomp(regex_t *preg, const char *pattern, int cflags);
 

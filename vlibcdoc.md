@@ -554,12 +554,13 @@ if (regexec(&re, "hello", 0, NULL, 0) == 0) {
 regfree(&re);
 ```
 
-Only simple features are implemented: `.` matches any character,
-`*`, `+` and `?` provide repetition, `[]` defines character classes
-and `^`/`$` anchor to the start or end of the string. Parentheses
-create capture groups which can be referenced later in the pattern
-using backreferences like `\1` and `\2`. Groups may not be used
-with repetition operators.
+Supported features include:
+`.` wildcard, `*`, `+`, `?`, and `{m,n}` repetition,
+character classes `[]` (including POSIX forms like `[:digit:]`),
+alternation using `|`, and `^`/`$` anchors. Parentheses both group
+expressions and create numbered capture groups which can be
+referenced via backreferences like `\1` and `\2`.
+Repetition ranges apply to the preceding token or group.
 
 Example with a backreference:
 
@@ -571,6 +572,23 @@ if (regexec(&r, "foobarfoo", 0, NULL, 0) == 0) {
 }
 regfree(&r);
 ```
+
+Another example using alternation and a repetition range:
+
+```c
+regex_t p;
+regcomp(&p, "(foo|bar){2,3}", 0);
+if (regexec(&p, "foobarfoo", 0, NULL, 0) == 0) {
+    /* matches two or three occurrences of 'foo' or 'bar' */
+}
+regfree(&p);
+```
+
+### Limitations
+- The engine performs simple backtracking and may be slow on
+  pathological patterns.
+- Nested alternations expand combinatorially and are intended only
+  for small patterns.
 
 ## Math Functions
 
