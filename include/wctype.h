@@ -30,6 +30,16 @@ int iswupper(wint_t wc);
 int iswlower(wint_t wc);
 /* Test for hexadecimal digit wide character */
 int iswxdigit(wint_t wc);
+/* Test for printable wide character */
+int iswprint(wint_t wc);
+/* Test for control wide character */
+int iswcntrl(wint_t wc);
+/* Test for punctuation wide character */
+int iswpunct(wint_t wc);
+/* Test for graphical wide character */
+int iswgraph(wint_t wc);
+/* Test for blank wide character */
+int iswblank(wint_t wc);
 /* Convert wide character to lowercase */
 wint_t towlower(wint_t wc);
 /* Convert wide character to uppercase */

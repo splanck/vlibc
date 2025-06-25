@@ -50,6 +50,8 @@ programs. Key features include:
 - Standard `assert` macro for runtime checks
 - Extended math helpers including `hypot`, `round` and `trunc`
 - Floating-point classification with `isnan()`, `isinf()` and `isfinite()`
+- Extended character checks like `isprint`, `ispunct`, `iscntrl`,
+  `isgraph` and `isblank`
 - String-to-number conversions with `strtol`, `strtoul`, `strtoll`,
   `strtoull`, `strtof`, `strtod` and `strtold`
 - Integer helpers `abs`, `labs`, `llabs` and division results with `div`,

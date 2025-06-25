@@ -464,6 +464,11 @@ implementation on BSD systems when available.
 - `isupper(c)`  – non-zero for uppercase letters.
 - `islower(c)`  – non-zero for lowercase letters.
 - `isxdigit(c)` – true for hexadecimal digits.
+- `isprint(c)` – non-zero for characters with visible representation.
+- `iscntrl(c)` – true for control characters like `\n`.
+- `ispunct(c)` – true for punctuation characters.
+- `isgraph(c)` – like `isprint(c)` but excludes space.
+- `isblank(c)` – true for space or tab.
 - `tolower(c)`  – converts an uppercase letter to lowercase.
 - `toupper(c)`  – converts a lowercase letter to uppercase.
 
