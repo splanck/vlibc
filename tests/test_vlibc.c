@@ -692,6 +692,12 @@ static const char *test_string_helpers(void)
     mu_assert("strtoull big", strtoull("1234567890123", &end, 10) == 1234567890123ull && *end == '\0');
     mu_assert("strtod basic", strtod("2.5", &end) == 2.5 && *end == '\0');
     mu_assert("strtod exp", strtod("1e2", &end) == 100.0 && *end == '\0');
+    mu_assert("strtof", fabsf(strtof("4.5", &end) - 4.5f) < 1e-6f && *end == '\0');
+    long double ld = strtold("6.25", &end);
+    long double ldiff = ld - 6.25L;
+    if (ldiff < 0)
+        ldiff = -ldiff;
+    mu_assert("strtold", ldiff < 1e-9L && *end == '\0');
     mu_assert("atof", atof("-3.0") == -3.0);
 
     mu_assert("strnlen zero", strnlen("abc", 0) == 0);
