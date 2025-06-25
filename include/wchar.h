@@ -79,9 +79,15 @@ size_t wcsftime(wchar_t *s, size_t max, const wchar_t *format,
                 const struct tm *tm);
 
 /* Wide-character byte I/O */
-wint_t fgetwc(FILE *stream);
-wint_t fputwc(wchar_t wc, FILE *stream);
+    wint_t fgetwc(FILE *stream);
+    wint_t fputwc(wchar_t wc, FILE *stream);
 #define getwc(stream) fgetwc(stream)
 #define putwc(wc, stream) fputwc(wc, stream)
+
+/* Wide-character memory operations */
+wchar_t *wmemcpy(wchar_t *dest, const wchar_t *src, size_t n);
+wchar_t *wmemmove(wchar_t *dest, const wchar_t *src, size_t n);
+wchar_t *wmemset(wchar_t *s, wchar_t c, size_t n);
+int wmemcmp(const wchar_t *s1, const wchar_t *s2, size_t n);
 
 #endif /* WCHAR_H */

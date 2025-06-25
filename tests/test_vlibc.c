@@ -899,6 +899,27 @@ static const char *test_wctype_checks(void)
     return 0;
 }
 
+static const char *test_wmem_ops(void)
+{
+    wchar_t buf[8];
+    wmemset(buf, L'x', 8);
+    for (size_t i = 0; i < 8; i++)
+        mu_assert("wmemset", buf[i] == L'x');
+
+    wchar_t src[8] = { L'a', L'b', L'c', L'd', L'e', L'f', L'g', L'h' };
+    wmemcpy(buf, src, 8);
+    mu_assert("wmemcpy", wmemcmp(buf, src, 8) == 0);
+
+    wmemmove(buf + 1, buf, 7);
+    mu_assert("wmemmove", buf[1] == L'a' && buf[2] == L'b');
+
+    wchar_t a[] = { L'a', L'b', L'c' };
+    wchar_t b[] = { L'a', L'b', L'd' };
+    mu_assert("wmemcmp diff", wmemcmp(a, b, 3) < 0);
+
+    return 0;
+}
+
 static const char *test_iconv_ascii_roundtrip(void)
 {
     iconv_t cd = iconv_open("UTF-8", "ASCII");
@@ -3294,6 +3315,7 @@ static const char *all_tests(void)
     mu_run_test(test_widechar_conv);
     mu_run_test(test_widechar_width);
     mu_run_test(test_wctype_checks);
+    mu_run_test(test_wmem_ops);
     mu_run_test(test_iconv_ascii_roundtrip);
     mu_run_test(test_iconv_invalid_byte);
     mu_run_test(test_strtok_basic);
