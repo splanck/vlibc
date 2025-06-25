@@ -1089,6 +1089,12 @@ if (tcgetattr(STDIN_FILENO, &t) == 0) {
 }
 ```
 
+Additional helpers wait for output or control data queues. `tcdrain`
+blocks until all written data has been transmitted. `tcflush` can
+discard queued input or output, while `tcflow` suspends or resumes
+transmission. `tcsendbreak` sends a break condition for the specified
+duration.
+
 ## Pseudo-terminals
 
 `openpty` creates a master/slave pair of descriptors. Optional `termios` and

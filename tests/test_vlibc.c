@@ -47,6 +47,7 @@
 #include "../include/fts.h"
 #include "../include/wordexp.h"
 #include "../include/pty.h"
+#include "../include/termios.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -2215,6 +2216,37 @@ static const char *test_forkpty_echo(void)
     return 0;
 }
 
+static const char *test_tcdrain_basic(void)
+{
+    int m, s;
+    mu_assert("openpty", openpty(&m, &s, NULL, NULL, NULL) == 0);
+    const char *msg = "hi";
+    mu_assert("write", write(s, msg, 2) == 2);
+    mu_assert("tcdrain", tcdrain(s) == 0);
+    char buf[3] = {0};
+    mu_assert("read", read(m, buf, 2) == 2);
+    mu_assert("match", memcmp(buf, msg, 2) == 0);
+    close(m);
+    close(s);
+    return 0;
+}
+
+static const char *test_tcflush_basic(void)
+{
+    int m, s;
+    mu_assert("openpty", openpty(&m, &s, NULL, NULL, NULL) == 0);
+    fcntl(s, F_SETFL, O_NONBLOCK);
+    const char *msg = "xx";
+    mu_assert("write", write(m, msg, 2) == 2);
+    mu_assert("tcflush", tcflush(s, TCIFLUSH) == 0);
+    char buf[2];
+    ssize_t r = read(s, buf, 2);
+    mu_assert("flushed", r == -1 && errno == EAGAIN);
+    close(m);
+    close(s);
+    return 0;
+}
+
 static const char *test_temp_files(void)
 {
     char tmpl[] = "/tmp/vlibctestXXXXXX";
@@ -3071,6 +3103,8 @@ static const char *all_tests(void)
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_forkpty_echo);
+    mu_run_test(test_tcdrain_basic);
+    mu_run_test(test_tcflush_basic);
     mu_run_test(test_temp_files);
     mu_run_test(test_abort_fn);
     mu_run_test(test_sigaction_install);
