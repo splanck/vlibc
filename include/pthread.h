@@ -37,6 +37,15 @@ typedef struct {
     atomic_int writer;
 } pthread_rwlock_t;
 
+typedef struct {
+    unsigned count;
+    atomic_uint waiting;
+    pthread_mutex_t lock;
+    pthread_cond_t cond;
+} pthread_barrier_t;
+
+#define PTHREAD_BARRIER_SERIAL_THREAD -1
+
 typedef unsigned int pthread_key_t;
 
 typedef struct {
@@ -112,5 +121,13 @@ void *pthread_getspecific(pthread_key_t key);
 
 int pthread_once(pthread_once_t *once_control, void (*init_routine)(void));
 /* Ensure that "init_routine" is executed only once. */
+
+int pthread_barrier_init(pthread_barrier_t *barrier, void *attr,
+                         unsigned count);
+/* Initialize a barrier that waits for "count" threads. */
+int pthread_barrier_wait(pthread_barrier_t *barrier);
+/* Wait until all participating threads have reached the barrier. */
+int pthread_barrier_destroy(pthread_barrier_t *barrier);
+/* Destroy a barrier object (no-op). */
 
 #endif /* PTHREAD_H */

@@ -740,6 +740,11 @@ int sem_destroy(sem_t *sem);
 int sem_wait(sem_t *sem);
 int sem_trywait(sem_t *sem);
 int sem_post(sem_t *sem);
+
+int pthread_barrier_init(pthread_barrier_t *barrier, void *attr,
+                         unsigned count);
+int pthread_barrier_wait(pthread_barrier_t *barrier);
+int pthread_barrier_destroy(pthread_barrier_t *barrier);
 ```
 
 Threads share the process address space and use a simple spinlock-based
@@ -786,6 +791,11 @@ Semaphores provide a simple counting mechanism for coordinating threads. They
 use an atomic counter and block with `nanosleep` when no resources are
 available.
 
+Barriers synchronize a fixed number of threads at predetermined points. After
+calling `pthread_barrier_init()` with the participant count, each thread invokes
+`pthread_barrier_wait()` to pause until all threads reach the barrier. The last
+thread to arrive receives `PTHREAD_BARRIER_SERIAL_THREAD` and releases the rest.
+
 Thread-local storage is available through key objects:
 
 ```c
@@ -831,6 +841,39 @@ int main(void) {
 
     printf("final: %d\n", counter);
     pthread_mutex_destroy(&lock);
+    return 0;
+}
+```
+
+### Barrier Example
+
+```c
+#include "pthread.h"
+#include <stdio.h>
+
+static pthread_barrier_t bar;
+
+static void *task(void *arg)
+{
+    printf("phase 1\n");
+    pthread_barrier_wait(&bar);
+    printf("phase 2\n");
+    return NULL;
+}
+
+int main(void)
+{
+    pthread_t t1, t2;
+    pthread_barrier_init(&bar, NULL, 3);
+
+    pthread_create(&t1, NULL, task, NULL);
+    pthread_create(&t2, NULL, task, NULL);
+
+    pthread_barrier_wait(&bar);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    pthread_barrier_destroy(&bar);
     return 0;
 }
 ```
@@ -1632,8 +1675,8 @@ state.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
    codes.
  - `perror` and `strerror` cover only common errors.
- - Thread support is limited to basic mutexes with optional type
-   attributes and join/detach.
+ - Thread support is limited to basic mutexes, condition variables,
+   semaphores, barriers and join/detach.
  - Locale handling falls back to the host implementation for values other
    than `"C"` or `"POSIX"`.
 - `setjmp`/`longjmp` rely on the host C library when available.
