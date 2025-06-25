@@ -2322,6 +2322,19 @@ static const char *test_locale_from_env(void)
     return 0;
 }
 
+static const char *test_locale_objects(void)
+{
+    locale_t loc = newlocale(LC_ALL, "C", NULL);
+    mu_assert("newlocale", loc != NULL);
+    locale_t old = uselocale(loc);
+    struct lconv *lc = localeconv();
+    mu_assert("decimal_point", strcmp(lc->decimal_point, ".") == 0);
+    mu_assert("thousands_sep", strcmp(lc->thousands_sep, "") == 0);
+    uselocale(old);
+    freelocale(loc);
+    return 0;
+}
+
 static const char *test_gethostname_fn(void)
 {
     char buf[256];
@@ -3816,6 +3829,7 @@ static const char *all_tests(void)
     mu_run_test(test_environment);
     mu_run_test(test_clearenv_fn);
     mu_run_test(test_locale_from_env);
+    mu_run_test(test_locale_objects);
     mu_run_test(test_gethostname_fn);
     mu_run_test(test_uname_fn);
     mu_run_test(test_confstr_path);

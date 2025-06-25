@@ -1738,6 +1738,11 @@ accordingly. For non-`"C"` locales the function defers to the host
 formatting information. `gmtime`, `localtime`, `mktime`, and `ctime`
 convert between `time_t` and `struct tm` or human readable strings.
 
+Locale objects provide per-thread settings. Use `newlocale` to create a
+locale, `duplocale` to clone one, `freelocale` to free it and
+`uselocale` to activate it. vlibc only implements the built-in `"C"`
+locale on non-BSD systems while BSD builds wrap the native routines.
+
 ## Time Retrieval
 
 Use `time`, `gettimeofday`, or `clock_gettime` to obtain the current time of day.
