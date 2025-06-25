@@ -82,6 +82,7 @@ SRC := \
     src/netdb.c \
     src/inet_pton.c \
     src/inet_ntop.c \
+    src/inet_aton.c \
     src/ifaddrs.c \
     src/fd.c \
     src/fcntl.c \
