@@ -30,6 +30,7 @@ extern int __posix_spawnp(pid_t *, const char *,
 #include "memory.h"
 #include <stdarg.h>
 #include <fcntl.h>
+#include "stdio.h"
 extern long syscall(long number, ...);
 
 /* from atexit.c */
@@ -70,6 +71,34 @@ int execve(const char *pathname, char *const argv[], char *const envp[])
         return -1;
     }
     return (int)ret;
+}
+
+/*
+ * fexecve() - execute a program referenced by an open file descriptor. If the
+ * platform provides SYS_fexecve the call is made directly. BSD systems fall
+ * back to executing /dev/fd/<fd> via execve().
+ */
+int fexecve(int fd, char *const argv[], char *const envp[])
+{
+#ifdef SYS_fexecve
+    long ret = vlibc_syscall(SYS_fexecve, fd, (long)argv, (long)envp, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
+    defined(__DragonFly__) || defined(__APPLE__)
+    char path[32];
+    snprintf(path, sizeof(path), "/dev/fd/%d", fd);
+    return execve(path, argv, envp);
+#else
+    (void)fd; (void)argv; (void)envp;
+    errno = ENOSYS;
+    return -1;
+#endif
+#endif
 }
 
 /*

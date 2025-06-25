@@ -12,6 +12,7 @@ programs. Key features include:
   `unlinkat`, `linkat`, `renameat` and `mknodat()`
 - Permission checks with `access()` and `faccessat()`
 - Process creation and control
+- Execute programs from file descriptors with `fexecve()`
 - Wait for children with `wait()` or `waitpid()` and decode results
   with macros from `<sys/wait.h>`
 - Basic session and process-group APIs
