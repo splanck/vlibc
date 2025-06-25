@@ -14,6 +14,8 @@
 
 extern pthread_t host_pthread_self(void) __asm__("pthread_self");
 extern int host_pthread_equal(pthread_t, pthread_t) __asm__("pthread_equal");
+extern void host_pthread_exit(void *) __asm__("pthread_exit");
+extern int host_pthread_cancel(pthread_t) __asm__("pthread_cancel");
 
 /* Initialize a mutex implemented as a simple spinlock. */
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
@@ -232,4 +234,14 @@ pthread_t pthread_self(void)
 int pthread_equal(pthread_t a, pthread_t b)
 {
     return host_pthread_equal(a, b);
+}
+
+void pthread_exit(void *retval)
+{
+    host_pthread_exit(retval);
+}
+
+int pthread_cancel(pthread_t thread)
+{
+    return host_pthread_cancel(thread);
 }

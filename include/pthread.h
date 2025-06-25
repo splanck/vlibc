@@ -53,6 +53,7 @@ typedef struct {
 } pthread_once_t;
 
 #define PTHREAD_ONCE_INIT { ATOMIC_VAR_INIT(0) }
+#define PTHREAD_CANCELED ((void *)-1)
 
 int pthread_create(pthread_t *thread, const void *attr,
                    void *(*start_routine)(void *), void *arg);
@@ -66,6 +67,11 @@ pthread_t pthread_self(void);
 /* Obtain the identifier of the calling thread. */
 int pthread_equal(pthread_t a, pthread_t b);
 /* Compare two thread identifiers for equality. */
+void pthread_exit(void *retval) __attribute__((noreturn));
+/* Terminate the calling thread and make "retval" available to pthread_join. */
+int pthread_cancel(pthread_t thread);
+/* Request cancellation of "thread". The target ends at the next cancellation
+ * point and "pthread_join" returns PTHREAD_CANCELED. */
 
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
 /* Initialize a mutex using a simple spinlock. */
