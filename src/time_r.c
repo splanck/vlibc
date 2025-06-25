@@ -8,6 +8,42 @@
 
 #include "time.h"
 #include "env.h"
+#include "stdio.h"
+
+int __vlibc_tzoff = 0;
+
+static int parse_offset(const char *s)
+{
+    if (!s || !*s)
+        return 0;
+    while (*s && !((*s >= '0' && *s <= '9') || *s == '+' || *s == '-'))
+        s++;
+    int sign = 1;
+    if (*s == '+') {
+        sign = 1;
+        s++;
+    } else if (*s == '-') {
+        sign = -1;
+        s++;
+    }
+    int h = 0, m = 0;
+    while (*s >= '0' && *s <= '9') {
+        h = h * 10 + (*s - '0');
+        s++;
+    }
+    if (*s == ':') {
+        s++;
+        while (*s >= '0' && *s <= '9') {
+            m = m * 10 + (*s - '0');
+            s++;
+            if (m >= 60)
+                break;
+        }
+    } else if (*s && *(s + 1) && (*s >= '0' && *s <= '9')) {
+        m = (*s - '0') * 10 + (*(s + 1) - '0');
+    }
+    return sign * (h * 3600 + m * 60);
+}
 
 static int is_leap(int year)
 {
@@ -79,28 +115,39 @@ struct tm *gmtime_r(const time_t *timep, struct tm *result)
 }
 
 /*
- * Convert a time value to local broken-down form. Currently the
- * conversion is identical to gmtime_r because timezone handling
- * has not been implemented.
+ * Convert a time value to local broken-down form applying the
+ * configured timezone offset. tzset() controls the offset by
+ * parsing the TZ environment variable or /etc/localtime.
  */
 struct tm *localtime_r(const time_t *timep, struct tm *result)
 {
-    /* no timezone support yet */
-    return gmtime_r(timep, result);
+    if (!result)
+        return NULL;
+    time_t t = timep ? *timep : time(NULL);
+    t += __vlibc_tzoff;
+    convert_tm(t, result);
+    return result;
 }
 
-static const char *current_tz;
+static void load_tz(const char *tz)
+{
+    __vlibc_tzoff = parse_offset(tz);
+}
 
-/*
- * Update timezone information from the environment. Only the
- * TZ variable is consulted on BSD platforms; other systems
- * ignore the request.
- */
 void tzset(void)
 {
-#ifdef __BSD_VISIBLE
-    current_tz = getenv("TZ");
-#else
-    (void)current_tz;
-#endif
+    const char *tz = getenv("TZ");
+    if (!tz || !*tz) {
+        FILE *f = fopen("/etc/localtime", "r");
+        if (f) {
+            char buf[64];
+            if (fgets(buf, sizeof(buf), f))
+                tz = buf;
+            fclose(f);
+        }
+    }
+    if (tz)
+        load_tz(tz);
+    else
+        __vlibc_tzoff = 0;
 }

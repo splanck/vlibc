@@ -158,20 +158,21 @@ struct tm *gmtime(const time_t *timep);
 struct tm *localtime(const time_t *timep);
 /*
  * Convert a time_t to local broken-down time using a static
- * buffer. Currently timezone data is ignored.
+ * buffer. Not thread-safe.
  */
 struct tm *gmtime_r(const time_t *timep, struct tm *result);
 /*
  * Thread-safe conversion of time_t to UTC broken-down time.
- * Timezone information is not considered.
  */
 struct tm *localtime_r(const time_t *timep, struct tm *result);
 /*
- * Thread-safe conversion of time_t to local broken-down time.
- * Identical to gmtime_r until timezone support is added.
+ * Reload timezone information from the TZ environment variable or
+ * /etc/localtime and apply the configured offset when converting
+ * times.
  */
 void tzset(void);
-/* Load timezone settings from the TZ environment variable if available. */
+/* Current timezone offset in seconds east of UTC. */
+extern int __vlibc_tzoff;
 time_t mktime(struct tm *tm);
 /* Convert a broken-down UTC time to seconds since the epoch. */
 time_t timegm(struct tm *tm);

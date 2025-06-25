@@ -32,6 +32,7 @@ programs. Key features include:
 - IPv4 text conversions with `inet_aton` and `inet_ntoa`
 - Dynamic loading with `dlopen`, `dlsym`, `dlclose` and `dladdr`
 - Environment variable handling
+- Basic timezone handling with `tzset()`
 - Host name queries and changes
 - Login name retrieval with `getlogin()`
 - Thread-safe user and group lookups with `getpwuid_r`, `getpwnam_r`,
