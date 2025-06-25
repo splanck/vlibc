@@ -49,6 +49,8 @@ programs. Key features include:
 - Floating-point classification with `isnan()`, `isinf()` and `isfinite()`
 - String-to-number conversions with `strtol`, `strtoul`, `strtoll`,
   `strtoull`, `strtof`, `strtod` and `strtold`
+- Integer helpers `abs`, `labs`, `llabs` and division results with `div`,
+  `ldiv` and `lldiv`
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Memory-backed streams with `open_memstream()` and `fmemopen()`
 - Large-file aware seeks
