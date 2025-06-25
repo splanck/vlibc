@@ -53,6 +53,7 @@ programs. Key features include:
 - Directory scanning helpers
 - File tree traversal with `fts`
 - Path expansion helpers with `glob()` and `wordexp()`
+- Text encoding helpers with `vis()`, `nvis()` and `unvis()`
 - Array sorting with `qsort`, `qsort_r` and `bsearch`
 - Array resizing with `recallocarray()` which zeroes new memory
 - Standard `assert` macro for runtime checks

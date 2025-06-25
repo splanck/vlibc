@@ -180,6 +180,7 @@ SRC := \
     src/ftw.c \
     src/glob.c \
     src/wordexp.c \
+    src/vis.c \
     src/wprintf.c \
     src/wscanf.c
 
