@@ -94,6 +94,25 @@ struct group *getgrnam(const char *name)
     return lookup(name, 0, 1);
 }
 
+extern void host_setgrent(void) __asm("setgrent");
+extern struct group *host_getgrent(void) __asm("getgrent");
+extern void host_endgrent(void) __asm("endgrent");
+
+void setgrent(void)
+{
+    host_setgrent();
+}
+
+struct group *getgrent(void)
+{
+    return host_getgrent();
+}
+
+void endgrent(void)
+{
+    host_endgrent();
+}
+
 #else
 
 extern struct group *host_getgrgid(gid_t) __asm("getgrgid");
@@ -107,6 +126,80 @@ struct group *getgrgid(gid_t gid)
 struct group *getgrnam(const char *name)
 {
     return host_getgrnam(name);
+}
+
+static const char *group_path(void)
+{
+    const char *p = getenv("VLIBC_GROUP");
+    if (p && *p)
+        return p;
+    return "/etc/group";
+}
+
+static struct group gr;
+static char *members[64];
+static char linebuf[256];
+static char filebuf[4096];
+static char *next_line;
+
+static struct group *parse_line(const char *line)
+{
+    strncpy(linebuf, line, sizeof(linebuf) - 1);
+    linebuf[sizeof(linebuf) - 1] = '\0';
+
+    char *save;
+    gr.gr_name = strtok_r(linebuf, ":", &save);
+    gr.gr_passwd = strtok_r(NULL, ":", &save);
+    char *gid_s = strtok_r(NULL, ":", &save);
+    char *mem_list = strtok_r(NULL, ":\n", &save);
+    if (!gr.gr_name || !gr.gr_passwd || !gid_s || !mem_list)
+        return NULL;
+    gr.gr_gid = (gid_t)atoi(gid_s);
+
+    char *save_mem;
+    int i = 0;
+    for (char *m = strtok_r(mem_list, ",", &save_mem); m &&
+         i < (int)(sizeof(members)/sizeof(members[0]) - 1);
+         m = strtok_r(NULL, ",", &save_mem)) {
+        members[i++] = m;
+    }
+    members[i] = NULL;
+    gr.gr_mem = members;
+    return &gr;
+}
+
+void setgrent(void)
+{
+    int fd = open(group_path(), O_RDONLY, 0);
+    if (fd < 0) {
+        next_line = NULL;
+        return;
+    }
+    ssize_t n = read(fd, filebuf, sizeof(filebuf) - 1);
+    close(fd);
+    if (n <= 0) {
+        next_line = NULL;
+        return;
+    }
+    filebuf[n] = '\0';
+    next_line = filebuf;
+}
+
+struct group *getgrent(void)
+{
+    if (!next_line)
+        setgrent();
+    if (!next_line)
+        return NULL;
+    char *line = strtok_r(next_line, "\n", &next_line);
+    if (!line)
+        return NULL;
+    return parse_line(line);
+}
+
+void endgrent(void)
+{
+    next_line = NULL;
 }
 
 #endif

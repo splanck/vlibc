@@ -1629,6 +1629,9 @@ int getpwuid_r(uid_t uid, struct passwd *pwd, char *buf, size_t buflen,
 int getpwnam_r(const char *name, struct passwd *pwd, char *buf, size_t buflen,
                struct passwd **result);
 char *getlogin(void);
+void setpwent(void);
+struct passwd *getpwent(void);
+void endpwent(void);
 ```
 
 On BSD systems vlibc parses the file directly. The location can be
@@ -1640,6 +1643,10 @@ results in caller supplied memory so they are safe for concurrent use.
 `getlogin()` obtains the user name for the current UID using
 `getpwuid(getuid())`.  The resulting string is cached in thread-local
 storage so repeated calls are inexpensive.
+
+`setpwent()`, `getpwent()` and `endpwent()` iterate sequentially
+through all passwd entries.  On BSD these wrappers call the host
+libc while other systems parse the file directly.
 
 ## Group Database
 
@@ -1659,12 +1666,19 @@ int getgrgid_r(gid_t gid, struct group *grp, char *buf, size_t buflen,
                struct group **result);
 int getgrnam_r(const char *name, struct group *grp, char *buf, size_t buflen,
                struct group **result);
+void setgrent(void);
+struct group *getgrent(void);
+void endgrent(void);
 ```
 
 As with the password file, BSD platforms parse the group database directly.
 The path can be overridden via the `VLIBC_GROUP` environment variable when
 running tests. The `*_r` variants fill caller provided buffers and are
 thread-safe.
+
+`setgrent()`, `getgrent()` and `endgrent()` enumerate group entries in
+order.  As with the passwd enumeration, BSD platforms use the host
+libc while other systems parse `/etc/group` directly.
 
 ## Time Formatting
 
