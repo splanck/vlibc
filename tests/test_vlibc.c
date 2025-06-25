@@ -2381,6 +2381,26 @@ static const char *test_execvp_fn(void)
     return 0;
 }
 
+static const char *test_fexecve_fn(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    int fd = open("/bin/sh", O_RDONLY);
+    mu_assert("open", fd >= 0);
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        char *argv[] = {"sh", "-c", "exit 7", NULL};
+        fexecve(fd, argv, __environ);
+        _exit(127);
+    }
+    close(fd);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("fexecve status", WIFEXITED(status) && WEXITSTATUS(status) == 7);
+    return 0;
+}
+
 static const char *test_posix_spawn_fn(void)
 {
     extern char **__environ;
@@ -3574,6 +3594,7 @@ static const char *all_tests(void)
     mu_run_test(test_execlp_fn);
     mu_run_test(test_execle_fn);
     mu_run_test(test_execvp_fn);
+    mu_run_test(test_fexecve_fn);
     mu_run_test(test_posix_spawn_fn);
     mu_run_test(test_posix_spawn_actions);
     mu_run_test(test_posix_spawn_sigmask);

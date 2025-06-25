@@ -646,6 +646,7 @@ and installing signal handlers.  The companion `signal.h` header offers
 ```c
 pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
+int fexecve(int fd, char *const argv[], char *const envp[]);
 int execvp(const char *file, char *const argv[]);
 int execv(const char *path, char *const argv[]);
 int execl(const char *path, const char *arg, ...);
@@ -754,6 +755,7 @@ if (daemon(0, 0) < 0)
 argument array on behalf of the caller. `execl` and `execlp` accept a
 variable list of arguments terminated by `NULL`. `execle` is similar but
 takes a custom environment pointer after the final `NULL` argument.
+`fexecve` is provided for executing a program referenced by an open file descriptor. When the `fexecve` system call is unavailable on BSD systems, vlibc falls back to invoking `/dev/fd/<fd>` through `execve`.
 
 ### Wait Status Helpers
 
