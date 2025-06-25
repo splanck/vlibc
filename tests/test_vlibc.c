@@ -55,6 +55,7 @@
 #include "../include/time.h"
 #include "../include/sys/resource.h"
 #include "../include/sys/mman.h"
+#include "../include/sys/shm.h"
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
@@ -2190,6 +2191,22 @@ static const char *test_mprotect_anon(void)
     return 0;
 }
 
+static const char *test_shm_basic(void)
+{
+    const char *name = "/vlibc_test_shm";
+    int fd = shm_open(name, O_CREAT | O_RDWR, 0600);
+    mu_assert("shm_open", fd >= 0);
+    mu_assert("ftruncate", ftruncate(fd, 4096) == 0);
+    void *p = mmap(NULL, 4096, PROT_READ | PROT_WRITE,
+                   MAP_SHARED, fd, 0);
+    mu_assert("mmap", p != MAP_FAILED);
+    strcpy((char *)p, "hi");
+    munmap(p, 4096);
+    close(fd);
+    mu_assert("shm_unlink", shm_unlink(name) == 0);
+    return 0;
+}
+
 static const char *test_atexit_handler(void)
 {
     mu_assert("pipe", pipe(exit_pipe) == 0);
@@ -2842,6 +2859,7 @@ static const char *all_tests(void)
     mu_run_test(test_sigaction_install);
     mu_run_test(test_sigprocmask_block);
     mu_run_test(test_mprotect_anon);
+    mu_run_test(test_shm_basic);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_getcwd_chdir);
     mu_run_test(test_realpath_basic);

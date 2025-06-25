@@ -46,6 +46,7 @@ programs. Key features include:
 - Large-file aware seeks
 - Zero-copy file transfers with `sendfile()`
 - Memory synchronization with `msync()`
+- POSIX shared memory objects with `shm_open()` and `shm_unlink()`
 - Advisory file locking with `flock()`
 - FIFO creation with `mkfifo()` and `mkfifoat()`
 - Device node creation with `mknod()`

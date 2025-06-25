@@ -105,6 +105,7 @@ SRC := \
     $(SYS_SRC) \
     src/mmap.c \
     src/msync.c \
+    src/shm.c \
     src/env.c \
     src/hostname.c \
     src/uname.c \
