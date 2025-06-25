@@ -258,6 +258,18 @@ Basic wide-character formatting and scanning are available through
 `wprintf` and `wscanf`. Only the subset of conversion specifiers handled
 by the regular `printf` implementation is currently recognized.
 
+Individual wide characters can also be read and written using `fgetwc`
+and `fputwc`:
+
+```c
+FILE *f = tmpfile();
+fputwc(L'A', f);
+rewind(f);
+wchar_t wc = fgetwc(f);
+// wc == L'A'
+fclose(f);
+```
+
 ## Platform Support
 
 The library currently targets Linux but aims to run on other POSIX systems as

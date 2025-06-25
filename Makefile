@@ -141,6 +141,7 @@ SRC := \
     src/locale.c \
     src/wchar.c \
     src/wchar_conv.c \
+    src/wchar_io.c \
     src/wctype.c \
     src/memstream.c \
     src/tempfile.c \

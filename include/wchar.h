@@ -15,6 +15,11 @@ typedef int wchar_t;
 #define __wchar_t_defined
 #endif
 
+#ifndef __wint_t_defined
+typedef int wint_t;
+#define __wint_t_defined
+#endif
+
 /* Opaque multibyte conversion state */
 typedef struct { int __dummy; } mbstate_t;
 
@@ -72,5 +77,11 @@ int vswscanf(const wchar_t *str, const wchar_t *format, va_list ap);
 /* Format time information using wide characters */
 size_t wcsftime(wchar_t *s, size_t max, const wchar_t *format,
                 const struct tm *tm);
+
+/* Wide-character byte I/O */
+wint_t fgetwc(FILE *stream);
+wint_t fputwc(wchar_t wc, FILE *stream);
+#define getwc(stream) fgetwc(stream)
+#define putwc(wc, stream) fputwc(wc, stream)
 
 #endif /* WCHAR_H */
