@@ -389,6 +389,21 @@ int c = wcwidth(L'A');               // 1
 int w = wcswidth(L"hello", 5);      // 5
 ```
 
+### Wide-Character I/O
+
+`fgetwc` and `fputwc` mirror `fgetc` and `fputc` but operate on wide
+characters. The `getwc` and `putwc` wrappers simply call these
+functions.
+
+```c
+FILE *fp = tmpfile();
+fputwc(L'Z', fp);
+rewind(fp);
+wchar_t ch = fgetwc(fp);
+// ch == L'Z'
+fclose(fp);
+```
+
 ### Character Set Conversion
 
 `iconv_open` returns a descriptor for translating between character

@@ -1252,6 +1252,32 @@ static const char *test_fgets_fputs(void)
     return 0;
 }
 
+static const char *test_fgetwc_fputwc(void)
+{
+    FILE *f = fopen("tmp_wcs", "w+");
+    mu_assert("fopen wcs", f != NULL);
+    mu_assert("fputwc ret", fputwc(L'Z', f) == L'Z');
+    rewind(f);
+    wint_t wc = fgetwc(f);
+    mu_assert("fgetwc val", wc == L'Z');
+    fclose(f);
+    unlink("tmp_wcs");
+    return 0;
+}
+
+static const char *test_getwc_putwc(void)
+{
+    FILE *f = fopen("tmp_wcs2", "w+");
+    mu_assert("fopen wcs2", f != NULL);
+    mu_assert("putwc ret", putwc(L'A', f) == L'A');
+    rewind(f);
+    wint_t wc = getwc(f);
+    mu_assert("getwc val", wc == L'A');
+    fclose(f);
+    unlink("tmp_wcs2");
+    return 0;
+}
+
 static const char *test_getline_various(void)
 {
     FILE *f = fopen("tmp_getline", "w+");
@@ -2849,6 +2875,8 @@ static const char *all_tests(void)
     mu_run_test(test_fseek_rewind);
     mu_run_test(test_fgetc_fputc);
     mu_run_test(test_fgets_fputs);
+    mu_run_test(test_fgetwc_fputwc);
+    mu_run_test(test_getwc_putwc);
     mu_run_test(test_getline_various);
     mu_run_test(test_getdelim_various);
     mu_run_test(test_fflush);
