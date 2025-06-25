@@ -39,6 +39,8 @@ int wcscmp(const wchar_t *s1, const wchar_t *s2);
 int wcsncmp(const wchar_t *s1, const wchar_t *s2, size_t n);
 /* Duplicate a wide-character string */
 wchar_t *wcsdup(const wchar_t *s);
+/* Tokenize a wide-character string */
+wchar_t *wcstok(wchar_t *str, const wchar_t *delim, wchar_t **saveptr);
 /* Display width of a wide character */
 int wcwidth(wchar_t wc);
 /* Display width of at most n wide chars */

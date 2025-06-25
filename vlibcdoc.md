@@ -386,8 +386,10 @@ of a wide string excluding the terminator.
 
 `wcscpy`, `wcsncpy`, `wcscmp`, `wcsncmp`, and `wcsdup` mirror the
 behaviour of their narrow-string counterparts for copying, comparing and
-duplicating wide strings. The `wmemcpy`, `wmemmove`, `wmemset` and
-`wmemcmp` routines operate on arrays of `wchar_t` analogous to the byte
+duplicating wide strings. The `wcstok` function tokenizes a wide string
+using a caller-supplied save pointer. The `wmemcpy`, `wmemmove`,
+`wmemset` and `wmemcmp` routines operate on arrays of `wchar_t`
+analogous to the byte
 
 ### Example
 
@@ -398,6 +400,15 @@ wmemcpy(dst, src, 3);      // copy three wide characters
 wmemmove(dst + 1, dst, 2); // move with overlap
 wmemset(dst, L'X', 2);     // fill first two entries
 int diff = wmemcmp(dst, src, 3);
+```
+
+Wide strings can be tokenized incrementally:
+
+```c
+wchar_t text[] = L"one two";
+wchar_t *save = NULL;
+wchar_t *t1 = wcstok(text, L" ", &save); // L"one"
+wchar_t *t2 = wcstok(NULL, L" ", &save); // L"two"
 ```
 
 `wcwidth` reports the number of columns needed to display a single wide

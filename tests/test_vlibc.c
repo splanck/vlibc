@@ -1013,6 +1013,21 @@ static const char *test_strsep_basic(void)
     return 0;
 }
 
+static const char *test_wcstok_basic(void)
+{
+    wchar_t buf[] = L"a b c";
+    wchar_t *save = NULL;
+    wchar_t *tok = wcstok(buf, L" ", &save);
+    mu_assert("wcstok1", tok && wcscmp(tok, L"a") == 0);
+    tok = wcstok(NULL, L" ", &save);
+    mu_assert("wcstok2", tok && wcscmp(tok, L"b") == 0);
+    tok = wcstok(NULL, L" ", &save);
+    mu_assert("wcstok3", tok && wcscmp(tok, L"c") == 0);
+    tok = wcstok(NULL, L" ", &save);
+    mu_assert("wcstok end", tok == NULL);
+    return 0;
+}
+
 static const char *test_printf_functions(void)
 {
     char buf[64];
@@ -3355,6 +3370,7 @@ static const char *all_tests(void)
     mu_run_test(test_strtok_basic);
     mu_run_test(test_strtok_r_basic);
     mu_run_test(test_strsep_basic);
+    mu_run_test(test_wcstok_basic);
     mu_run_test(test_printf_functions);
     mu_run_test(test_dprintf_functions);
     mu_run_test(test_scanf_functions);
