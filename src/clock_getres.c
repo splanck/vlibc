@@ -12,6 +12,12 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/*
+ * Return the resolution of the specified clock. When the
+ * SYS_clock_getres syscall exists it is used directly. On
+ * BSD platforms the host clock_getres implementation provides
+ * the value. Otherwise ENOSYS is returned.
+ */
 int clock_getres(int clk_id, struct timespec *res)
 {
 #ifdef SYS_clock_getres

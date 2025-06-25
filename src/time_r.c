@@ -64,6 +64,11 @@ static void convert_tm(time_t t, struct tm *out)
     out->tm_isdst = 0;
 }
 
+/*
+ * Convert a time value to UTC broken-down form. The result is
+ * stored in the user supplied structure and timezone handling
+ * is not performed.
+ */
 struct tm *gmtime_r(const time_t *timep, struct tm *result)
 {
     if (!result)
@@ -73,6 +78,11 @@ struct tm *gmtime_r(const time_t *timep, struct tm *result)
     return result;
 }
 
+/*
+ * Convert a time value to local broken-down form. Currently the
+ * conversion is identical to gmtime_r because timezone handling
+ * has not been implemented.
+ */
 struct tm *localtime_r(const time_t *timep, struct tm *result)
 {
     /* no timezone support yet */
@@ -81,6 +91,11 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
 
 static const char *current_tz;
 
+/*
+ * Update timezone information from the environment. Only the
+ * TZ variable is consulted on BSD platforms; other systems
+ * ignore the request.
+ */
 void tzset(void)
 {
 #ifdef __BSD_VISIBLE

@@ -12,6 +12,12 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/*
+ * Fetch the current time for the provided clock ID. When
+ * SYS_clock_gettime is present the syscall is invoked. If not
+ * available the function falls back to gettimeofday() which
+ * only supplies CLOCK_REALTIME.
+ */
 int clock_gettime(int clk_id, struct timespec *ts)
 {
 #ifdef SYS_clock_gettime

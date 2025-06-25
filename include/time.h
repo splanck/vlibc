@@ -95,10 +95,30 @@ typedef struct vlibc_timer *timer_t;
 #endif
 
 int clock_gettime(int clk_id, struct timespec *ts);
+/*
+ * Retrieve the current value of the given clock. When the
+ * SYS_clock_gettime syscall is available it is used; otherwise
+ * gettimeofday() provides CLOCK_REALTIME.
+ */
 int clock_getres(int clk_id, struct timespec *res);
+/*
+ * Return the resolution for the specified clock ID. On BSD
+ * systems the host clock_getres implementation is called if
+ * no direct syscall is present.
+ */
 
 time_t time(time_t *t);
+/*
+ * Seconds elapsed since the Unix epoch. Uses SYS_time when
+ * available, otherwise falls back to clock_gettime or the
+ * host time() implementation.
+ */
 int gettimeofday(struct timeval *tv, void *tz);
+/*
+ * Populate *tv with CLOCK_REALTIME expressed in seconds and
+ * microseconds. Implemented via SYS_time or SYS_clock_gettime
+ * with a host fallback when unavailable.
+ */
 
 /* sleep helpers */
 unsigned sleep(unsigned seconds);
@@ -109,6 +129,11 @@ int setitimer(int which, const struct itimerval *new,
               struct itimerval *old);
 int getitimer(int which, struct itimerval *curr);
 unsigned int alarm(unsigned int seconds);
+/*
+ * Schedule a SIGALRM after the given number of seconds. Uses
+ * the SYS_alarm syscall or setitimer() when that syscall is
+ * not implemented.
+ */
 
 #ifndef TIMER_ABSTIME
 #define TIMER_ABSTIME 1
@@ -126,12 +151,32 @@ char *strptime(const char *s, const char *format, struct tm *tm);
 
 /* basic time conversion helpers */
 struct tm *gmtime(const time_t *timep);
+/*
+ * Convert a time_t to a UTC broken-down time using a static
+ * buffer. Not thread-safe.
+ */
 struct tm *localtime(const time_t *timep);
+/*
+ * Convert a time_t to local broken-down time using a static
+ * buffer. Currently timezone data is ignored.
+ */
 struct tm *gmtime_r(const time_t *timep, struct tm *result);
+/*
+ * Thread-safe conversion of time_t to UTC broken-down time.
+ * Timezone information is not considered.
+ */
 struct tm *localtime_r(const time_t *timep, struct tm *result);
+/*
+ * Thread-safe conversion of time_t to local broken-down time.
+ * Identical to gmtime_r until timezone support is added.
+ */
 void tzset(void);
+/* Load timezone settings from the TZ environment variable if available. */
 time_t mktime(struct tm *tm);
+/* Convert a broken-down UTC time to seconds since the epoch. */
 time_t timegm(struct tm *tm);
+/* Non-standard alias for mktime(). */
 char *ctime(const time_t *timep);
+/* Format a time value using localtime() into a static string. */
 
 #endif /* TIME_H */

@@ -25,6 +25,11 @@ extern int host_gettimeofday(struct timeval *tv, void *tz)
 #endif
 #endif
 
+/*
+ * Return seconds since the Unix epoch. Depending on the
+ * platform this uses SYS_time, SYS_clock_gettime with
+ * CLOCK_REALTIME, or falls back to the host time() call.
+ */
 time_t time(time_t *t)
 {
 #ifdef SYS_time
@@ -52,6 +57,11 @@ time_t time(time_t *t)
 #endif
 }
 
+/*
+ * Fill in a timeval structure with the current time of day.
+ * The implementation uses SYS_time or SYS_clock_gettime when
+ * possible and falls back to the host gettimeofday().
+ */
 int gettimeofday(struct timeval *tv, void *tz)
 {
     (void)tz;
@@ -84,6 +94,11 @@ int gettimeofday(struct timeval *tv, void *tz)
 #endif
 }
 
+/*
+ * Schedule delivery of SIGALRM after the given number of
+ * seconds. Uses the SYS_alarm syscall when present and
+ * otherwise emulates it via setitimer().
+ */
 unsigned int alarm(unsigned int seconds)
 {
 #ifdef SYS_alarm
