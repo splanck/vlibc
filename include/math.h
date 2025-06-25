@@ -22,6 +22,10 @@ double sinh(double x);
 double cosh(double x);
 double tanh(double x);
 
+double hypot(double x, double y);
+double round(double x);
+double trunc(double x);
+
 double fmod(double x, double y);
 float fabsf(float x);
 double ldexp(double x, int exp);

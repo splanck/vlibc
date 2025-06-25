@@ -534,10 +534,10 @@ regfree(&r);
 ## Math Functions
 
 `sin`, `cos`, `tan`, `sqrt`, `pow`, `log`, `log2`, `log10`, `exp`, `ldexp`,
-`floor`, `ceil`, `fmod`, `fabs`, `fabsf`, `fmin`, `fmax`, `copysign`,
-`atan2`, `sinh`, `cosh`, and `tanh` are provided in `math.h`. These use simple
-series approximations
-and are suitable for basic calculations but may lack high precision.
+`floor`, `ceil`, `round`, `trunc`, `hypot`, `fmod`, `fabs`, `fabsf`, `fmin`,
+`fmax`, `copysign`, `atan2`, `sinh`, `cosh`, and `tanh` are provided in
+`math.h`. These use simple series approximations and are suitable for basic
+calculations but may lack high precision.
 
 `math.h` also defines macros to classify floating-point values. `isnan(x)`
 returns non-zero when `x` is not a number, `isinf(x)` detects positive or
