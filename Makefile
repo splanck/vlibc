@@ -167,6 +167,7 @@ SRC := \
     src/uid.c \
     src/math.c \
     src/math_extra.c \
+    src/complex.c \
     src/rlimit.c \
     src/getrusage.c \
     src/regex.c \

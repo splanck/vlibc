@@ -171,6 +171,7 @@ getopt.h     - option parsing
 io.h         - unbuffered I/O primitives
 locale.h     - locale helpers
 math.h       - basic math routines
+complex.h   - basic complex math routines
 memory.h     - heap allocation
 assert.h     - runtime assertion checks
 netdb.h      - address resolution helpers
@@ -630,6 +631,9 @@ regfree(&p);
 `fmax`, `copysign`, `atan2`, `sinh`, `cosh`, and `tanh` are provided in
 `math.h`. These use simple series approximations and are suitable for basic
 calculations but may lack high precision.
+
+`complex.h` declares simple complex routines `cabs`, `carg`, `cexp`, `ccos`
+and `csin` built on the same helpers.
 
 `math.h` also defines macros to classify floating-point values. `isnan(x)`
 returns non-zero when `x` is not a number, `isinf(x)` detects positive or
