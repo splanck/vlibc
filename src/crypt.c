@@ -62,6 +62,9 @@
 #include <arpa/inet.h>
 #include <pwd.h>
 #include <string.h>
+#include <alloca.h>
+#include <openssl/md5.h>
+#include <openssl/sha.h>
 #include "crypt.h"
 
 #ifndef u_char
@@ -204,6 +207,27 @@ static const u_char	ascii64[] =
 	 "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 /*	  0000000000111111111122222222223333333333444444444455555555556666 */
 /*	  0123456789012345678901234567890123456789012345678901234567890123 */
+
+static void
+_crypt_to64(char *s, u_long v, int n)
+{
+        while (n-- > 0) {
+                *s++ = ascii64[v & 0x3f];
+                v >>= 6;
+        }
+}
+
+static void
+b64_from_24bit(unsigned int b2, unsigned int b1, unsigned int b0, int n,
+    char **cp)
+{
+        unsigned int w = (b2 << 16) | (b1 << 8) | b0;
+        while (n-- > 0) {
+                **cp = ascii64[w & 0x3f];
+                (*cp)++;
+                w >>= 6;
+        }
+}
 
 static INLINE int
 ascii_to_bin(char ch)
@@ -693,9 +717,343 @@ crypt_des(const char *key, const char *setting, char *buffer)
 	*buffer++ = ascii64[(l >> 12) & 0x3f];
 	*buffer++ = ascii64[(l >> 6) & 0x3f];
 	*buffer++ = ascii64[l & 0x3f];
-	*buffer = '\0';
+       *buffer = '\0';
 
-	return (0);
+       return (0);
+}
+
+static int
+crypt_md5(const char *pw, const char *salt, char *buffer)
+{
+        MD5_CTX ctx, ctx1;
+        unsigned long l;
+        int sl, pl;
+        unsigned int i;
+        unsigned char final[16];
+        const char *ep;
+        static const char *magic = "$1$";
+
+        if (!strncmp(salt, magic, strlen(magic)))
+                salt += strlen(magic);
+
+        for (ep = salt; *ep && *ep != '$' && ep < salt + 8; ep++)
+                continue;
+        sl = ep - salt;
+
+        MD5_Init(&ctx);
+        MD5_Update(&ctx, pw, strlen(pw));
+        MD5_Update(&ctx, magic, strlen(magic));
+        MD5_Update(&ctx, salt, sl);
+
+        MD5_Init(&ctx1);
+        MD5_Update(&ctx1, pw, strlen(pw));
+        MD5_Update(&ctx1, salt, sl);
+        MD5_Update(&ctx1, pw, strlen(pw));
+        MD5_Final(final, &ctx1);
+        for (pl = strlen(pw); pl > 0; pl -= 16)
+                MD5_Update(&ctx, final, pl > 16 ? 16 : pl);
+        memset(final, 0, sizeof(final));
+
+        for (i = strlen(pw); i; i >>= 1)
+                if (i & 1)
+                        MD5_Update(&ctx, final, 1);
+                else
+                        MD5_Update(&ctx, pw, 1);
+
+        buffer = stpcpy(buffer, magic);
+        buffer = stpncpy(buffer, salt, sl);
+        *buffer++ = '$';
+
+        MD5_Final(final, &ctx);
+
+        for (i = 0; i < 1000; i++) {
+                MD5_Init(&ctx1);
+                if (i & 1)
+                        MD5_Update(&ctx1, pw, strlen(pw));
+                else
+                        MD5_Update(&ctx1, final, 16);
+                if (i % 3)
+                        MD5_Update(&ctx1, salt, sl);
+                if (i % 7)
+                        MD5_Update(&ctx1, pw, strlen(pw));
+                if (i & 1)
+                        MD5_Update(&ctx1, final, 16);
+                else
+                        MD5_Update(&ctx1, pw, strlen(pw));
+                MD5_Final(final, &ctx1);
+        }
+
+        l = (final[0] << 16) | (final[6] << 8) | final[12];
+        _crypt_to64(buffer, l, 4); buffer += 4;
+        l = (final[1] << 16) | (final[7] << 8) | final[13];
+        _crypt_to64(buffer, l, 4); buffer += 4;
+        l = (final[2] << 16) | (final[8] << 8) | final[14];
+        _crypt_to64(buffer, l, 4); buffer += 4;
+        l = (final[3] << 16) | (final[9] << 8) | final[15];
+        _crypt_to64(buffer, l, 4); buffer += 4;
+        l = (final[4] << 16) | (final[10] << 8) | final[5];
+        _crypt_to64(buffer, l, 4); buffer += 4;
+        l = final[11];
+        _crypt_to64(buffer, l, 2); buffer += 2;
+        *buffer = '\0';
+
+        memset(final, 0, sizeof(final));
+        return (0);
+}
+
+static int
+crypt_sha256(const char *key, const char *salt, char *buffer)
+{
+        unsigned long srounds;
+        uint8_t alt_result[32], temp_result[32];
+        SHA256_CTX ctx, alt_ctx;
+        size_t salt_len, key_len, cnt, rounds;
+        char *cp, *p_bytes, *s_bytes, *endp;
+        const char *num;
+        int rounds_custom = 0;
+        static const char prefix[] = "$5$";
+        static const char rounds_prefix[] = "rounds=";
+
+        rounds = 5000;
+
+        if (strncmp(prefix, salt, sizeof(prefix) - 1) == 0)
+                salt += sizeof(prefix) - 1;
+
+        if (strncmp(salt, rounds_prefix, sizeof(rounds_prefix) - 1) == 0) {
+                num = salt + sizeof(rounds_prefix) - 1;
+                srounds = strtoul(num, &endp, 10);
+                if (*endp == '$') {
+                        salt = endp + 1;
+                        if (srounds < 1000)
+                                srounds = 1000;
+                        else if (srounds > 999999999)
+                                srounds = 999999999;
+                        rounds = srounds;
+                        rounds_custom = 1;
+                }
+        }
+
+        salt_len = strcspn(salt, "$");
+        if (salt_len > 16)
+                salt_len = 16;
+        key_len = strlen(key);
+
+        SHA256_Init(&ctx);
+        SHA256_Update(&ctx, key, key_len);
+        SHA256_Update(&ctx, salt, salt_len);
+
+        SHA256_Init(&alt_ctx);
+        SHA256_Update(&alt_ctx, key, key_len);
+        SHA256_Update(&alt_ctx, salt, salt_len);
+        SHA256_Update(&alt_ctx, key, key_len);
+        SHA256_Final(alt_result, &alt_ctx);
+
+        for (cnt = key_len; cnt > 32; cnt -= 32)
+                SHA256_Update(&ctx, alt_result, 32);
+        SHA256_Update(&ctx, alt_result, cnt);
+
+        for (cnt = key_len; cnt > 0; cnt >>= 1)
+                if (cnt & 1)
+                        SHA256_Update(&ctx, alt_result, 32);
+                else
+                        SHA256_Update(&ctx, key, key_len);
+
+        SHA256_Final(alt_result, &ctx);
+
+        SHA256_Init(&alt_ctx);
+        for (cnt = 0; cnt < key_len; ++cnt)
+                SHA256_Update(&alt_ctx, key, key_len);
+        SHA256_Final(temp_result, &alt_ctx);
+
+        cp = p_bytes = alloca(key_len);
+        for (cnt = key_len; cnt >= 32; cnt -= 32) {
+                memcpy(cp, temp_result, 32);
+                cp += 32;
+        }
+        memcpy(cp, temp_result, cnt);
+
+        SHA256_Init(&alt_ctx);
+        for (cnt = 0; cnt < 16 + alt_result[0]; ++cnt)
+                SHA256_Update(&alt_ctx, salt, salt_len);
+        SHA256_Final(temp_result, &alt_ctx);
+
+        cp = s_bytes = alloca(salt_len);
+        for (cnt = salt_len; cnt >= 32; cnt -= 32) {
+                memcpy(cp, temp_result, 32);
+                cp += 32;
+        }
+        memcpy(cp, temp_result, cnt);
+
+        for (cnt = 0; cnt < rounds; ++cnt) {
+                SHA256_Init(&ctx);
+                if (cnt & 1)
+                        SHA256_Update(&ctx, p_bytes, key_len);
+                else
+                        SHA256_Update(&ctx, alt_result, 32);
+                if (cnt % 3)
+                        SHA256_Update(&ctx, s_bytes, salt_len);
+                if (cnt % 7)
+                        SHA256_Update(&ctx, p_bytes, key_len);
+                if (cnt & 1)
+                        SHA256_Update(&ctx, alt_result, 32);
+                else
+                        SHA256_Update(&ctx, p_bytes, key_len);
+                SHA256_Final(alt_result, &ctx);
+        }
+
+        cp = stpcpy(buffer, prefix);
+        if (rounds_custom)
+                cp += sprintf(cp, "%s%zu$", rounds_prefix, rounds);
+        cp = stpncpy(cp, salt, salt_len);
+        *cp++ = '$';
+
+        b64_from_24bit(alt_result[0], alt_result[10], alt_result[20], 4, &cp);
+        b64_from_24bit(alt_result[21], alt_result[1], alt_result[11], 4, &cp);
+        b64_from_24bit(alt_result[12], alt_result[22], alt_result[2], 4, &cp);
+        b64_from_24bit(alt_result[3], alt_result[13], alt_result[23], 4, &cp);
+        b64_from_24bit(alt_result[24], alt_result[4], alt_result[14], 4, &cp);
+        b64_from_24bit(alt_result[15], alt_result[25], alt_result[5], 4, &cp);
+        b64_from_24bit(alt_result[6], alt_result[16], alt_result[26], 4, &cp);
+        b64_from_24bit(alt_result[27], alt_result[7], alt_result[17], 4, &cp);
+        b64_from_24bit(alt_result[18], alt_result[28], alt_result[8], 4, &cp);
+        b64_from_24bit(alt_result[9], alt_result[19], alt_result[29], 4, &cp);
+        b64_from_24bit(0, alt_result[31], alt_result[30], 3, &cp);
+        *cp = '\0';
+
+        return (0);
+}
+
+static int
+crypt_sha512(const char *key, const char *salt, char *buffer)
+{
+        unsigned long srounds;
+        uint8_t alt_result[64], temp_result[64];
+        SHA512_CTX ctx, alt_ctx;
+        size_t salt_len, key_len, cnt, rounds;
+        char *cp, *p_bytes, *s_bytes, *endp;
+        const char *num;
+        int rounds_custom = 0;
+        static const char prefix[] = "$6$";
+        static const char rounds_prefix[] = "rounds=";
+
+        rounds = 5000;
+
+        if (strncmp(prefix, salt, sizeof(prefix) - 1) == 0)
+                salt += sizeof(prefix) - 1;
+
+        if (strncmp(salt, rounds_prefix, sizeof(rounds_prefix) - 1) == 0) {
+                num = salt + sizeof(rounds_prefix) - 1;
+                srounds = strtoul(num, &endp, 10);
+                if (*endp == '$') {
+                        salt = endp + 1;
+                        if (srounds < 1000)
+                                srounds = 1000;
+                        else if (srounds > 999999999)
+                                srounds = 999999999;
+                        rounds = srounds;
+                        rounds_custom = 1;
+                }
+        }
+
+        salt_len = strcspn(salt, "$");
+        if (salt_len > 16)
+                salt_len = 16;
+        key_len = strlen(key);
+
+        SHA512_Init(&ctx);
+        SHA512_Update(&ctx, key, key_len);
+        SHA512_Update(&ctx, salt, salt_len);
+
+        SHA512_Init(&alt_ctx);
+        SHA512_Update(&alt_ctx, key, key_len);
+        SHA512_Update(&alt_ctx, salt, salt_len);
+        SHA512_Update(&alt_ctx, key, key_len);
+        SHA512_Final(alt_result, &alt_ctx);
+
+        for (cnt = key_len; cnt > 64; cnt -= 64)
+                SHA512_Update(&ctx, alt_result, 64);
+        SHA512_Update(&ctx, alt_result, cnt);
+
+        for (cnt = key_len; cnt > 0; cnt >>= 1)
+                if (cnt & 1)
+                        SHA512_Update(&ctx, alt_result, 64);
+                else
+                        SHA512_Update(&ctx, key, key_len);
+
+        SHA512_Final(alt_result, &ctx);
+
+        SHA512_Init(&alt_ctx);
+        for (cnt = 0; cnt < key_len; ++cnt)
+                SHA512_Update(&alt_ctx, key, key_len);
+        SHA512_Final(temp_result, &alt_ctx);
+
+        cp = p_bytes = alloca(key_len);
+        for (cnt = key_len; cnt >= 64; cnt -= 64) {
+                memcpy(cp, temp_result, 64);
+                cp += 64;
+        }
+        memcpy(cp, temp_result, cnt);
+
+        SHA512_Init(&alt_ctx);
+        for (cnt = 0; cnt < 16 + alt_result[0]; ++cnt)
+                SHA512_Update(&alt_ctx, salt, salt_len);
+        SHA512_Final(temp_result, &alt_ctx);
+
+        cp = s_bytes = alloca(salt_len);
+        for (cnt = salt_len; cnt >= 64; cnt -= 64) {
+                memcpy(cp, temp_result, 64);
+                cp += 64;
+        }
+        memcpy(cp, temp_result, cnt);
+
+        for (cnt = 0; cnt < rounds; ++cnt) {
+                SHA512_Init(&ctx);
+                if (cnt & 1)
+                        SHA512_Update(&ctx, p_bytes, key_len);
+                else
+                        SHA512_Update(&ctx, alt_result, 64);
+                if (cnt % 3)
+                        SHA512_Update(&ctx, s_bytes, salt_len);
+                if (cnt % 7)
+                        SHA512_Update(&ctx, p_bytes, key_len);
+                if (cnt & 1)
+                        SHA512_Update(&ctx, alt_result, 64);
+                else
+                        SHA512_Update(&ctx, p_bytes, key_len);
+                SHA512_Final(alt_result, &ctx);
+        }
+
+        cp = stpcpy(buffer, prefix);
+        if (rounds_custom)
+                cp += sprintf(cp, "%s%zu$", rounds_prefix, rounds);
+        cp = stpncpy(cp, salt, salt_len);
+        *cp++ = '$';
+
+        b64_from_24bit(alt_result[0], alt_result[21], alt_result[42], 4, &cp);
+        b64_from_24bit(alt_result[22], alt_result[43], alt_result[1], 4, &cp);
+        b64_from_24bit(alt_result[44], alt_result[2], alt_result[23], 4, &cp);
+        b64_from_24bit(alt_result[3], alt_result[24], alt_result[45], 4, &cp);
+        b64_from_24bit(alt_result[25], alt_result[46], alt_result[4], 4, &cp);
+        b64_from_24bit(alt_result[47], alt_result[5], alt_result[26], 4, &cp);
+        b64_from_24bit(alt_result[6], alt_result[27], alt_result[48], 4, &cp);
+        b64_from_24bit(alt_result[28], alt_result[49], alt_result[7], 4, &cp);
+        b64_from_24bit(alt_result[50], alt_result[8], alt_result[29], 4, &cp);
+        b64_from_24bit(alt_result[9], alt_result[30], alt_result[51], 4, &cp);
+        b64_from_24bit(alt_result[31], alt_result[52], alt_result[10], 4, &cp);
+        b64_from_24bit(alt_result[53], alt_result[11], alt_result[32], 4, &cp);
+        b64_from_24bit(alt_result[12], alt_result[33], alt_result[54], 4, &cp);
+        b64_from_24bit(alt_result[34], alt_result[55], alt_result[13], 4, &cp);
+        b64_from_24bit(alt_result[56], alt_result[14], alt_result[35], 4, &cp);
+        b64_from_24bit(alt_result[15], alt_result[36], alt_result[57], 4, &cp);
+        b64_from_24bit(alt_result[37], alt_result[58], alt_result[16], 4, &cp);
+        b64_from_24bit(alt_result[59], alt_result[17], alt_result[38], 4, &cp);
+        b64_from_24bit(alt_result[18], alt_result[39], alt_result[60], 4, &cp);
+        b64_from_24bit(alt_result[40], alt_result[61], alt_result[19], 4, &cp);
+        b64_from_24bit(alt_result[62], alt_result[20], alt_result[41], 4, &cp);
+        b64_from_24bit(0, 0, alt_result[63], 2, &cp);
+        *cp = '\0';
+
+        return (0);
 }
 
 /*
@@ -708,12 +1066,42 @@ extern char *host_crypt(const char *, const char *) __asm("crypt");
 char *
 crypt(const char *key, const char *salt)
 {
-    static __thread char buf[64];
+    static __thread char buf[128];
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
-    if (salt && salt[0] == '$')
+    /* defer to the system crypt for algorithms we don't implement */
+    if (salt && salt[0] == '$' && strncmp(salt, "$1$", 3) != 0 &&
+        strncmp(salt, "$5$", 3) != 0 && strncmp(salt, "$6$", 3) != 0)
         return host_crypt(key, salt);
 #endif
+    if (salt && strncmp(salt, "$1$", 3) == 0) {
+        if (crypt_md5(key, salt, buf) != 0)
+#ifdef __GLIBC__
+            return host_crypt(key, salt);
+#else
+            return NULL;
+#endif
+        return buf;
+    }
+    if (salt && strncmp(salt, "$5$", 3) == 0) {
+        if (crypt_sha256(key, salt, buf) != 0)
+#ifdef __GLIBC__
+            return host_crypt(key, salt);
+#else
+            return NULL;
+#endif
+        return buf;
+    }
+    if (salt && strncmp(salt, "$6$", 3) == 0) {
+        if (crypt_sha512(key, salt, buf) != 0)
+#ifdef __GLIBC__
+            return host_crypt(key, salt);
+#else
+            return NULL;
+#endif
+        return buf;
+    }
+
     if (crypt_des(key, salt, buf) != 0)
 #ifdef __GLIBC__
         return host_crypt(key, salt);
