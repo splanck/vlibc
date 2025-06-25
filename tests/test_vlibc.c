@@ -2196,6 +2196,24 @@ static const char *test_environment(void)
     return 0;
 }
 
+static const char *test_clearenv_fn(void)
+{
+    env_init(NULL);
+    setenv("A", "1", 1);
+    setenv("B", "2", 1);
+    mu_assert("set before", getenv("A") && getenv("B"));
+
+    mu_assert("clearenv", clearenv() == 0);
+    mu_assert("cleared", getenv("A") == NULL && getenv("B") == NULL);
+    mu_assert("environ null", environ && environ[0] == NULL);
+
+    setenv("C", "3", 1);
+    mu_assert("after clear", getenv("C") && strcmp(getenv("C"), "3") == 0);
+
+    clearenv();
+    return 0;
+}
+
 static const char *test_locale_from_env(void)
 {
     env_init(NULL);
@@ -3673,6 +3691,7 @@ static const char *all_tests(void)
     mu_run_test(test_tz_mktime_roundtrip);
     mu_run_test(test_tz_ctime);
     mu_run_test(test_environment);
+    mu_run_test(test_clearenv_fn);
     mu_run_test(test_locale_from_env);
     mu_run_test(test_gethostname_fn);
     mu_run_test(test_uname_fn);

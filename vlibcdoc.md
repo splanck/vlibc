@@ -1048,7 +1048,7 @@ if (dladdr(sym, &info))
 The environment module exposes a global pointer `environ` storing the
 process's `name=value` pairs. Programs with a custom entry point should
 call `env_init(envp)` before using `getenv`, `setenv`, `putenv`, or
-`unsetenv`.
+`unsetenv`. All variables can be removed at once with `clearenv()`.
 
 ```c
 extern char **environ;
@@ -1059,6 +1059,7 @@ int main(int argc, char **argv, char **envp) {
     putenv("BAR=BAZ");
     const char *v = getenv("FOO");
     unsetenv("FOO");
+    clearenv();
     return 0;
 }
 ```
