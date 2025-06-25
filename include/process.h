@@ -33,6 +33,11 @@ void exit(int status);
 typedef void (*sighandler_t)(int);
 sighandler_t signal(int signum, sighandler_t handler);
 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
+    defined(__DragonFly__) || defined(__APPLE__)
+#include <spawn.h>
+#else
+
 /* posix_spawn attributes */
 typedef struct {
     short flags;
@@ -75,5 +80,7 @@ int posix_spawnp(pid_t *pid, const char *file,
                  const posix_spawn_file_actions_t *file_actions,
                  const posix_spawnattr_t *attrp,
                  char *const argv[], char *const envp[]);
+
+#endif /* BSD */
 
 #endif /* PROCESS_H */

@@ -2283,6 +2283,42 @@ static const char *test_posix_spawn_sigmask(void)
     return 0;
 }
 
+static const char *test_posix_spawn_pgroup(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    const char *out = "/tmp/pspawn_pgid.txt";
+
+    posix_spawn_file_actions_t fa;
+    posix_spawn_file_actions_init(&fa);
+    posix_spawn_file_actions_addopen(&fa, 1, out,
+                                    O_WRONLY | O_CREAT | O_TRUNC, 0600);
+
+    posix_spawnattr_t at;
+    posix_spawnattr_init(&at);
+    posix_spawnattr_setflags(&at, POSIX_SPAWN_SETPGROUP);
+    at.pgroup = 0;
+
+    char *argv[] = {"/bin/sh", "-c", "ps -o pgid= -p $$", NULL};
+    pid_t pid;
+    int r = posix_spawn(&pid, "/bin/sh", &fa, &at, argv, __environ);
+    posix_spawn_file_actions_destroy(&fa);
+    mu_assert("spawn pgroup", r == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("pgroup status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    int fd = open(out, O_RDONLY);
+    char buf[32] = {0};
+    int n = read(fd, buf, sizeof(buf) - 1);
+    close(fd);
+    unlink(out);
+    if (n > 0)
+        buf[n] = '\0';
+    pid_t pgid = (pid_t)atoi(buf);
+    mu_assert("pgid matches pid", pgid == pid);
+    return 0;
+}
+
 static const char *test_popen_fn(void)
 {
     FILE *f = popen("echo popen", "r");
@@ -3272,6 +3308,7 @@ static const char *all_tests(void)
     mu_run_test(test_posix_spawn_fn);
     mu_run_test(test_posix_spawn_actions);
     mu_run_test(test_posix_spawn_sigmask);
+    mu_run_test(test_posix_spawn_pgroup);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_rand48_fn);

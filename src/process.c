@@ -12,6 +12,18 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <signal.h>
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
+    defined(__DragonFly__) || defined(__APPLE__)
+#include <spawn.h>
+extern int __posix_spawn(pid_t *, const char *,
+                         const posix_spawn_file_actions_t *,
+                         const posix_spawnattr_t *,
+                         char *const [], char *const []) __asm("posix_spawn");
+extern int __posix_spawnp(pid_t *, const char *,
+                          const posix_spawn_file_actions_t *,
+                          const posix_spawnattr_t *,
+                          char *const [], char *const []) __asm("posix_spawnp");
+#endif
 #include "string.h"
 #include "syscall.h"
 #include "env.h"
@@ -643,6 +655,19 @@ static pid_t vlibc_vfork(void)
  * and spawn attributes are applied in the child. Errors detected before execve
  * are written through a pipe so the parent can return an errno value.
  */
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
+    defined(__DragonFly__) || defined(__APPLE__)
+
+int posix_spawn(pid_t *pid, const char *path,
+                const posix_spawn_file_actions_t *file_actions,
+                const posix_spawnattr_t *attrp,
+                char *const argv[], char *const envp[])
+{
+    return __posix_spawn(pid, path, file_actions, attrp, argv, envp);
+}
+
+#else
+
 int posix_spawn(pid_t *pid, const char *path,
                 const posix_spawn_file_actions_t *file_actions,
                 const posix_spawnattr_t *attrp,
@@ -716,6 +741,7 @@ int posix_spawn(pid_t *pid, const char *path,
         *pid = cpid;
     return 0;
 }
+#endif /* BSD posix_spawn */
 
 /*
  * posix_spawnp() - search PATH for the executable and then call posix_spawn().
@@ -726,6 +752,10 @@ int posix_spawnp(pid_t *pid, const char *file,
                  const posix_spawnattr_t *attrp,
                  char *const argv[], char *const envp[])
 {
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
+    defined(__DragonFly__) || defined(__APPLE__)
+    return __posix_spawnp(pid, file, file_actions, attrp, argv, envp);
+#else
     if (!file)
         return EINVAL;
 
@@ -773,4 +803,5 @@ int posix_spawnp(pid_t *pid, const char *file,
     }
 
     return last_error;
+#endif
 }

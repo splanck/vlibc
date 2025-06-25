@@ -658,7 +658,12 @@ supported by the host.
 
 `posix_spawn` accepts an attribute object controlling the signal mask and
 process group of the new process. File actions can be supplied to open, close
-or duplicate file descriptors before executing the program.
+or duplicate file descriptors before executing the program.  On the BSD
+family the implementation delegates to the native spawn facilities provided
+by the kernel.  When available, `posix_spawn` or a combination of
+`pdfork` and `fdwalk` is used to create the child efficiently.  Systems
+lacking these features fall back to a portable `fork`/`exec` sequence that
+communicates early errors over a pipe.
 
 ### Example
 
