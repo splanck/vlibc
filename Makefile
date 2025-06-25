@@ -193,7 +193,7 @@ $(PLUGIN_SO): tests/plugin.c
 	$(CC) -shared -fPIC tests/plugin.c -o $(PLUGIN_SO)
 
 $(TEST_BIN): $(TEST_SRC) $(LIB) $(PLUGIN_SO)
-	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -lpthread -o $@
+	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -lpthread -lcrypto -o $@
 
 test: $(TEST_BIN)
 	./$(TEST_BIN)

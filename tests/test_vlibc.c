@@ -2816,6 +2816,20 @@ static const char *test_crypt_md5(void)
     return 0;
 }
 
+static const char *test_crypt_sha256(void)
+{
+    const char *h = crypt("pw", "$5$aa$");
+    mu_assert("crypt sha256", strcmp(h, "$5$aa$mzf5CT4lKj0jBcvvaM/wyABl7jkEXQ6PNDCQjw0uBJC") == 0);
+    return 0;
+}
+
+static const char *test_crypt_sha512(void)
+{
+    const char *h = crypt("pw", "$6$aa$");
+    mu_assert("crypt sha512", strcmp(h, "$6$aa$ozCv7jillS9/rQJmK1b45G0HnIGvmtH1cIaOlMrcRZVcsh.nfXzbP1KY//LPR/ht9jXwWQtEzHAH/6vIkrhhK1") == 0);
+    return 0;
+}
+
 static const char *test_wordexp_basic(void)
 {
     char tmpl[] = "/tmp/wexpXXXXXX";
@@ -3296,6 +3310,8 @@ static const char *all_tests(void)
     mu_run_test(test_getlogin_fn);
     mu_run_test(test_crypt_des);
     mu_run_test(test_crypt_md5);
+    mu_run_test(test_crypt_sha256);
+    mu_run_test(test_crypt_sha512);
     mu_run_test(test_wordexp_basic);
     mu_run_test(test_dirent);
     mu_run_test(test_ftw_walk);

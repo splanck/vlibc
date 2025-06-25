@@ -1164,11 +1164,16 @@ char *pw = getpass("Password: ");
 
 ## Password Hashing
 
-`crypt` implements the legacy DES-based algorithm used by early UNIX
-systems. On BSD platforms the implementation falls back to the system
-`crypt` when the salt begins with `$` so stronger hashes like MD5 or
-SHA‑512 are supported. Only the two-character DES format is portable
-across all targets.
+`crypt` supports multiple hashing schemes. The classic DES algorithm is
+always available.  Prefixes select stronger hashes:
+
+- `$1$` – BSD MD5
+- `$5$` – SHA-256
+- `$6$` – SHA-512
+
+If an unknown prefix is supplied on BSD platforms the call is delegated
+to the host `crypt` implementation.  The two-character DES format
+remains portable across all targets.
 
 ## Standard Streams
 
