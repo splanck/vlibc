@@ -91,6 +91,8 @@ programs. Key features include:
 - Query configuration strings with `confstr()`
 - Simple alarm timers with `alarm()`
 - Yield the processor with `sched_yield()` from `<sched.h>`
+- Adjust and query nice values with `nice()`, `getpriority()` and
+  `setpriority()` from `<sched.h>`
 - POSIX interval timers with `timer_create` and `timer_settime()`.
   On NetBSD the native timer syscalls are used when present, with a
   kqueue fallback otherwise.
