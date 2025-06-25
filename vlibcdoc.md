@@ -189,6 +189,7 @@ stdlib.h     - basic utilities
 string.h     - string manipulation
 iconv.h      - character set conversion helpers
 regex.h     - simple regular expression matching
+sched.h     - processor yield helper
 termios.h   - terminal attribute helpers
 unistd.h    - POSIX I/O and process helpers
 sys/file.h   - file permission helpers
@@ -1751,8 +1752,11 @@ unsigned int alarm(unsigned int seconds);
 ## Scheduling
 
 `sched_yield` allows a thread to voluntarily relinquish the CPU, letting
-other runnable threads run. It simply issues the operating system's
-`yield` syscall when available or falls back to the host implementation.
+other runnable threads run. When the `SYS_sched_yield` syscall is
+available it is invoked directly. Otherwise the function falls back to
+`nanosleep` with a zero timeout.
+
+Declared in `<sched.h>`.
 
 ```c
 int sched_yield(void);

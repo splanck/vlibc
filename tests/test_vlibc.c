@@ -1955,6 +1955,13 @@ static const char *test_sched_yield_basic(void)
     return 0;
 }
 
+static const char *test_sched_yield_loop(void)
+{
+    for (int i = 0; i < 10; ++i)
+        mu_assert("sched_yield", sched_yield() == 0);
+    return 0;
+}
+
 static const char *test_timer_basic(void)
 {
     timer_t t;
@@ -3658,6 +3665,7 @@ static const char *all_tests(void)
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
     mu_run_test(test_sched_yield_basic);
+    mu_run_test(test_sched_yield_loop);
     mu_run_test(test_timer_basic);
     mu_run_test(test_getrusage_self);
     mu_run_test(test_strftime_basic);
