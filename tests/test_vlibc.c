@@ -1522,6 +1522,37 @@ static const char *test_semaphore_trywait(void)
     return 0;
 }
 
+static pthread_barrier_t barrier;
+static int barrier_step[3];
+
+static void *barrier_worker(void *arg)
+{
+    int idx = *(int *)arg;
+    barrier_step[idx] = 1;
+    pthread_barrier_wait(&barrier);
+    barrier_step[idx] = 2;
+    return NULL;
+}
+
+static const char *test_pthread_barrier(void)
+{
+    pthread_t t1, t2;
+    int i1 = 0, i2 = 1;
+    memset(barrier_step, 0, sizeof(barrier_step));
+    pthread_barrier_init(&barrier, NULL, 3);
+    pthread_create(&t1, NULL, barrier_worker, &i1);
+    pthread_create(&t2, NULL, barrier_worker, &i2);
+    barrier_step[2] = 1;
+    pthread_barrier_wait(&barrier);
+    barrier_step[2] = 2;
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    pthread_barrier_destroy(&barrier);
+    mu_assert("barrier phase1", barrier_step[0] == 1 && barrier_step[1] == 1 && barrier_step[2] == 2);
+    mu_assert("barrier phase2", barrier_step[0] == 2 && barrier_step[1] == 2);
+    return 0;
+}
+
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
@@ -2887,6 +2918,7 @@ static const char *all_tests(void)
     mu_run_test(test_pthread_tls);
     mu_run_test(test_pthread_mutexattr);
     mu_run_test(test_pthread_rwlock);
+    mu_run_test(test_pthread_barrier);
     mu_run_test(test_semaphore_basic);
     mu_run_test(test_semaphore_trywait);
     mu_run_test(test_select_pipe);
