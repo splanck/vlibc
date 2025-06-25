@@ -1747,7 +1747,7 @@ state.
  - BSD support is experimental and some subsystems may not compile yet.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
    codes.
- - `perror` and `strerror` cover only common errors.
+ - `perror` and `strerror` support the full set of standard errno values.
  - Thread support is limited to basic mutexes, condition variables,
    semaphores, barriers and join/detach.
  - Locale handling falls back to the host implementation for values other
