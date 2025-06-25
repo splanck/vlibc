@@ -64,6 +64,7 @@ void *malloc(size_t size)
                 prev->next = b->next;
             else
                 free_list = b->next;
+            b->size = size;
             return (void *)(b + 1);
         }
         prev = b;
@@ -235,4 +236,42 @@ void *reallocarray(void *ptr, size_t nmemb, size_t size)
         return NULL;
     }
     return realloc(ptr, nmemb * size);
+}
+
+/*
+ * Resizes an array and zeros any newly allocated memory.
+ * Preserves existing contents and behaves like calloc when ptr is NULL.
+ */
+void *recallocarray(void *ptr, size_t nmemb, size_t size)
+{
+    if (size != 0 && nmemb > SIZE_MAX / size) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    size_t total = nmemb * size;
+
+    if (!ptr)
+        return calloc(nmemb, size);
+
+    if (total == 0) {
+        free(ptr);
+        return NULL;
+    }
+
+#ifdef HAVE_SBRK
+    struct block_header *old_hdr = (struct block_header *)ptr - 1;
+#else
+    struct mmap_header *old_hdr = (struct mmap_header *)ptr - 1;
+#endif
+    size_t old_size = old_hdr->size;
+
+    void *new_ptr = realloc(ptr, total);
+    if (!new_ptr)
+        return NULL;
+
+    if (total > old_size)
+        vmemset((unsigned char *)new_ptr + old_size, 0, total - old_size);
+
+    return new_ptr;
 }
