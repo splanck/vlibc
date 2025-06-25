@@ -269,3 +269,23 @@ char *stpncpy(char *dest, const char *src, size_t n)
     return d;
 }
 
+void *memccpy(void *dest, const void *src, int c, size_t n)
+{
+    unsigned char *d = dest;
+    const unsigned char *s = src;
+    unsigned char ch = (unsigned char)c;
+    while (n--) {
+        unsigned char byte = *s++;
+        *d++ = byte;
+        if (byte == ch)
+            return d;
+    }
+    return NULL;
+}
+
+void *mempcpy(void *dest, const void *src, size_t n)
+{
+    vmemcpy(dest, src, n);
+    return (unsigned char *)dest + n;
+}
+

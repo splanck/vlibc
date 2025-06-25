@@ -136,6 +136,8 @@ Search helpers `strstr`, `strrchr`, `memchr`, `memrchr`, and `memmem` locate sub
 bytes. Tokenizers `strtok`, `strtok_r`, and the lightweight `strsep` help split
 strings based on delimiters.
 Copy helpers `stpcpy` and `stpncpy` return the end pointer after copying.
+`memccpy` stops when a byte is found while `mempcpy` returns the pointer to the
+end of the copied region.
 
 Launching a program in a new process with `posix_spawn` is similarly easy:
 
