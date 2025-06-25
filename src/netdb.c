@@ -179,15 +179,6 @@ static int hosts_reverse_lookup(uint32_t ip, char *name, size_t len)
     return -1;
 }
 
-static uint16_t htons16(uint16_t v)
-{
-    return (uint16_t)(((v & 0xFF) << 8) | ((v >> 8) & 0xFF));
-}
-
-static uint16_t ntohs16(uint16_t v)
-{
-    return htons16(v);
-}
 
 int getaddrinfo(const char *node, const char *service,
                 const struct addrinfo *hints, struct addrinfo **res)
@@ -235,7 +226,7 @@ int getaddrinfo(const char *node, const char *service,
             return -1;
         }
         sa6->sin6_family = AF_INET6;
-        sa6->sin6_port = htons16(port);
+        sa6->sin6_port = htons(port);
         memcpy(&sa6->sin6_addr, ip6, 16);
         sa6->sin6_flowinfo = 0;
         sa6->sin6_scope_id = 0;
@@ -248,7 +239,7 @@ int getaddrinfo(const char *node, const char *service,
             return -1;
         }
         sa->sin_family = AF_INET;
-        sa->sin_port = htons16(port);
+        sa->sin_port = htons(port);
         sa->sin_addr.s_addr = ip4;
         memset(sa->sin_zero, 0, sizeof(sa->sin_zero));
         ai->ai_addrlen = sizeof(struct sockaddr_in);
@@ -287,7 +278,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
         if (host && hostlen > 0)
             inet_ntop(AF_INET, &sin->sin_addr, host, hostlen);
         if (serv && servlen > 0)
-            snprintf(serv, servlen, "%u", ntohs16(sin->sin_port));
+            snprintf(serv, servlen, "%u", ntohs(sin->sin_port));
         return 0;
     } else if (sa->sa_family == AF_INET6) {
         if (salen < (socklen_t)sizeof(struct sockaddr_in6))
@@ -296,7 +287,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
         if (host && hostlen > 0)
             inet_ntop(AF_INET6, &sin6->sin6_addr, host, hostlen);
         if (serv && servlen > 0)
-            snprintf(serv, servlen, "%u", ntohs16(sin6->sin6_port));
+            snprintf(serv, servlen, "%u", ntohs(sin6->sin6_port));
         return 0;
     }
     return -1;

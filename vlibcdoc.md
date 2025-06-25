@@ -170,6 +170,7 @@ memory.h     - heap allocation
 assert.h     - runtime assertion checks
 netdb.h      - address resolution helpers
 arpa/inet.h  - IPv4/IPv6 presentation conversion helpers
+netinet/in.h - network byte order helpers
 ftw.h        - directory tree traversal helpers
 fts.h        - file tree walk helpers
 poll.h       - I/O multiplexing helpers
@@ -1076,6 +1077,8 @@ via `getaddrinfo`, `freeaddrinfo`, and `getnameinfo`.
 
 Utilities `inet_pton` and `inet_ntop` convert between IPv4 or IPv6
 presentation strings and binary network format.
+Use `htons`, `ntohs`, `htonl`, and `ntohl` to convert between host and
+network byte order.
 
 ```c
 struct addrinfo *ai;

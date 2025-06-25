@@ -68,19 +68,25 @@ static void atexit_handler(void)
     write(exit_pipe[1], "x", 1);
 }
 
-static uint16_t bswap16(uint16_t v)
+static const char *test_byte_order(void)
 {
-    return (uint16_t)((v << 8) | (v >> 8));
+    uint16_t v16 = 0x1234;
+    uint32_t v32 = 0x12345678;
+    uint16_t n16 = htons(v16);
+    uint32_t n32 = htonl(v32);
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    mu_assert("htons", n16 == 0x3412);
+    mu_assert("htonl", n32 == 0x78563412);
+#else
+    mu_assert("htons", n16 == v16);
+    mu_assert("htonl", n32 == v32);
+#endif
+    mu_assert("ntohs", ntohs(n16) == v16);
+    mu_assert("ntohl", ntohl(n32) == v32);
+    return 0;
 }
 
-static uint32_t bswap32(uint32_t v)
-{
-    return __builtin_bswap32(v);
-}
 
-#define htons(x) bswap16(x)
-#define ntohs(x) bswap16(x)
-#define htonl(x) bswap32(x)
 
 static void *thread_fn(void *arg)
 {
@@ -2755,6 +2761,7 @@ static const char *all_tests(void)
     mu_run_test(test_sendfile_copy);
     mu_run_test(test_dup3_cloexec);
     mu_run_test(test_pipe2_cloexec);
+    mu_run_test(test_byte_order);
     mu_run_test(test_isatty_stdin);
     mu_run_test(test_socket);
     mu_run_test(test_socketpair_basic);
