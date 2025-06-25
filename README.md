@@ -89,7 +89,9 @@ programs. Key features include:
 - Query configuration strings with `confstr()`
 - Simple alarm timers with `alarm()`
 - Yield the processor with `sched_yield()` from `<sched.h>`
-- POSIX interval timers with `timer_create` and `timer_settime()`
+- POSIX interval timers with `timer_create` and `timer_settime()`.
+  On NetBSD the native timer syscalls are used when present, with a
+  kqueue fallback otherwise.
 - Resource usage statistics with `getrusage()`
 - Basic character set conversion with `iconv`
 - Register quick-exit handlers with `at_quick_exit()` and trigger them via
@@ -313,7 +315,8 @@ fclose(f);
 
 vlibc builds on Linux, FreeBSD, OpenBSD and NetBSD. NetBSD is now fully
 supported alongside the other BSDs. Most functionality is portable across these
-systems, though a few modules continue to rely on Linux-specific system calls.
+systems. On NetBSD native POSIX timers are used when available, while a few
+other modules continue to rely on Linux-specific system calls.
 Portable helpers like `sysconf()` and `getpagesize()` ease porting, but
 non-Linux builds may require additional work. The `chroot()` wrapper is one
 such case and returns `ENOSYS` when the underlying kernel lacks the system
