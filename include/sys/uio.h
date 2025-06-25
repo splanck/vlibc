@@ -27,7 +27,11 @@ struct iovec {
 };
 #endif
 
+/* Vector read wrapper calling SYS_readv via vlibc_syscall and
+ * falling back to the host implementation or an emulation on BSD. */
 ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
+/* Vector write wrapper calling SYS_writev via vlibc_syscall and
+ * falling back to the host implementation or an emulation on BSD. */
 ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 
 #endif /* SYS_UIO_H */

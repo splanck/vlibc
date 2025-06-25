@@ -8,12 +8,19 @@
 
 #include <sys/types.h>
 
+/* Open a file using vlibc_syscall with SYS_open or SYS_openat. */
 int open(const char *path, int flags, ...);
+/* openat wrapper that falls back to the host implementation on BSD. */
 int openat(int dirfd, const char *path, int flags, ...);
+/* Read via SYS_read using vlibc_syscall. */
 ssize_t read(int fd, void *buf, size_t count);
+/* Write via SYS_write using vlibc_syscall. */
 ssize_t write(int fd, const void *buf, size_t count);
+/* Positional read with SYS_pread/SYS_pread64 or host pread. */
 ssize_t pread(int fd, void *buf, size_t count, off_t offset);
+/* Positional write with SYS_pwrite/SYS_pwrite64 or host pwrite. */
 ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset);
+/* Close a descriptor using SYS_close. */
 int close(int fd);
 off_t lseek(int fd, off_t offset, int whence);
 int dup(int oldfd);
@@ -24,13 +31,16 @@ int pipe2(int pipefd[2], int flags);
 int ftruncate(int fd, off_t length);
 int truncate(const char *path, off_t length);
 int unlink(const char *pathname);
+/* Remove a pathname using SYS_unlinkat or host unlinkat on BSD. */
 int unlinkat(int dirfd, const char *pathname, int flags);
 int rename(const char *oldpath, const char *newpath);
 int link(const char *oldpath, const char *newpath);
 int symlink(const char *target, const char *linkpath);
+/* Create a symlink relative to dirfd via SYS_symlinkat with host fallback. */
 int symlinkat(const char *target, int dirfd, const char *linkpath);
 ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
 int mkdir(const char *pathname, mode_t mode);
+/* Create a directory relative to dirfd using SYS_mkdirat or host mkdirat. */
 int mkdirat(int dirfd, const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
 int chdir(const char *path);

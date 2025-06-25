@@ -21,7 +21,11 @@
 #define AT_FDCWD -100
 #endif
 
-
+/*
+ * Wrapper for open(2) that issues the SYS_open system call
+ * via vlibc_syscall. When SYS_open is unavailable it falls
+ * back to SYS_openat with AT_FDCWD.
+ */
 int open(const char *path, int flags, ...)
 {
     mode_t mode = 0;
@@ -43,6 +47,10 @@ int open(const char *path, int flags, ...)
     return (int)ret;
 }
 
+/*
+ * Read from a file descriptor using the SYS_read system call
+ * via vlibc_syscall.
+ */
 ssize_t read(int fd, void *buf, size_t count)
 {
     long ret = vlibc_syscall(SYS_read, fd, (long)buf, count, 0, 0, 0);
@@ -53,6 +61,10 @@ ssize_t read(int fd, void *buf, size_t count)
     return (ssize_t)ret;
 }
 
+/*
+ * Write to a file descriptor using the SYS_write system call
+ * via vlibc_syscall.
+ */
 ssize_t write(int fd, const void *buf, size_t count)
 {
     long ret = vlibc_syscall(SYS_write, fd, (long)buf, count, 0, 0, 0);
@@ -63,6 +75,11 @@ ssize_t write(int fd, const void *buf, size_t count)
     return (ssize_t)ret;
 }
 
+/*
+ * Vector read wrapper. Uses SYS_readv via vlibc_syscall when
+ * available. On BSD or when the syscall is missing, the host
+ * readv function or a simple loop emulates the behavior.
+ */
 ssize_t readv(int fd, const struct iovec *iov, int iovcnt)
 {
 #ifdef SYS_readv
@@ -98,6 +115,11 @@ ssize_t readv(int fd, const struct iovec *iov, int iovcnt)
 #endif
 }
 
+/*
+ * Vector write wrapper. Uses SYS_writev via vlibc_syscall when
+ * available. On BSD or when the syscall is missing, the host
+ * writev implementation or a manual loop is used instead.
+ */
 ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
 {
 #ifdef SYS_writev
@@ -133,6 +155,11 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
 #endif
 }
 
+/*
+ * Positional read wrapper. Invokes SYS_pread or SYS_pread64
+ * through vlibc_syscall and falls back to the host pread
+ * function on BSD when unavailable.
+ */
 ssize_t pread(int fd, void *buf, size_t count, off_t offset)
 {
 #ifdef SYS_pread
@@ -150,6 +177,11 @@ ssize_t pread(int fd, void *buf, size_t count, off_t offset)
     return (ssize_t)ret;
 }
 
+/*
+ * Positional write wrapper. Invokes SYS_pwrite or SYS_pwrite64
+ * through vlibc_syscall and falls back to the host pwrite
+ * function on BSD when unavailable.
+ */
 ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset)
 {
 #ifdef SYS_pwrite
@@ -167,6 +199,7 @@ ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset)
     return (ssize_t)ret;
 }
 
+/* Close a file descriptor via SYS_close using vlibc_syscall. */
 int close(int fd)
 {
     long ret = vlibc_syscall(SYS_close, fd, 0, 0, 0, 0, 0);
@@ -177,6 +210,11 @@ int close(int fd)
     return (int)ret;
 }
 
+/*
+ * Wrapper for openat(2). Uses vlibc_syscall with SYS_openat
+ * and falls back to the host openat on BSD if the syscall
+ * is unavailable.
+ */
 int openat(int dirfd, const char *path, int flags, ...)
 {
     mode_t mode = 0;
@@ -206,6 +244,11 @@ int openat(int dirfd, const char *path, int flags, ...)
 #endif
 }
 
+/*
+ * fstatat wrapper issuing SYS_fstatat through vlibc_syscall.
+ * On BSD when the syscall is missing, it calls the host
+ * fstatat implementation.
+ */
 int fstatat(int dirfd, const char *path, struct stat *buf, int flags)
 {
 #ifdef SYS_fstatat
@@ -228,6 +271,11 @@ int fstatat(int dirfd, const char *path, struct stat *buf, int flags)
 #endif
 }
 
+/*
+ * unlinkat wrapper using vlibc_syscall with SYS_unlinkat.
+ * BSD builds call the host unlinkat when the syscall is
+ * not available.
+ */
 int unlinkat(int dirfd, const char *pathname, int flags)
 {
 #ifdef SYS_unlinkat
@@ -250,6 +298,11 @@ int unlinkat(int dirfd, const char *pathname, int flags)
 #endif
 }
 
+/*
+ * Create a directory relative to dirfd using vlibc_syscall
+ * with SYS_mkdirat. Falls back to the host mkdirat call on
+ * BSD systems when the syscall is missing.
+ */
 int mkdirat(int dirfd, const char *pathname, mode_t mode)
 {
 #ifdef SYS_mkdirat
@@ -272,6 +325,11 @@ int mkdirat(int dirfd, const char *pathname, mode_t mode)
 #endif
 }
 
+/*
+ * symlinkat wrapper issuing SYS_symlinkat via vlibc_syscall.
+ * On BSD the host symlinkat is used when the syscall is not
+ * available.
+ */
 int symlinkat(const char *target, int dirfd, const char *linkpath)
 {
 #ifdef SYS_symlinkat
