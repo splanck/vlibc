@@ -23,6 +23,13 @@ extern long syscall(long number, ...);
 /* from atexit.c */
 extern void __run_atexit(void);
 
+/*
+ * fork() - create a new process using the underlying fork or clone
+ * system call. Returns the child's PID to the parent and 0 to the
+ * child. On failure the wrapper stores the negative return value in
+ * errno and returns -1.
+ */
+
 
 pid_t fork(void)
 {
@@ -38,6 +45,11 @@ pid_t fork(void)
     return (pid_t)ret;
 }
 
+/*
+ * execve() - execute a program via the SYS_execve system call wrapper. On
+ * failure the return value from vlibc_syscall is negated and stored in errno
+ * and -1 is returned.
+ */
 int execve(const char *pathname, char *const argv[], char *const envp[])
 {
     long ret = vlibc_syscall(SYS_execve, (long)pathname, (long)argv, (long)envp, 0, 0, 0);
@@ -48,6 +60,11 @@ int execve(const char *pathname, char *const argv[], char *const envp[])
     return (int)ret;
 }
 
+/*
+ * execvp() - search PATH and execute a program using execve(). If the file
+ * contains a slash it is executed directly. Returns -1 on failure with errno
+ * set from execve attempts.
+ */
 int execvp(const char *file, char *const argv[])
 {
     if (!file || !argv)
@@ -96,6 +113,11 @@ int execvp(const char *file, char *const argv[])
     return -1;
 }
 
+/*
+ * execv() - execute a program with the current environment using execve().
+ * Simply forwards the call and therefore follows the same error behaviour as
+ * execve().
+ */
 int execv(const char *path, char *const argv[])
 {
     return execve(path, argv, environ);
@@ -131,6 +153,11 @@ static int vlibc_build_argv(const char *arg, va_list ap, char ***out)
     return 0;
 }
 
+/*
+ * execl() - build an argument vector and invoke execve() on the given path.
+ * Memory is allocated for the argv array and freed after the execve() call
+ * returns. The error from execve() is propagated to the caller.
+ */
 int execl(const char *path, const char *arg, ...)
 {
     va_list ap;
@@ -146,6 +173,10 @@ int execl(const char *path, const char *arg, ...)
     return r;
 }
 
+/*
+ * execlp() - build an argument vector and search the PATH for the program,
+ * invoking execvp(). Errors from execvp() are returned to the caller.
+ */
 int execlp(const char *file, const char *arg, ...)
 {
     va_list ap;
@@ -161,6 +192,11 @@ int execlp(const char *file, const char *arg, ...)
     return r;
 }
 
+/*
+ * execle() - like execl() but allows an explicit environment pointer at the
+ * end of the argument list. Errors from execve() are returned and errno is set
+ * accordingly.
+ */
 int execle(const char *path, const char *arg, ...)
 {
     va_list ap;
@@ -195,6 +231,11 @@ int execle(const char *path, const char *arg, ...)
     return r;
 }
 
+/*
+ * waitpid() - wait for a child process using SYS_waitpid or SYS_wait4
+ * depending on platform. Returns the pid of the terminated child or -1
+ * with errno set on failure.
+ */
 pid_t waitpid(pid_t pid, int *status, int options)
 {
 #ifdef SYS_waitpid
@@ -209,11 +250,19 @@ pid_t waitpid(pid_t pid, int *status, int options)
     return (pid_t)ret;
 }
 
+/*
+ * wait() - convenience wrapper around waitpid() that waits for any child.
+ */
 pid_t wait(int *status)
 {
     return waitpid(-1, status, 0);
 }
 
+/*
+ * kill() - send a signal to a process via the SYS_kill system call wrapper.
+ * On error errno is set from the negative syscall return value and -1 is
+ * returned.
+ */
 int kill(pid_t pid, int sig)
 {
     long ret = vlibc_syscall(SYS_kill, pid, sig, 0, 0, 0, 0);
@@ -224,6 +273,10 @@ int kill(pid_t pid, int sig)
     return (int)ret;
 }
 
+/*
+ * getpid() - wrapper for SYS_getpid. Returns the process id or -1 on
+ * failure with errno set.
+ */
 pid_t getpid(void)
 {
     long ret = vlibc_syscall(SYS_getpid, 0, 0, 0, 0, 0, 0);
@@ -234,6 +287,10 @@ pid_t getpid(void)
     return (pid_t)ret;
 }
 
+/*
+ * getppid() - wrapper for SYS_getppid. Returns the parent's process id or -1
+ * with errno set when the syscall fails.
+ */
 pid_t getppid(void)
 {
     long ret = vlibc_syscall(SYS_getppid, 0, 0, 0, 0, 0, 0);
@@ -244,6 +301,11 @@ pid_t getppid(void)
     return (pid_t)ret;
 }
 
+/*
+ * setpgid() - set the process group using SYS_setpgid when available. On
+ * platforms without the syscall a host implementation may be used or ENOSYS is
+ * returned. Returns 0 on success or -1 on failure with errno set.
+ */
 int setpgid(pid_t pid, pid_t pgid)
 {
 #ifdef SYS_setpgid
@@ -265,6 +327,10 @@ int setpgid(pid_t pid, pid_t pgid)
 #endif
 }
 
+/*
+ * getpgid() - obtain the process group ID using SYS_getpgid or a host
+ * implementation. Returns -1 on error with errno set.
+ */
 pid_t getpgid(pid_t pid)
 {
 #ifdef SYS_getpgid
@@ -286,6 +352,10 @@ pid_t getpgid(pid_t pid)
 #endif
 }
 
+/*
+ * setsid() - create a new session using SYS_setsid when available. Returns
+ * the new session ID or -1 on failure with errno set.
+ */
 pid_t setsid(void)
 {
 #ifdef SYS_setsid
@@ -307,6 +377,10 @@ pid_t setsid(void)
 #endif
 }
 
+/*
+ * getsid() - fetch the session ID for a process using SYS_getsid or a host
+ * helper. Returns the session ID or -1 if an error occurs.
+ */
 pid_t getsid(pid_t pid)
 {
 #ifdef SYS_getsid
@@ -329,12 +403,19 @@ pid_t getsid(pid_t pid)
 }
 
 
+/*
+ * _exit() - terminate the process immediately via SYS_exit without running
+ * atexit handlers. This function does not return.
+ */
 void _exit(int status)
 {
     vlibc_syscall(SYS_exit, status, 0, 0, 0, 0, 0);
     for (;;) {}
 }
 
+/*
+ * exit() - run registered atexit handlers and then invoke _exit().
+ */
 void exit(int status)
 {
     /* No stdio buffering yet, so nothing to flush. */
@@ -342,6 +423,11 @@ void exit(int status)
     _exit(status);
 }
 
+/*
+ * signal() - install a signal handler using either SYS_rt_sigaction or
+ * SYS_signal depending on platform support. Returns the previous handler or
+ * SIG_ERR on failure with errno set.
+ */
 sighandler_t signal(int signum, sighandler_t handler)
 {
 #ifdef SYS_rt_sigaction
@@ -377,6 +463,10 @@ struct posix_spawn_file_action {
 #define SPAWN_ACTION_CLOSE 2
 #define SPAWN_ACTION_DUP2  3
 
+/*
+ * posix_spawn_file_actions_init() - initialise a file actions structure used
+ * by posix_spawn(). Returns 0 on success or EINVAL if the pointer is NULL.
+ */
 int posix_spawn_file_actions_init(posix_spawn_file_actions_t *acts)
 {
     if (!acts)
@@ -386,6 +476,10 @@ int posix_spawn_file_actions_init(posix_spawn_file_actions_t *acts)
     return 0;
 }
 
+/*
+ * posix_spawn_file_actions_destroy() - free memory referenced by a file action
+ * list. Returns 0 or EINVAL when passed a NULL pointer.
+ */
 int posix_spawn_file_actions_destroy(posix_spawn_file_actions_t *acts)
 {
     if (!acts)
@@ -399,6 +493,7 @@ int posix_spawn_file_actions_destroy(posix_spawn_file_actions_t *acts)
     return 0;
 }
 
+/* Helper to grow the file actions array */
 static int file_actions_add(posix_spawn_file_actions_t *acts,
                             struct posix_spawn_file_action **out)
 {
@@ -413,6 +508,10 @@ static int file_actions_add(posix_spawn_file_actions_t *acts,
     return 0;
 }
 
+/*
+ * posix_spawn_file_actions_addopen() - schedule an open() call in the child.
+ * Allocates storage for the path string. Returns 0 or an error code.
+ */
 int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *acts, int fd,
                                      const char *path, int oflag, mode_t mode)
 {
@@ -432,6 +531,10 @@ int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *acts, int fd,
     return 0;
 }
 
+/*
+ * posix_spawn_file_actions_adddup2() - schedule a dup2() in the spawned
+ * process. Returns 0 on success or an error code.
+ */
 int posix_spawn_file_actions_adddup2(posix_spawn_file_actions_t *acts, int fd,
                                      int newfd)
 {
@@ -448,6 +551,9 @@ int posix_spawn_file_actions_adddup2(posix_spawn_file_actions_t *acts, int fd,
     return 0;
 }
 
+/*
+ * posix_spawn_file_actions_addclose() - close a file descriptor in the child.
+ */
 int posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *acts, int fd)
 {
     if (!acts)
@@ -462,6 +568,7 @@ int posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *acts, int fd)
     return 0;
 }
 
+/* Initialise spawn attributes structure */
 int posix_spawnattr_init(posix_spawnattr_t *attr)
 {
     if (!attr)
@@ -473,12 +580,14 @@ int posix_spawnattr_init(posix_spawnattr_t *attr)
     return 0;
 }
 
+/* No dynamic state so just return 0 */
 int posix_spawnattr_destroy(posix_spawnattr_t *attr)
 {
     (void)attr;
     return 0;
 }
 
+/* Set flags field */
 int posix_spawnattr_setflags(posix_spawnattr_t *attr, short flags)
 {
     if (!attr)
@@ -487,6 +596,7 @@ int posix_spawnattr_setflags(posix_spawnattr_t *attr, short flags)
     return 0;
 }
 
+/* Retrieve flags field */
 int posix_spawnattr_getflags(const posix_spawnattr_t *attr, short *flags)
 {
     if (!attr || !flags)
@@ -495,6 +605,7 @@ int posix_spawnattr_getflags(const posix_spawnattr_t *attr, short *flags)
     return 0;
 }
 
+/* Store a signal mask */
 int posix_spawnattr_setsigmask(posix_spawnattr_t *attr, const sigset_t *mask)
 {
     if (!attr || !mask)
@@ -503,6 +614,7 @@ int posix_spawnattr_setsigmask(posix_spawnattr_t *attr, const sigset_t *mask)
     return 0;
 }
 
+/* Copy out the stored signal mask */
 int posix_spawnattr_getsigmask(const posix_spawnattr_t *attr, sigset_t *mask)
 {
     if (!attr || !mask)
@@ -511,6 +623,7 @@ int posix_spawnattr_getsigmask(const posix_spawnattr_t *attr, sigset_t *mask)
     return 0;
 }
 
+/* Internal helper to use vfork()/fork as available */
 static pid_t vlibc_vfork(void)
 {
 #ifdef SYS_vfork
@@ -525,6 +638,11 @@ static pid_t vlibc_vfork(void)
 #endif
 }
 
+/*
+ * posix_spawn() - create a new process using fork() and execve(). File actions
+ * and spawn attributes are applied in the child. Errors detected before execve
+ * are written through a pipe so the parent can return an errno value.
+ */
 int posix_spawn(pid_t *pid, const char *path,
                 const posix_spawn_file_actions_t *file_actions,
                 const posix_spawnattr_t *attrp,
@@ -599,6 +717,10 @@ int posix_spawn(pid_t *pid, const char *path,
     return 0;
 }
 
+/*
+ * posix_spawnp() - search PATH for the executable and then call posix_spawn().
+ * Returns an errno style value on failure.
+ */
 int posix_spawnp(pid_t *pid, const char *file,
                  const posix_spawn_file_actions_t *file_actions,
                  const posix_spawnattr_t *attrp,
