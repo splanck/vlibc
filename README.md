@@ -96,10 +96,10 @@ programs. Key features include:
   `quick_exit()`
 
 **Note**: vlibc provides only a small subset of the standard C library. Some
-functions depend on system calls that are currently implemented for Linux. BSD
-variants are now partially supported and the memory mapping routines fall back
-to `MAP_ANON` when `MAP_ANONYMOUS` is unavailable. A few features may still
-rely on platform-specific interfaces.
+functions depend on system calls tailored for Linux, though FreeBSD, OpenBSD
+and NetBSD are all supported. Memory mapping routines fall back to
+`MAP_ANON` when `MAP_ANONYMOUS` is unavailable. A few features may still rely
+on platform-specific interfaces.
 
 Build the static library with:
 
@@ -311,13 +311,13 @@ fclose(f);
 
 ## Platform Support
 
-The library currently targets Linux but aims to run on other POSIX systems as
-well. BSD compatibility has been tested on FreeBSD, though some modules still
-rely on Linux-only system calls. Portable helpers like `sysconf()` and
-`getpagesize()` ease porting, but non-Linux builds may still require additional
-work.
-The `chroot()` wrapper is one such case and returns `ENOSYS` when the
-underlying kernel lacks the system call.
+vlibc builds on Linux, FreeBSD, OpenBSD and NetBSD. NetBSD is now fully
+supported alongside the other BSDs. Most functionality is portable across these
+systems, though a few modules continue to rely on Linux-specific system calls.
+Portable helpers like `sysconf()` and `getpagesize()` ease porting, but
+non-Linux builds may require additional work. The `chroot()` wrapper is one
+such case and returns `ENOSYS` when the underlying kernel lacks the system
+call.
 
 ## Running Tests
 

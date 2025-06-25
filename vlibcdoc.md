@@ -74,8 +74,8 @@ predictability. The project is distributed under the terms of the BSD 2-Clause
 - Offer consistent behavior for statically linked or embedded programs.
 
 ### Target Platforms
-- Linux (x86_64, aarch64, armv7) is currently the primary platform.
- - *BSD variants are partially supported and patches are welcome.
+- Linux (x86_64, aarch64, armv7) and the major BSD variants (FreeBSD,
+  OpenBSD, NetBSD) are supported.
 - Other POSIX systems should work with minimal porting effort.
 - Lightweight containers or small research kernels implementing POSIX system
   calls.
