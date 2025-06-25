@@ -13,6 +13,12 @@
 #include <sys/syscall.h>
 #include "syscall.h"
 
+/*
+ * daemon() - detach the process and run in the background. This wrapper forks
+ * and calls setsid(), optionally changes the working directory, and redirects
+ * stdio to /dev/null when requested. Returns 0 on success or -1 with errno
+ * describing the failure.
+ */
 int daemon(int nochdir, int noclose)
 {
     pid_t pid = fork();

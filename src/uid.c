@@ -21,6 +21,10 @@ extern gid_t host_getgid(void) __asm("getgid");
 extern gid_t host_getegid(void) __asm("getegid");
 #endif
 
+/*
+ * getuid() - return real user id using SYS_getuid or a host wrapper. On
+ * failure -1 is returned and errno set.
+ */
 uid_t getuid(void)
 {
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
@@ -36,6 +40,10 @@ uid_t getuid(void)
 #endif
 }
 
+/*
+ * geteuid() - obtain effective user id via SYS_geteuid or a host wrapper.
+ * Returns -1 on error with errno set.
+ */
 uid_t geteuid(void)
 {
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
@@ -51,6 +59,9 @@ uid_t geteuid(void)
 #endif
 }
 
+/*
+ * getgid() - fetch real group id via SYS_getgid or host wrapper.
+ */
 gid_t getgid(void)
 {
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
@@ -66,6 +77,9 @@ gid_t getgid(void)
 #endif
 }
 
+/*
+ * getegid() - fetch effective group id via SYS_getegid or host wrapper.
+ */
 gid_t getegid(void)
 {
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
@@ -81,6 +95,10 @@ gid_t getegid(void)
 #endif
 }
 
+/*
+ * setuid() - change real and effective uid using SYS_setuid or a host
+ * implementation. Returns 0 on success or -1 with errno set.
+ */
 int setuid(uid_t uid)
 {
 #if defined(SYS_setuid)
@@ -101,6 +119,10 @@ int setuid(uid_t uid)
 #endif
 }
 
+/*
+ * seteuid() - set effective uid via SYS_seteuid or host implementation.
+ * Returns 0 on success or -1 with errno set.
+ */
 int seteuid(uid_t euid)
 {
 #if defined(SYS_seteuid)
@@ -121,6 +143,10 @@ int seteuid(uid_t euid)
 #endif
 }
 
+/*
+ * setgid() - change real and effective group id using SYS_setgid or host
+ * wrapper. Returns 0 on success or -1 with errno set.
+ */
 int setgid(gid_t gid)
 {
 #if defined(SYS_setgid)
@@ -141,6 +167,10 @@ int setgid(gid_t gid)
 #endif
 }
 
+/*
+ * setegid() - set effective group id via SYS_setegid or host wrapper.
+ * Returns 0 on success or -1 with errno set.
+ */
 int setegid(gid_t egid)
 {
 #if defined(SYS_setegid)

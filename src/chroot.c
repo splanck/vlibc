@@ -11,6 +11,11 @@
 #include <sys/syscall.h>
 #include "syscall.h"
 
+/*
+ * chroot() - change the process root directory via SYS_chroot when available.
+ * On platforms without the syscall a host helper may be used. Returns 0 on
+ * success or -1 with errno set.
+ */
 int chroot(const char *path)
 {
 #ifdef SYS_chroot
