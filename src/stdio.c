@@ -388,20 +388,18 @@ int fflush(FILE *stream)
         return 0;
     if (flush_buffer(stream) < 0)
         return -1;
-#if defined(__linux__) && defined(SYS_fsync)
     if (!stream->is_mem) {
+#ifdef SYS_fsync
         long ret = vlibc_syscall(SYS_fsync, stream->fd, 0, 0, 0, 0, 0);
         if (ret < 0) {
             errno = -ret;
             return -1;
         }
-    }
 #else
-#    ifndef __linux__
-    if (!stream->is_mem && fsync(stream->fd) < 0)
-        return -1;
-#    endif
+        if (fsync(stream->fd) < 0)
+            return -1;
 #endif
+    }
     return 0;
 }
 
