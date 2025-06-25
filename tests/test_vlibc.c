@@ -47,6 +47,7 @@
 #include "../include/ftw.h"
 #include "../include/fts.h"
 #include "../include/wordexp.h"
+#include "../include/vis.h"
 #include "../include/pty.h"
 #include "../include/termios.h"
 #include <unistd.h>
@@ -3594,6 +3595,52 @@ static const char *test_fp_checks(void)
     return 0;
 }
 
+static void encode_vis(const char *src, char *dst, int flags)
+{
+    while (*src) {
+        dst += vis(dst, (unsigned char)*src, flags, src[1]);
+        src++;
+    }
+    *dst = '\0';
+}
+
+static int decode_vis(const char *src, char *dst)
+{
+    int st = 0;
+    while (*src) {
+        int r = unvis(dst, (unsigned char)*src++, &st, 0);
+        if (r == UNVIS_VALID)
+            dst++;
+        else if (r == UNVIS_SYNBAD)
+            return -1;
+    }
+    if (unvis(dst, '\0', &st, UNVIS_END) == UNVIS_VALID)
+        dst++;
+    *dst = '\0';
+    return 0;
+}
+
+static const char *test_vis_roundtrip(void)
+{
+    const char *src = "hello\n\tworld";
+    char enc[64];
+    encode_vis(src, enc, VIS_CSTYLE);
+    mu_assert("encode", strcmp(enc, "hello\\n\\tworld") == 0);
+    char dec[64];
+    mu_assert("decode", decode_vis(enc, dec) == 0);
+    mu_assert("roundtrip", strcmp(dec, src) == 0);
+    return 0;
+}
+
+static const char *test_nvis_basic(void)
+{
+    char buf[8];
+    int n = nvis(buf, sizeof(buf), '\n', VIS_CSTYLE, 0);
+    mu_assert("nvis len", n == 2);
+    mu_assert("nvis text", strcmp(buf, "\\n") == 0);
+    return 0;
+}
+
 static const char *test_getopt_basic(void)
 {
     char *argv[] = {"prog", "-f", "-a", "val", "rest", NULL};
@@ -3933,6 +3980,8 @@ static const char *all_tests(void)
     mu_run_test(test_math_functions);
     mu_run_test(test_complex_cabs_cexp);
     mu_run_test(test_abs_div_functions);
+    mu_run_test(test_vis_roundtrip);
+    mu_run_test(test_nvis_basic);
     mu_run_test(test_fp_checks);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
