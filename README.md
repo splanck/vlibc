@@ -138,7 +138,7 @@ sscanf("42 example", "%d %s", &num, word);
 vlibc ships common routines like `strdup`, `strndup`, `strlcpy`, and `strlcat`.
 Search helpers `strstr`, `strrchr`, `memchr`, `memrchr`, and `memmem` locate substrings or
 bytes. Tokenizers `strtok`, `strtok_r`, and the lightweight `strsep` help split
-strings based on delimiters.
+strings based on delimiters. Wide strings can be tokenized with `wcstok`.
 Copy helpers `stpcpy` and `stpncpy` return the end pointer after copying.
 `memccpy` stops when a byte is found while `mempcpy` returns the pointer to the
 end of the copied region.

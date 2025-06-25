@@ -130,3 +130,52 @@ wchar_t *wcsdup(const wchar_t *s)
     wcscpy(dup, s);
     return dup;
 }
+
+/* Helper to test if a character is in the delimiter set. */
+static int is_wdelim(wchar_t c, const wchar_t *delim)
+{
+    for (const wchar_t *d = delim; *d; ++d) {
+        if (*d == c)
+            return 1;
+    }
+    return 0;
+}
+
+/* Tokenize a wide-character string similar to strtok_r. */
+wchar_t *wcstok(wchar_t *str, const wchar_t *delim, wchar_t **saveptr)
+{
+    wchar_t *s;
+
+    if (str)
+        s = str;
+    else if (saveptr && *saveptr)
+        s = *saveptr;
+    else
+        return NULL;
+
+    /* skip leading delimiters */
+    while (*s && is_wdelim(*s, delim))
+        s++;
+
+    if (*s == L'\0') {
+        if (saveptr)
+            *saveptr = NULL;
+        return NULL;
+    }
+
+    wchar_t *token = s;
+
+    while (*s && !is_wdelim(*s, delim))
+        s++;
+
+    if (*s) {
+        *s = L'\0';
+        s++;
+        if (saveptr)
+            *saveptr = s;
+    } else if (saveptr) {
+        *saveptr = NULL;
+    }
+
+    return token;
+}
