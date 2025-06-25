@@ -1705,6 +1705,20 @@ strftime(buf, sizeof(buf), "%a %b %d %Y %H:%M:%S %Z %z", &tm);
 `wcsftime` performs the same conversion but writes to a wide-character buffer.
 `timegm` converts a `struct tm` in UTC back to `time_t` using the same logic as `mktime` but without timezone adjustments.
 
+### asctime and asctime_r
+
+`asctime` converts a `struct tm` to the classic 26 byte string used by `ctime`.
+`asctime_r` is the reentrant variant that writes into a caller provided buffer.
+
+```c
+time_t t = 1700000000;
+struct tm tm;
+gmtime_r(&t, &tm);
+char buf[26];
+printf("%s", asctime_r(&tm, buf));
+// "Tue Nov 14 22:13:20 2023\n"
+```
+
 ## Locale Support
 
 `setlocale` reads `LC_ALL` and `LANG` and sets the active locale

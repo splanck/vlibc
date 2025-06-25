@@ -108,6 +108,42 @@ char *ctime(const time_t *timep)
 }
 
 /*
+ * Reentrant conversion of a broken-down time structure to the
+ * standard ASCII representation. The caller supplies the buffer
+ * which must hold at least 26 characters.
+ */
+char *asctime_r(const struct tm *tm, char *buf)
+{
+    static const char *wd[7] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+    static const char *mn[12] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug",
+                                 "Sep","Oct","Nov","Dec"};
+    if (!tm || !buf)
+        return NULL;
+    char dd[3] = {0}, hh[3] = {0}, mm[3] = {0}, ss[3] = {0};
+    dd[0] = '0' + (tm->tm_mday / 10);
+    dd[1] = '0' + (tm->tm_mday % 10);
+    hh[0] = '0' + (tm->tm_hour / 10);
+    hh[1] = '0' + (tm->tm_hour % 10);
+    mm[0] = '0' + (tm->tm_min / 10);
+    mm[1] = '0' + (tm->tm_min % 10);
+    ss[0] = '0' + (tm->tm_sec / 10);
+    ss[1] = '0' + (tm->tm_sec % 10);
+    snprintf(buf, 26, "%s %s %s %s:%s:%s %d\n",
+             wd[tm->tm_wday], mn[tm->tm_mon], dd, hh, mm, ss,
+             tm->tm_year + 1900);
+    return buf;
+}
+
+/*
+ * Thread-unsafe wrapper around asctime_r() using a static buffer.
+ */
+char *asctime(const struct tm *tm)
+{
+    static char buf[32];
+    return asctime_r(tm, buf);
+}
+
+/*
  * Return the difference between two time values in seconds as a
  * double precision floating point number.
  */

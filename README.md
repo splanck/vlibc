@@ -38,6 +38,7 @@ programs. Key features include:
 - Dynamic loading with `dlopen`, `dlsym`, `dlclose` and `dladdr`
 - Environment variable handling
 - Basic timezone handling with `tzset()`
+- Format broken-down times with `asctime()` and thread-safe `asctime_r()`
 - Host name queries and changes
 - Login name retrieval with `getlogin()`
 - Thread-safe user and group lookups with `getpwuid_r`, `getpwnam_r`,
