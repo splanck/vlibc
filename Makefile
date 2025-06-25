@@ -114,6 +114,7 @@ SRC := \
     src/hostname.c \
     src/uname.c \
     src/sleep.c \
+    src/sched.c \
     src/clock_gettime.c \
     src/clock_getres.c \
     src/time.c \
@@ -213,6 +214,8 @@ install: $(LIB)
 	install -m 644 include/assert.h $(DESTDIR)$(PREFIX)/include
 	# ensure iconv.h is installed
 	install -m 644 include/iconv.h $(DESTDIR)$(PREFIX)/include
+	# install sched.h
+	install -m 644 include/sched.h $(DESTDIR)$(PREFIX)/include
 	install -d $(DESTDIR)$(PREFIX)/include/sys
 	# install system headers including wait.h
 	install -m 644 include/sys/*.h $(DESTDIR)$(PREFIX)/include/sys

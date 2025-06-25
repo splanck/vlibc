@@ -50,15 +50,16 @@ This document outlines the architecture, planned modules, and API design for **v
 44. [Locale Support](#locale-support)
 45. [Time Retrieval](#time-retrieval)
 46. [Sleep Functions](#sleep-functions)
-47. [Interval Timers](#interval-timers)
-48. [Raw System Calls](#raw-system-calls)
-49. [Non-local Jumps](#non-local-jumps)
-50. [Limitations](#limitations)
-51. [Conclusion](#conclusion)
-52. [Logging](#logging)
-53. [Path Expansion](#path-expansion)
-54. [Filesystem Statistics](#filesystem-statistics)
-55. [Resource Limits](#resource-limits)
+47. [Scheduling](#scheduling)
+48. [Interval Timers](#interval-timers)
+49. [Raw System Calls](#raw-system-calls)
+50. [Non-local Jumps](#non-local-jumps)
+51. [Limitations](#limitations)
+52. [Conclusion](#conclusion)
+53. [Logging](#logging)
+54. [Path Expansion](#path-expansion)
+55. [Filesystem Statistics](#filesystem-statistics)
+56. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -1684,6 +1685,16 @@ unsigned sleep(unsigned seconds);
 int usleep(useconds_t usec);
 int nanosleep(const struct timespec *req, struct timespec *rem);
 unsigned int alarm(unsigned int seconds);
+```
+
+## Scheduling
+
+`sched_yield` allows a thread to voluntarily relinquish the CPU, letting
+other runnable threads run. It simply issues the operating system's
+`yield` syscall when available or falls back to the host implementation.
+
+```c
+int sched_yield(void);
 ```
 
 ## Interval Timers
