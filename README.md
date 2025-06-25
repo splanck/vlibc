@@ -45,6 +45,8 @@ programs. Key features include:
 - Array sorting with `qsort`, `qsort_r` and `bsearch`
 - Standard `assert` macro for runtime checks
 - Extended math helpers
+- String-to-number conversions with `strtol`, `strtoul`, `strtoll`,
+  `strtoull`, `strtof`, `strtod` and `strtold`
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Memory-backed streams with `open_memstream()` and `fmemopen()`
 - Large-file aware seeks
