@@ -13,6 +13,7 @@
 #include "syscall.h"
 #include "vlibc_features.h"
 
+/* Create a new socket */
 int socket(int domain, int type, int protocol)
 {
     long ret = vlibc_syscall(SYS_socket, domain, type, protocol, 0, 0, 0);
@@ -23,6 +24,7 @@ int socket(int domain, int type, int protocol)
     return (int)ret;
 }
 
+/* Bind a socket to a local address */
 int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     long ret = vlibc_syscall(SYS_bind, sockfd, (long)addr, addrlen, 0, 0, 0);
@@ -33,6 +35,7 @@ int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
     return (int)ret;
 }
 
+/* Listen for incoming connections */
 int listen(int sockfd, int backlog)
 {
     long ret = vlibc_syscall(SYS_listen, sockfd, backlog, 0, 0, 0, 0);
@@ -43,6 +46,7 @@ int listen(int sockfd, int backlog)
     return (int)ret;
 }
 
+/* Accept a connection on a listening socket */
 int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
 #if VLIBC_HAVE_ACCEPT4
@@ -57,6 +61,7 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
     return (int)ret;
 }
 
+/* Accept a connection with additional flags */
 int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags)
 {
 #if VLIBC_HAVE_ACCEPT4
@@ -75,6 +80,7 @@ int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags)
 #endif
 }
 
+/* Connect to a remote address */
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     long ret = vlibc_syscall(SYS_connect, sockfd, (long)addr, addrlen, 0, 0, 0);
@@ -85,6 +91,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
     return (int)ret;
 }
 
+/* Send data on a connected socket */
 ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 {
     long ret = vlibc_syscall(SYS_sendto, sockfd, (long)buf, len, flags, 0, 0);
@@ -95,6 +102,7 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
     return (ssize_t)ret;
 }
 
+/* Receive data from a connected socket */
 ssize_t recv(int sockfd, void *buf, size_t len, int flags)
 {
     long ret = vlibc_syscall(SYS_recvfrom, sockfd, (long)buf, len, flags, 0, 0);
@@ -105,6 +113,7 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
     return (ssize_t)ret;
 }
 
+/* Send a message to a specific destination */
 ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
                const struct sockaddr *dest, socklen_t addrlen)
 {
@@ -117,6 +126,7 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
     return (ssize_t)ret;
 }
 
+/* Receive a message from a specific source */
 ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
                  struct sockaddr *src, socklen_t *addrlen)
 {

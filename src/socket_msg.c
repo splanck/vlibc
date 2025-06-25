@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/* Send a message along with ancillary data */
 ssize_t sendmsg(int sockfd, const struct msghdr *msg, int flags)
 {
 #ifdef SYS_sendmsg
@@ -34,6 +35,7 @@ ssize_t sendmsg(int sockfd, const struct msghdr *msg, int flags)
 #endif
 }
 
+/* Receive a message and any ancillary data */
 ssize_t recvmsg(int sockfd, struct msghdr *msg, int flags)
 {
 #ifdef SYS_recvmsg
