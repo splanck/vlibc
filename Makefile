@@ -73,6 +73,7 @@ SRC := \
     src/strerror_r.c \
     src/strto.c \
     src/rand.c \
+    src/rand48.c \
     src/abs.c \
     src/arc4random.c \
     src/socket.c \

@@ -2245,6 +2245,30 @@ static const char *test_rand_fn(void)
     return 0;
 }
 
+static const char *test_rand48_fn(void)
+{
+    srand48(1L);
+    mu_assert("lrand48 1", lrand48() == 89400484);
+    mu_assert("lrand48 2", lrand48() == 976015093);
+    mu_assert("lrand48 3", lrand48() == 1792756325);
+    srand48(1L);
+    double d = drand48();
+    mu_assert("drand48 1", fabs(d - 0.041630344771878214) < 1e-12);
+    d = drand48();
+    mu_assert("drand48 2", fabs(d - 0.45449244472862915) < 1e-12);
+    unsigned short seed[3] = {0x330e, 0xabcd, 0x1234};
+    mu_assert("nrand48 1", nrand48(seed) == 851401618);
+    mu_assert("nrand48 2", nrand48(seed) == 1804928587);
+    mu_assert("nrand48 3", nrand48(seed) == 758783491);
+    unsigned short newseed[3] = {1,2,3};
+    unsigned short *old = seed48(newseed);
+    mu_assert("seed48 old0", old[0] == 0x330e);
+    mu_assert("seed48 old1", old[1] == 0x1);
+    mu_assert("seed48 old2", old[2] == 0x0);
+    srand48(1L);
+    return 0;
+}
+
 static const char *test_forkpty_echo(void)
 {
     int mfd;
@@ -3187,6 +3211,7 @@ static const char *all_tests(void)
     mu_run_test(test_posix_spawn_sigmask);
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
+    mu_run_test(test_rand48_fn);
     mu_run_test(test_forkpty_echo);
     mu_run_test(test_tcdrain_basic);
     mu_run_test(test_tcflush_basic);
