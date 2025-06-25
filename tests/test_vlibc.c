@@ -2786,6 +2786,25 @@ static const char *test_math_functions(void)
     return 0;
 }
 
+static const char *test_fp_checks(void)
+{
+    volatile double zero = 0.0;
+    double inf = 1.0 / zero;
+    double ninf = -1.0 / zero;
+    double nanv = zero / zero;
+
+    mu_assert("isinf pos", isinf(inf));
+    mu_assert("isinf neg", isinf(ninf));
+    mu_assert("!isinf", !isinf(1.5));
+    mu_assert("isnan", isnan(nanv));
+    mu_assert("!isnan", !isnan(inf));
+    mu_assert("isfinite", isfinite(2.0));
+    mu_assert("isfinite zero", isfinite(0.0));
+    mu_assert("!isfinite nan", !isfinite(nanv));
+    mu_assert("!isfinite inf", !isfinite(inf));
+    return 0;
+}
+
 static const char *test_getopt_basic(void)
 {
     char *argv[] = {"prog", "-f", "-a", "val", "rest", NULL};
@@ -3080,6 +3099,7 @@ static const char *all_tests(void)
     mu_run_test(test_regex_backref_basic);
     mu_run_test(test_regex_backref_fail);
     mu_run_test(test_math_functions);
+    mu_run_test(test_fp_checks);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
     mu_run_test(test_dlopen_basic);
