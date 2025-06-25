@@ -2857,6 +2857,30 @@ static const char *test_math_functions(void)
     return 0;
 }
 
+static const char *test_abs_div_functions(void)
+{
+    mu_assert("abs pos", abs(5) == 5);
+    mu_assert("abs neg", abs(-5) == 5);
+    mu_assert("labs pos", labs(7L) == 7L);
+    mu_assert("labs neg", labs(-7L) == 7L);
+    mu_assert("llabs pos", llabs(9LL) == 9LL);
+    mu_assert("llabs neg", llabs(-9LL) == 9LL);
+
+    div_t di = div(7, 3);
+    mu_assert("div quot", di.quot == 2);
+    mu_assert("div rem", di.rem == 1);
+
+    ldiv_t ld = ldiv(8L, 3L);
+    mu_assert("ldiv quot", ld.quot == 2L);
+    mu_assert("ldiv rem", ld.rem == 2L);
+
+    lldiv_t lld = lldiv(-10LL, 3LL);
+    mu_assert("lldiv quot", lld.quot == -3LL);
+    mu_assert("lldiv rem", lld.rem == -1LL);
+
+    return 0;
+}
+
 static const char *test_fp_checks(void)
 {
     volatile double zero = 0.0;
@@ -3173,6 +3197,7 @@ static const char *all_tests(void)
     mu_run_test(test_regex_backref_basic);
     mu_run_test(test_regex_backref_fail);
     mu_run_test(test_math_functions);
+    mu_run_test(test_abs_div_functions);
     mu_run_test(test_fp_checks);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);

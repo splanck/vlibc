@@ -16,47 +16,48 @@ This document outlines the architecture, planned modules, and API design for **v
 10. [Option Parsing](#option-parsing)
 11. [Random Numbers](#random-numbers)
 12. [Sorting Helpers](#sorting-helpers)
-13. [Regular Expressions](#regular-expressions)
-14. [Math Functions](#math-functions)
-15. [Process Control](#process-control)
-16. [Error Reporting](#error-reporting)
-17. [Errno Access](#errno-access)
-18. [Threading](#threading)
-19. [Dynamic Loading](#dynamic-loading)
-20. [Environment Variables](#environment-variables)
-21. [System Information](#system-information)
-22. [Basic File I/O](#basic-file-io)
-23. [File Descriptor Helpers](#file-descriptor-helpers)
-24. [File Control](#file-control)
-25. [File Locking](#file-locking)
-26. [Terminal Attributes](#terminal-attributes)
-27. [Pseudo-terminals](#pseudo-terminals)
-28. [Secure Password Input](#secure-password-input)
-29. [Standard Streams](#standard-streams)
-30. [Temporary Files](#temporary-files)
-31. [Networking](#networking)
-32. [I/O Multiplexing](#io-multiplexing)
-33. [File Permissions](#file-permissions)
-34. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-35. [File Status](#file-status)
-36. [Directory Iteration](#directory-iteration)
-37. [Path Canonicalization](#path-canonicalization)
-38. [Path Utilities](#path-utilities)
-39. [User Database](#user-database)
-40. [Group Database](#group-database)
-41. [Time Formatting](#time-formatting)
-42. [Locale Support](#locale-support)
-43. [Time Retrieval](#time-retrieval)
-44. [Sleep Functions](#sleep-functions)
-45. [Interval Timers](#interval-timers)
-46. [Raw System Calls](#raw-system-calls)
-47. [Non-local Jumps](#non-local-jumps)
-48. [Limitations](#limitations)
-49. [Conclusion](#conclusion)
-50. [Logging](#logging)
-51. [Path Expansion](#path-expansion)
-52. [Filesystem Statistics](#filesystem-statistics)
-53. [Resource Limits](#resource-limits)
+13. [Utilities](#utilities)
+14. [Regular Expressions](#regular-expressions)
+15. [Math Functions](#math-functions)
+16. [Process Control](#process-control)
+17. [Error Reporting](#error-reporting)
+18. [Errno Access](#errno-access)
+19. [Threading](#threading)
+20. [Dynamic Loading](#dynamic-loading)
+21. [Environment Variables](#environment-variables)
+22. [System Information](#system-information)
+23. [Basic File I/O](#basic-file-io)
+24. [File Descriptor Helpers](#file-descriptor-helpers)
+25. [File Control](#file-control)
+26. [File Locking](#file-locking)
+27. [Terminal Attributes](#terminal-attributes)
+28. [Pseudo-terminals](#pseudo-terminals)
+29. [Secure Password Input](#secure-password-input)
+30. [Standard Streams](#standard-streams)
+31. [Temporary Files](#temporary-files)
+32. [Networking](#networking)
+33. [I/O Multiplexing](#io-multiplexing)
+34. [File Permissions](#file-permissions)
+35. [Filesystem *at Wrappers](#filesystem-at-wrappers)
+36. [File Status](#file-status)
+37. [Directory Iteration](#directory-iteration)
+38. [Path Canonicalization](#path-canonicalization)
+39. [Path Utilities](#path-utilities)
+40. [User Database](#user-database)
+41. [Group Database](#group-database)
+42. [Time Formatting](#time-formatting)
+43. [Locale Support](#locale-support)
+44. [Time Retrieval](#time-retrieval)
+45. [Sleep Functions](#sleep-functions)
+46. [Interval Timers](#interval-timers)
+47. [Raw System Calls](#raw-system-calls)
+48. [Non-local Jumps](#non-local-jumps)
+49. [Limitations](#limitations)
+50. [Conclusion](#conclusion)
+51. [Logging](#logging)
+52. [Path Expansion](#path-expansion)
+53. [Filesystem Statistics](#filesystem-statistics)
+54. [Resource Limits](#resource-limits)
 
 ## Overview
 
@@ -496,6 +497,18 @@ static int cmp_dir(const void *a, const void *b, void *ctx)
 
 int desc = -1;
 qsort_r(values, 3, sizeof(int), cmp_dir, &desc);
+```
+
+## Utilities
+
+Basic integer helpers cover simple absolute value and division routines.
+`abs`, `labs` and `llabs` return the magnitude of an `int`, `long` or
+`long long` argument. `div`, `ldiv` and `lldiv` compute both the quotient
+and remainder of a division in a single call.
+
+```c
+int a = abs(-5);              // 5
+ldiv_t r = ldiv(10L, 3L);     // r.quot == 3, r.rem == 1
 ```
 
 ## Regular Expressions
