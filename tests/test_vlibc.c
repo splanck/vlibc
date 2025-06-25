@@ -2078,6 +2078,13 @@ static const char *test_error_reporting(void)
     mu_assert("strerror_r thread1", r1 == NULL);
     mu_assert("strerror_r thread2", r2 == NULL);
 
+    mu_assert("EPROTO", strcmp(strerror(EPROTO), "Protocol error") == 0);
+    mu_assert("EOVERFLOW", strcmp(strerror(EOVERFLOW),
+                "Value too large to be stored in data type") == 0);
+    mu_assert("EHOSTDOWN", strcmp(strerror(EHOSTDOWN), "Host is down") == 0);
+    mu_assert("EOWNERDEAD", strcmp(strerror(EOWNERDEAD),
+                "Previous owner died") == 0);
+
     return 0;
 }
 
