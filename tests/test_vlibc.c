@@ -2733,6 +2733,16 @@ static const char *test_mqueue_basic(void)
     return 0;
 }
 
+static const char *test_named_semaphore_create(void)
+{
+    const char *name = "/vlibc_test_sem";
+    sem_t *s = sem_open(name, O_CREAT | O_EXCL, 0600, 1);
+    mu_assert("sem_open", s != SEM_FAILED);
+    mu_assert("sem_close", sem_close(s) == 0);
+    mu_assert("sem_unlink", sem_unlink(name) == 0);
+    return 0;
+}
+
 static const char *test_atexit_handler(void)
 {
     mu_assert("pipe", pipe(exit_pipe) == 0);
@@ -3528,6 +3538,7 @@ static const char *all_tests(void)
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_shm_basic);
     mu_run_test(test_mqueue_basic);
+    mu_run_test(test_named_semaphore_create);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_quick_exit_handler);
     mu_run_test(test_getcwd_chdir);

@@ -21,6 +21,7 @@ programs. Key features include:
 - Wait for specific signals with `sigwait()` and `sigtimedwait()`
 - Set mutex types with `pthread_mutexattr_settype()`
 - Counting semaphores with `sem_init()`/`sem_wait()`/`sem_post()`
+- Named semaphores with `sem_open()`/`sem_close()`/`sem_unlink()`
 - Thread barriers with `pthread_barrier_init()` and `pthread_barrier_wait()`
 - Lightweight spin locks with `pthread_spin_lock()` and
   `pthread_spin_unlock()`
