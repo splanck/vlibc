@@ -1800,6 +1800,20 @@ Declared in `<sched.h>`.
 int sched_yield(void);
 ```
 
+`getpriority` returns the current scheduling priority for a process,
+process group or user as selected by the `PRIO_*` constants.
+`setpriority` updates the value and `nice` adjusts the calling
+process' nice level relative to its current priority.  The wrappers
+map directly to the `setpriority(2)` and `getpriority(2)` syscalls on
+NetBSD and Linux, falling back to host implementations on the other
+BSDs.
+
+```c
+int nice(int incr);
+int getpriority(int which, int who);
+int setpriority(int which, int who, int prio);
+```
+
 ## Interval Timers
 
 `setitimer` schedules periodic `SIGALRM` delivery or CPU timers. `getitimer`

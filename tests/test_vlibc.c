@@ -2042,6 +2042,17 @@ static const char *test_sched_yield_loop(void)
     return 0;
 }
 
+static const char *test_priority_wrappers(void)
+{
+    int orig = getpriority(PRIO_PROCESS, 0);
+    mu_assert("getpriority", orig != -1 || errno == 0);
+    mu_assert("setpriority", setpriority(PRIO_PROCESS, 0, orig + 1) == 0);
+    mu_assert("verify", getpriority(PRIO_PROCESS, 0) == orig + 1);
+    mu_assert("nice", nice(-1) == orig);
+    mu_assert("restore", getpriority(PRIO_PROCESS, 0) == orig);
+    return 0;
+}
+
 static const char *test_timer_basic(void)
 {
     timer_t t;
@@ -3851,6 +3862,7 @@ static const char *all_tests(void)
     mu_run_test(test_sleep_functions);
     mu_run_test(test_sched_yield_basic);
     mu_run_test(test_sched_yield_loop);
+    mu_run_test(test_priority_wrappers);
     mu_run_test(test_timer_basic);
     mu_run_test(test_getrusage_self);
     mu_run_test(test_strftime_basic);
