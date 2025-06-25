@@ -18,6 +18,7 @@
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
 #include "../include/pthread.h"
+#include "../include/util.h"
 #include "../include/semaphore.h"
 #include "../include/sys/select.h"
 #include "../include/poll.h"
@@ -2416,6 +2417,19 @@ static const char *test_confstr_path(void)
     return 0;
 }
 
+static const char *test_progname_setget(void)
+{
+    setprogname("prog");
+    const char *p = getprogname();
+    mu_assert("initial name", p && strcmp(p, "prog") == 0);
+
+    setprogname("/usr/bin/testprog");
+    p = getprogname();
+    mu_assert("basename", p && strcmp(p, "testprog") == 0);
+
+    return 0;
+}
+
 static const char *test_error_reporting(void)
 {
     errno = ENOENT;
@@ -4029,6 +4043,7 @@ static const char *all_tests(void)
     mu_run_test(test_gethostname_fn);
     mu_run_test(test_uname_fn);
     mu_run_test(test_confstr_path);
+    mu_run_test(test_progname_setget);
     mu_run_test(test_error_reporting);
     mu_run_test(test_warn_functions);
     mu_run_test(test_err_functions);

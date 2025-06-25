@@ -183,7 +183,8 @@ SRC := \
     src/wordexp.c \
     src/vis.c \
     src/wprintf.c \
-    src/wscanf.c
+    src/wscanf.c \
+    src/progname.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
 SRC += $(if $(ARCH_SRC),$(ARCH_SRC),src/setjmp.c)
