@@ -591,6 +591,12 @@ int setgid(gid_t gid);
 int setegid(gid_t egid);
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+int sigpending(sigset_t *set);
+int sigsuspend(const sigset_t *mask);
+int sigwait(const sigset_t *set, int *sig);
+int sigwaitinfo(const sigset_t *set, siginfo_t *info);
+int sigtimedwait(const sigset_t *set, siginfo_t *info,
+                 const struct timespec *timeout);
 int system(const char *command);
 int daemon(int nochdir, int noclose);
 int atexit(void (*fn)(void));
