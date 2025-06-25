@@ -267,7 +267,8 @@ int w = wcswidth(L"hello", 5);       // 5
 
 Common helpers like `wcslen`, `wcscpy`, `wcsncpy`, `wcscmp`, `wcsncmp`, and
 `wcsdup` mirror their narrow-string counterparts for manipulating wide
-character strings.
+character strings. Memory routines `wmemcpy`, `wmemmove`, `wmemset` and
+`wmemcmp` perform the same operations on arrays of `wchar_t`.
 
 ## Wide-Character I/O
 

@@ -382,7 +382,19 @@ of a wide string excluding the terminator.
 
 `wcscpy`, `wcsncpy`, `wcscmp`, `wcsncmp`, and `wcsdup` mirror the
 behaviour of their narrow-string counterparts for copying, comparing and
-duplicating wide strings.
+duplicating wide strings. The `wmemcpy`, `wmemmove`, `wmemset` and
+`wmemcmp` routines operate on arrays of `wchar_t` analogous to the byte
+
+### Example
+
+```c
+wchar_t src[] = { L'a', L'b', L'c' };
+wchar_t dst[3];
+wmemcpy(dst, src, 3);      // copy three wide characters
+wmemmove(dst + 1, dst, 2); // move with overlap
+wmemset(dst, L'X', 2);     // fill first two entries
+int diff = wmemcmp(dst, src, 3);
+```
 
 `wcwidth` reports the number of columns needed to display a single wide
 character while `wcswidth` sums the widths of up to `n` characters. ASCII

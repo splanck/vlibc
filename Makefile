@@ -147,6 +147,7 @@ SRC := \
     src/wchar_conv.c \
     src/wchar_io.c \
     src/wctype.c \
+    src/wmem.c \
     src/memstream.c \
     src/tempfile.c \
     src/confstr.c \
