@@ -181,5 +181,9 @@ double difftime(time_t end, time_t start);
 /* Difference between two times in seconds. */
 char *ctime(const time_t *timep);
 /* Format a time value using localtime() into a static string. */
+char *asctime(const struct tm *tm);
+/* Format a broken-down time into a static string. */
+char *asctime_r(const struct tm *tm, char *buf);
+/* Reentrant version of asctime() writing to user supplied buffer. */
 
 #endif /* TIME_H */

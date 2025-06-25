@@ -112,6 +112,20 @@ static void *strerror_r_worker(void *arg)
     return (void *)(strcmp(buf, expect) != 0);
 }
 
+struct asctime_arg {
+    struct tm tm;
+    const char *expect;
+};
+
+static void *asctime_r_worker(void *arg)
+{
+    struct asctime_arg *a = arg;
+    char buf[32];
+    if (!asctime_r(&a->tm, buf))
+        return (void *)1;
+    return (void *)(strcmp(buf, a->expect) != 0);
+}
+
 static const char *test_malloc(void)
 {
     void *p = malloc(16);
@@ -2136,6 +2150,11 @@ static const char *test_time_conversions(void)
 
     char *s = ctime(&t);
     mu_assert("ctime", strcmp(s, "Tue Nov 14 22:13:20 2023\n") == 0);
+    char *a = asctime(gm);
+    mu_assert("asctime", strcmp(a, "Tue Nov 14 22:13:20 2023\n") == 0);
+    char buf[32];
+    mu_assert("asctime_r",
+              strcmp(asctime_r(gm, buf), "Tue Nov 14 22:13:20 2023\n") == 0);
     return 0;
 }
 
@@ -2211,6 +2230,27 @@ static const char *test_tz_ctime(void)
     unsetenv("TZ");
     tzset();
     mu_assert("ctime offset", strstr(s, "23:13:20") != NULL);
+    return 0;
+}
+
+static const char *test_asctime_r_threadsafe(void)
+{
+    time_t t1 = 1700000000;
+    time_t t2 = t1 + 86400;
+    struct tm tm1, tm2;
+    gmtime_r(&t1, &tm1);
+    gmtime_r(&t2, &tm2);
+    struct asctime_arg a1 = { tm1, "Tue Nov 14 22:13:20 2023\n" };
+    struct asctime_arg a2 = { tm2, "Wed Nov 15 22:13:20 2023\n" };
+    pthread_t th1, th2;
+    pthread_create(&th1, NULL, asctime_r_worker, &a1);
+    pthread_create(&th2, NULL, asctime_r_worker, &a2);
+    void *r1 = (void *)1;
+    void *r2 = (void *)1;
+    pthread_join(th1, &r1);
+    pthread_join(th2, &r2);
+    mu_assert("asctime_r thread1", r1 == NULL);
+    mu_assert("asctime_r thread2", r2 == NULL);
     return 0;
 }
 
@@ -3732,6 +3772,7 @@ static const char *all_tests(void)
     mu_run_test(test_strptime_basic);
     mu_run_test(test_time_conversions);
     mu_run_test(test_time_r_conversions);
+    mu_run_test(test_asctime_r_threadsafe);
     mu_run_test(test_difftime_basic);
     mu_run_test(test_tz_positive);
     mu_run_test(test_tz_negative);
