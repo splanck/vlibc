@@ -72,6 +72,8 @@ programs. Key features include:
 - Store and restore file positions with `fgetpos()` and `fsetpos()`
 - Zero-copy file transfers with `sendfile()`
 - Memory synchronization with `msync()`
+- Lock pages with `mlock()`/`munlock()` and entire address spaces with
+  `mlockall()`/`munlockall()` plus usage hints via `madvise()`
 - POSIX shared memory objects with `shm_open()` and `shm_unlink()`
 - POSIX message queues with `mq_open()`, `mq_send()` and `mq_receive()`
 - Advisory file locking with `flock()`

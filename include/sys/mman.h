@@ -21,6 +21,11 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 int munmap(void *addr, size_t length);
 int mprotect(void *addr, size_t length, int prot);
 int msync(void *addr, size_t length, int flags);
+int mlock(const void *addr, size_t length);
+int munlock(const void *addr, size_t length);
+int mlockall(int flags);
+int munlockall(void);
+int madvise(void *addr, size_t length, int advice);
 
 /*
  * Some BSD systems expose MAP_ANON instead of MAP_ANONYMOUS.  Provide
@@ -63,6 +68,29 @@ int msync(void *addr, size_t length, int flags);
 #endif
 #ifndef MS_ASYNC
 #define MS_ASYNC 1
+#endif
+
+#ifndef MCL_CURRENT
+#define MCL_CURRENT 1
+#endif
+#ifndef MCL_FUTURE
+#define MCL_FUTURE 2
+#endif
+
+#ifndef MADV_NORMAL
+#define MADV_NORMAL 0
+#endif
+#ifndef MADV_RANDOM
+#define MADV_RANDOM 1
+#endif
+#ifndef MADV_SEQUENTIAL
+#define MADV_SEQUENTIAL 2
+#endif
+#ifndef MADV_WILLNEED
+#define MADV_WILLNEED 3
+#endif
+#ifndef MADV_DONTNEED
+#define MADV_DONTNEED 4
 #endif
 
 #endif /* MMAN_H */

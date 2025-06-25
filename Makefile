@@ -110,6 +110,7 @@ SRC := \
     $(SYS_SRC) \
     src/mmap.c \
     src/msync.c \
+    src/mlock.c \
     src/shm.c \
     src/mqueue.c \
     src/env.c \

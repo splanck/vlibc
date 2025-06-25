@@ -272,12 +272,20 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 int munmap(void *addr, size_t length);
 int mprotect(void *addr, size_t length, int prot);
 int msync(void *addr, size_t length, int flags);
+int mlock(const void *addr, size_t length);
+int munlock(const void *addr, size_t length);
+int mlockall(int flags);
+int munlockall(void);
+int madvise(void *addr, size_t length, int advice);
 ```
 
 `mmap` creates new mappings, `munmap` releases them and `mprotect` changes
 their access protections.  `msync` flushes modified pages back to their
-underlying file.  When the raw syscall is unavailable the BSD wrapper is
-used instead, so some platforms may ignore unsupported flags.
+underlying file.  `mlock` and `munlock` lock or unlock specific regions,
+while `mlockall` and `munlockall` operate on the entire address space.
+`madvise` provides usage hints to the kernel.  When the raw syscall is
+unavailable the BSD wrapper is used instead, so some platforms may ignore
+unsupported flags.
 
 ## Shared Memory
 

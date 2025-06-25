@@ -2922,6 +2922,14 @@ static const char *test_sigqueue_value(void)
     return 0;
 }
 
+static const char *test_mlock_basic(void)
+{
+    char buf[128];
+    mu_assert("mlock", mlock(buf, sizeof(buf)) == 0);
+    mu_assert("munlock", munlock(buf, sizeof(buf)) == 0);
+    return 0;
+}
+
 static const char *test_mprotect_anon(void)
 {
     size_t len = 4096;
@@ -3859,6 +3867,7 @@ static const char *all_tests(void)
     mu_run_test(test_sigwait_basic);
     mu_run_test(test_sigtimedwait_timeout);
     mu_run_test(test_sigqueue_value);
+    mu_run_test(test_mlock_basic);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_shm_basic);
     mu_run_test(test_mqueue_basic);
