@@ -39,6 +39,12 @@ int wcscmp(const wchar_t *s1, const wchar_t *s2);
 int wcsncmp(const wchar_t *s1, const wchar_t *s2, size_t n);
 /* Duplicate a wide-character string */
 wchar_t *wcsdup(const wchar_t *s);
+/* Search a wide-character string for a character */
+wchar_t *wcschr(const wchar_t *s, wchar_t c);
+/* Search a wide-character string from the end */
+wchar_t *wcsrchr(const wchar_t *s, wchar_t c);
+/* Locate a substring in a wide-character string */
+wchar_t *wcsstr(const wchar_t *haystack, const wchar_t *needle);
 /* Collate wide-character strings */
 int wcscoll(const wchar_t *s1, const wchar_t *s2);
 /* Transform wide-character string for collation */
@@ -95,5 +101,6 @@ wchar_t *wmemcpy(wchar_t *dest, const wchar_t *src, size_t n);
 wchar_t *wmemmove(wchar_t *dest, const wchar_t *src, size_t n);
 wchar_t *wmemset(wchar_t *s, wchar_t c, size_t n);
 int wmemcmp(const wchar_t *s1, const wchar_t *s2, size_t n);
+wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n);
 
 #endif /* WCHAR_H */

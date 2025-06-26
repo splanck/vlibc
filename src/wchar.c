@@ -217,3 +217,53 @@ wchar_t *wcstok(wchar_t *str, const wchar_t *delim, wchar_t **saveptr)
 
     return token;
 }
+
+/* Locate first occurrence of c in wide string s. */
+wchar_t *wcschr(const wchar_t *s, wchar_t c)
+{
+    while (*s) {
+        if (*s == c)
+            return (wchar_t *)s;
+        s++;
+    }
+    if (c == L'\0')
+        return (wchar_t *)s;
+    return NULL;
+}
+
+/* Locate last occurrence of c in wide string s. */
+wchar_t *wcsrchr(const wchar_t *s, wchar_t c)
+{
+    const wchar_t *ret = NULL;
+    do {
+        if (*s == c)
+            ret = s;
+    } while (*s++);
+    return (wchar_t *)ret;
+}
+
+/* Find substring needle in haystack. */
+wchar_t *wcsstr(const wchar_t *haystack, const wchar_t *needle)
+{
+    if (!*needle)
+        return (wchar_t *)haystack;
+    size_t nlen = wcslen(needle);
+    while (*haystack) {
+        if (*haystack == *needle && wcsncmp(haystack, needle, nlen) == 0)
+            return (wchar_t *)haystack;
+        haystack++;
+    }
+    return NULL;
+}
+
+/* Search first n wide characters of s for c. */
+wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n)
+{
+    const wchar_t *p = s;
+    while (n--) {
+        if (*p == c)
+            return (wchar_t *)p;
+        p++;
+    }
+    return NULL;
+}

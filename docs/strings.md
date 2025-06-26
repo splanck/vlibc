@@ -7,6 +7,7 @@ The **string** module provides fundamental operations needed by most C programs:
 - `vstrlen`, `vstrcpy`, `vstrncmp`, `strnlen`, `strcat`, `strncat`, `strlcpy`, `strlcat`, `stpcpy` and `stpncpy` equivalents.
 - `strdup` and `strndup` helpers allocate new copies of strings.
 - Search helpers `strstr`, `strrchr`, `memchr`, `memrchr`, and `memmem` for locating substrings or bytes.
+- Wide-character search helpers `wcschr`, `wcsrchr`, `wcsstr` and `wmemchr` mirror those operations for `wchar_t` data.
 - Prefix scanners `strspn` and `strcspn` along with `strpbrk` for finding any character from a set.
 - Case-insensitive comparisons `strcasecmp` and `strncasecmp`.
 - Case-insensitive substring search with `strcasestr`.
@@ -79,6 +80,8 @@ implementation on BSD when other locales are active. The `wcstok`
 function tokenizes a wide string using a caller-supplied save pointer.
 The `wmemcpy`, `wmemmove`, `wmemset` and `wmemcmp` routines operate on
 arrays of `wchar_t` analogous to the byte-oriented routines.
+Search helpers `wcschr`, `wcsrchr`, `wcsstr` and `wmemchr` provide character
+and substring lookup for wide strings.
 
 ### Example
 
