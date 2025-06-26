@@ -164,6 +164,20 @@ static const char *test_malloc_reuse(void)
     return 0;
 }
 
+static const char *test_reallocf_fail(void)
+{
+    void *p = malloc(32);
+    mu_assert("alloc p", p != NULL);
+
+    void *r = reallocf(p, SIZE_MAX / 2);
+    mu_assert("reallocf NULL", r == NULL);
+
+    void *q = malloc(16);
+    mu_assert("reuse after reallocf", q == p);
+    free(q);
+    return 0;
+}
+
 static const char *test_posix_memalign_basic(void)
 {
     void *p = NULL;
@@ -4139,6 +4153,7 @@ static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
     mu_run_test(test_malloc_reuse);
+    mu_run_test(test_reallocf_fail);
     mu_run_test(test_posix_memalign_basic);
     mu_run_test(test_posix_memalign);
     mu_run_test(test_aligned_alloc);

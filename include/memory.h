@@ -16,6 +16,8 @@ void free(void *ptr);
 void *calloc(size_t nmemb, size_t size);
 /* Resize a block by allocating and copying. */
 void *realloc(void *ptr, size_t size);
+/* Resize using realloc and free original on failure. */
+void *reallocf(void *ptr, size_t size);
 /* Resize an array with overflow check. */
 void *reallocarray(void *ptr, size_t nmemb, size_t size);
 /* Resize an array and zero any newly allocated memory. */

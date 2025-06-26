@@ -197,6 +197,17 @@ void *realloc(void *ptr, size_t size)
     free(ptr);
     return new_ptr;
 }
+
+/*
+ * Resizes a block but frees the original pointer if the reallocation fails.
+ */
+void *reallocf(void *ptr, size_t size)
+{
+    void *new_ptr = realloc(ptr, size);
+    if (!new_ptr && size != 0)
+        free(ptr);
+    return new_ptr;
+}
 /*
  * Allocates an aligned block.
  * Reserves extra space, aligns the result and records the original pointer.
