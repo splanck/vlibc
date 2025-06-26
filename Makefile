@@ -180,6 +180,7 @@ SRC := \
     src/math.c \
     src/math_extra.c \
     src/complex.c \
+    src/fenv.c \
     src/rlimit.c \
     src/getrusage.c \
     src/regex.c \
@@ -212,7 +213,7 @@ $(PLUGIN_SO): tests/plugin.c
 	$(CC) -shared -fPIC tests/plugin.c -o $(PLUGIN_SO)
 
 $(TEST_BIN): $(TEST_SRC) $(LIB) $(PLUGIN_SO)
-	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -lpthread -lcrypto -o $@
+	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -lpthread -lcrypto -lm -o $@
 
 test: $(TEST_BIN)
 	./$(TEST_BIN)
