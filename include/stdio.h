@@ -25,9 +25,22 @@ typedef struct {
     int is_wmem;                 /* stream stores wchar_t instead of bytes */
     char **mem_bufp;             /* pointer to buffer pointer for mem streams */
     size_t *mem_sizep;           /* pointer to size for mem streams */
+    int is_cookie;               /* stream uses user callbacks */
+    void *cookie;                /* opaque user data */
+    ssize_t (*cookie_read)(void *, char *, size_t);
+    ssize_t (*cookie_write)(void *, const char *, size_t);
+    int (*cookie_seek)(void *, off_t *, int);
+    int (*cookie_close)(void *);
 } FILE;
 
 typedef off_t fpos_t;
+
+typedef struct {
+    ssize_t (*read)(void *, char *, size_t);
+    ssize_t (*write)(void *, const char *, size_t);
+    int (*seek)(void *, off_t *, int);
+    int (*close)(void *);
+} cookie_io_functions_t;
 
 /*
  * A FILE may maintain an internal buffer for efficiency. Data written with
@@ -113,6 +126,13 @@ char *tempnam(const char *dir, const char *pfx);
 FILE *open_memstream(char **bufp, size_t *sizep);
 FILE *open_wmemstream(wchar_t **bufp, size_t *sizep);
 FILE *fmemopen(void *buf, size_t size, const char *mode);
+FILE *fopencookie(void *cookie, const char *mode,
+                  cookie_io_functions_t functions);
+FILE *funopen(const void *cookie,
+              int (*readfn)(void *, char *, int),
+              int (*writefn)(void *, const char *, int),
+              fpos_t (*seekfn)(void *, fpos_t, int),
+              int (*closefn)(void *));
 
 ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream);
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);

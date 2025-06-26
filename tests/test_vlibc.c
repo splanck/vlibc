@@ -1373,6 +1373,77 @@ static const char *test_wmemstream_basic(void)
     return 0;
 }
 
+struct cookie_buf {
+    char buf[64];
+    size_t pos;
+    size_t len;
+    int read_called;
+    int write_called;
+};
+
+static ssize_t cb_read(void *c, char *b, size_t n)
+{
+    struct cookie_buf *cb = c;
+    if (cb->pos >= cb->len)
+        return 0;
+    size_t avail = cb->len - cb->pos;
+    if (n > avail)
+        n = avail;
+    memcpy(b, cb->buf + cb->pos, n);
+    cb->pos += n;
+    cb->read_called++;
+    return (ssize_t)n;
+}
+
+static ssize_t cb_write(void *c, const char *b, size_t n)
+{
+    struct cookie_buf *cb = c;
+    if (cb->pos + n > sizeof(cb->buf))
+        n = sizeof(cb->buf) - cb->pos;
+    memcpy(cb->buf + cb->pos, b, n);
+    cb->pos += n;
+    if (cb->pos > cb->len)
+        cb->len = cb->pos;
+    cb->write_called++;
+    return (ssize_t)n;
+}
+
+static int cb_seek(void *c, off_t *off, int whence)
+{
+    struct cookie_buf *cb = c;
+    off_t newpos;
+    if (whence == SEEK_SET)
+        newpos = *off;
+    else if (whence == SEEK_CUR)
+        newpos = (off_t)cb->pos + *off;
+    else if (whence == SEEK_END)
+        newpos = (off_t)cb->len + *off;
+    else
+        return -1;
+    if (newpos < 0 || (size_t)newpos > cb->len)
+        return -1;
+    cb->pos = (size_t)newpos;
+    *off = newpos;
+    return 0;
+}
+
+static const char *test_fopencookie_basic(void)
+{
+    struct cookie_buf cb = {0};
+    cookie_io_functions_t io = { cb_read, cb_write, cb_seek, NULL };
+    FILE *f = fopencookie(&cb, "w+", io);
+    mu_assert("fopencookie", f != NULL);
+    mu_assert("write", fwrite("abc", 1, 3, f) == 3);
+    mu_assert("write_called", cb.write_called > 0);
+    rewind(f);
+    char out[4] = {0};
+    mu_assert("read", fread(out, 1, 3, f) == 3);
+    mu_assert("content", memcmp(out, "abc", 3) == 0);
+    mu_assert("read_called", cb.read_called > 0);
+    fclose(f);
+    return 0;
+}
+
 static const char *test_iconv_ascii_roundtrip(void)
 {
     iconv_t cd = iconv_open("UTF-8", "ASCII");
@@ -4681,6 +4752,7 @@ static const char *all_tests(void)
     mu_run_test(test_wmem_ops);
     mu_run_test(test_wchar_search);
     mu_run_test(test_wmemstream_basic);
+    mu_run_test(test_fopencookie_basic);
     mu_run_test(test_iconv_ascii_roundtrip);
     mu_run_test(test_iconv_invalid_byte);
     mu_run_test(test_strtok_basic);
