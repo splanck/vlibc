@@ -5,7 +5,9 @@
 vlibc exposes thin wrappers around the classical System‑V IPC
 facilities.  When running on BSD the native C library functions are
 invoked directly, while on Linux the wrappers issue the corresponding
-syscalls.
+syscalls.  The `ftok()` helper converts a pathname and project identifier
+into a `key_t` using inode and device numbers so that cooperating
+processes can agree on the same key.
 
 ### Example
 
@@ -16,7 +18,8 @@ syscalls.
 
 int main(void)
 {
-    int shmid = shmget(IPC_PRIVATE, 4096, IPC_CREAT | 0600);
+    key_t key = ftok("/tmp/app", 'v');
+    int shmid = shmget(key, 4096, IPC_CREAT | 0600);
     void *mem = shmat(shmid, NULL, 0);
 
     int semid = semget(IPC_PRIVATE, 1, IPC_CREAT | 0600);
