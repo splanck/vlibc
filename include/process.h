@@ -25,6 +25,8 @@ pid_t getpid(void);
 pid_t getppid(void);
 int setpgid(pid_t pid, pid_t pgid);
 pid_t getpgid(pid_t pid);
+int setpgrp(void);
+pid_t getpgrp(void);
 pid_t setsid(void);
 pid_t getsid(pid_t pid);
 

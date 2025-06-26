@@ -394,6 +394,25 @@ pid_t getpgid(pid_t pid)
 }
 
 /*
+ * getpgrp() - wrapper mapping to getpgid(0). Returns the calling process
+ * group ID or -1 with errno set if retrieval fails.
+ */
+pid_t getpgrp(void)
+{
+    return getpgid(0);
+}
+
+/*
+ * setpgrp() - wrapper mapping to setpgid(0, 0). Creates a new process group
+ * for the calling process. Returns 0 on success or -1 on failure with errno
+ * set.
+ */
+int setpgrp(void)
+{
+    return setpgid(0, 0);
+}
+
+/*
  * setsid() - create a new session using SYS_setsid when available. Returns
  * the new session ID or -1 on failure with errno set.
  */

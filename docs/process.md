@@ -40,6 +40,8 @@ pid_t getpid(void);
 pid_t getppid(void);
 int setpgid(pid_t pid, pid_t pgid);
 pid_t getpgid(pid_t pid);
+int setpgrp(void);
+pid_t getpgrp(void);
 pid_t setsid(void);
 pid_t getsid(pid_t pid);
 sighandler_t signal(int signum, sighandler_t handler);
@@ -71,6 +73,8 @@ These wrappers retrieve and manipulate process information. `getuid`,
 `geteuid`, `getgid`, and `getegid` return the real and effective user and
 group IDs. `setuid`, `seteuid`, `setgid`, and `setegid` modify them when
 supported by the host.
+Convenience wrappers `getpgrp()` and `setpgrp()` map to `getpgid(0)` and
+`setpgid(0, 0)` for portability.
 `sigqueue` delivers a queued signal with a small data payload when the
 platform exposes `rt_sigqueueinfo` or falls back to the native implementation.
 

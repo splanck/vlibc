@@ -2629,6 +2629,29 @@ static const char *test_pid_functions(void)
     return 0;
 }
 
+static const char *test_process_group_wrappers(void)
+{
+    pid_t original = getpgrp();
+    mu_assert("orig", original > 0);
+
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        if (setpgrp() != 0)
+            _exit(1);
+        pid_t pg = getpgrp();
+        if (pg != getpid())
+            _exit(2);
+        _exit(0);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("child", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    mu_assert("unchanged", getpgrp() == original);
+
+    return 0;
+}
+
 static const char *test_system_fn(void)
 {
     int r = system("true");
@@ -4087,6 +4110,7 @@ static const char *all_tests(void)
     mu_run_test(test_warn_functions);
     mu_run_test(test_err_functions);
     mu_run_test(test_strsignal_names);
+    mu_run_test(test_process_group_wrappers);
     mu_run_test(test_system_fn);
     mu_run_test(test_execv_fn);
     mu_run_test(test_execl_fn);
