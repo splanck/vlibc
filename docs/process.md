@@ -276,6 +276,9 @@ mutex for synchronization.
 `pthread_create()` spawns a new thread running the `start` routine with the
 given argument. The thread identifier is written to `thread` and can later be
 passed to `pthread_join()` or `pthread_detach()`.
+The vlibc wrappers simply alias to the host's `pthread_create`,
+`pthread_join` and `pthread_detach` when available so behaviour matches
+the system implementation.
 
 `pthread_join()` waits for a joinable thread to finish and retrieves the value
 returned by the start routine. It should only be called once per thread.

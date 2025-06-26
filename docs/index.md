@@ -14,7 +14,7 @@ without dragging in a full featured libc.  For usage examples see the
 | [Provided Headers](provided_headers.md) | Public header files installed by vlibc |
 | [Memory](memory.md) | Heap allocator, memory mapping and shared memory |
 | [System-V IPC](sysv_ipc.md) | Shared memory segments and semaphores |
-| [Process Control](process.md) | Fork, exec, signals and basic threading |
+| [Process Control](process.md) | Fork, exec, signals and thread creation |
 | [File I/O](io.md) | System call wrappers for file descriptors |
 | [Networking](network.md) | Socket helpers and address utilities |
 | [Filesystem](filesystem.md) | Permissions, directory walking and path helpers |
