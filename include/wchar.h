@@ -63,6 +63,10 @@ size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps);
 size_t mbstowcs(wchar_t *dst, const char *src, size_t n);
 /* Convert wide char string to multibyte */
 size_t wcstombs(char *dst, const wchar_t *src, size_t n);
+/* Convert multibyte string to wide chars with state */
+size_t mbsrtowcs(wchar_t *dst, const char **src, size_t n, mbstate_t *ps);
+/* Convert wide char string to multibyte with state */
+size_t wcsrtombs(char *dst, const wchar_t **src, size_t n, mbstate_t *ps);
 /* Return length of next multibyte sequence */
 size_t mbrlen(const char *s, size_t n, mbstate_t *ps);
 /* Check whether state is initial */

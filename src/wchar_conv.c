@@ -8,6 +8,7 @@
 
 #include "wchar.h"
 #include_next <wchar.h>
+#include "string.h"
 
 extern size_t host_mbrtowc(wchar_t *, const char *, size_t, mbstate_t *) __asm__("mbrtowc");
 extern size_t host_wcrtomb(char *, wchar_t, mbstate_t *) __asm__("wcrtomb");
@@ -115,4 +116,76 @@ size_t wcstombs(char *dst, const wchar_t *src, size_t n)
             i++;
     }
     return i;
+}
+
+/* Stateful multibyte string to wide conversion. */
+size_t mbsrtowcs(wchar_t *dst, const char **src, size_t n, mbstate_t *ps)
+{
+    if (!src)
+        return 0;
+
+    const char *s = *src;
+    size_t count = 0;
+
+    if (!dst)
+        n = (size_t)-1;
+
+    while (1) {
+        wchar_t wc = 0;
+        size_t r = mbrtowc(&wc, s, strlen(s) + 1, ps);
+        if (r == (size_t)-1)
+            return (size_t)-1;
+        if (r == (size_t)-2) {
+            *src = s;
+            return count;
+        }
+        if (r == 0) {
+            if (dst && count < n)
+                dst[count] = 0;
+            *src = NULL;
+            return count;
+        }
+        if (count >= n) {
+            *src = s;
+            return count;
+        }
+        if (dst)
+            dst[count] = wc;
+        s += r;
+        count++;
+    }
+}
+
+/* Stateful wide string to multibyte conversion. */
+size_t wcsrtombs(char *dst, const wchar_t **src, size_t n, mbstate_t *ps)
+{
+    if (!src)
+        return 0;
+
+    const wchar_t *s = *src;
+    size_t count = 0;
+    char buf[8];
+
+    if (!dst)
+        n = (size_t)-1;
+
+    while (1) {
+        size_t r = wcrtomb(buf, *s, ps);
+        if (r == (size_t)-1)
+            return (size_t)-1;
+        if (*s == L'\0') {
+            if (dst && count + r <= n)
+                memcpy(dst + count, buf, r);
+            *src = NULL;
+            return count;
+        }
+        if (count + r > n) {
+            *src = s;
+            return count;
+        }
+        if (dst)
+            memcpy(dst + count, buf, r);
+        count += r;
+        s++;
+    }
 }

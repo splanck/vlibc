@@ -71,6 +71,9 @@ variants used by `mbstowcs` and `wcstombs` for converting entire
 strings.  These helpers handle ASCII directly and fall back to the host
 C library when encountering non-ASCII data.  `wcslen` returns the length
 of a wide string excluding the terminator.
+`mbsrtowcs` and `wcsrtombs` expose the same conversions while updating
+the provided state pointer so that a string can be processed in
+multiple steps.
 
 `wcscpy`, `wcsncpy`, `wcscmp`, `wcsncmp`, and `wcsdup` mirror the
 behaviour of their narrow-string counterparts for copying, comparing and
