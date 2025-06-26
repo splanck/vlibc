@@ -55,6 +55,8 @@ int posix_spawnattr_setflags(posix_spawnattr_t *attr, short flags);
 int posix_spawnattr_getflags(const posix_spawnattr_t *attr, short *flags);
 int posix_spawnattr_setsigmask(posix_spawnattr_t *attr, const sigset_t *mask);
 int posix_spawnattr_getsigmask(const posix_spawnattr_t *attr, sigset_t *mask);
+int posix_spawnattr_setpgroup(posix_spawnattr_t *attr, pid_t pgroup);
+int posix_spawnattr_getpgroup(const posix_spawnattr_t *attr, pid_t *pgroup);
 
 /* spawn flags */
 #define POSIX_SPAWN_RESETIDS   0x01

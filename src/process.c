@@ -683,6 +683,24 @@ int posix_spawnattr_getsigmask(const posix_spawnattr_t *attr, sigset_t *mask)
     return 0;
 }
 
+/* Store the process group */
+int posix_spawnattr_setpgroup(posix_spawnattr_t *attr, pid_t pgroup)
+{
+    if (!attr)
+        return EINVAL;
+    attr->pgroup = pgroup;
+    return 0;
+}
+
+/* Copy out the stored process group */
+int posix_spawnattr_getpgroup(const posix_spawnattr_t *attr, pid_t *pgroup)
+{
+    if (!attr || !pgroup)
+        return EINVAL;
+    *pgroup = attr->pgroup;
+    return 0;
+}
+
 /* Internal helper to use vfork()/fork as available */
 static pid_t vlibc_vfork(void)
 {

@@ -16,6 +16,8 @@ programs. Key features include:
 - Wait for children with `wait()` or `waitpid()` and decode results
   with macros from `<sys/wait.h>`
 - Basic session and process-group APIs
+- Spawn processes with `posix_spawn()` supporting signal mask and
+  process-group attributes
 - Threading primitives and simple read-write locks
 - Thread-local storage helpers
 - Non-blocking mutex acquisition with `pthread_mutex_trylock()`
@@ -191,7 +193,8 @@ waitpid(pid, NULL, 0);
 ```
 
 `posix_spawn` now honors optional attributes and file actions so callers can
-remap file descriptors or specify a signal mask for the new process.
+remap file descriptors or specify a signal mask and process group for the new
+process.
 
 For detailed documentation, see [docs/index.md](docs/index.md).
 Suboption parsing with `getsubopt` is covered in
