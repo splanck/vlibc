@@ -16,6 +16,11 @@ extern pthread_t host_pthread_self(void) __asm__("pthread_self");
 extern int host_pthread_equal(pthread_t, pthread_t) __asm__("pthread_equal");
 extern void host_pthread_exit(void *) __asm__("pthread_exit");
 extern int host_pthread_cancel(pthread_t) __asm__("pthread_cancel");
+extern int host_pthread_create(pthread_t *, const void *,
+                               void *(*)(void *), void *)
+    __asm__("pthread_create");
+extern int host_pthread_join(pthread_t, void **) __asm__("pthread_join");
+extern int host_pthread_detach(pthread_t) __asm__("pthread_detach");
 
 /* Initialize a mutex implemented as a simple spinlock. */
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
@@ -206,6 +211,31 @@ void *pthread_getspecific(pthread_key_t key)
     if (key >= KEY_MAX || !key_destructors[key])
         return NULL;
     return key_values[key];
+}
+
+int pthread_create(pthread_t *thread, const void *attr,
+                   void *(*start_routine)(void *), void *arg)
+{
+    if (!thread || !start_routine)
+        return EINVAL;
+
+    int ret = host_pthread_create(thread, NULL, start_routine, arg);
+    if (ret == 0 && attr) {
+        const pthread_attr_t *a = attr;
+        if (a->detachstate == PTHREAD_CREATE_DETACHED)
+            host_pthread_detach(*thread);
+    }
+    return ret;
+}
+
+int pthread_join(pthread_t thread, void **retval)
+{
+    return host_pthread_join(thread, retval);
+}
+
+int pthread_detach(pthread_t thread)
+{
+    return host_pthread_detach(thread);
 }
 
 static pthread_mutex_t once_lock;

@@ -1871,6 +1871,21 @@ static const char *test_ferror_flag(void)
     return 0;
 }
 
+static void *basic_worker(void *arg)
+{
+    *(int *)arg = 7;
+    return NULL;
+}
+
+static const char *test_pthread_create_join(void)
+{
+    pthread_t t;
+    int v = 0;
+    mu_assert("create", pthread_create(&t, NULL, basic_worker, &v) == 0);
+    mu_assert("join", pthread_join(t, NULL) == 0);
+    mu_assert("value", v == 7);
+    return 0;
+}
 
 static const char *test_pthread(void)
 {
@@ -1895,7 +1910,7 @@ static const char *test_pthread_detach(void)
     pthread_detach(t);
     usleep(100000);
     mu_assert("shared value", val == 42);
-    mu_assert("join fails", pthread_join(t, NULL) == -1);
+    mu_assert("join fails", pthread_join(t, NULL) != 0);
 
     return 0;
 }
@@ -4365,6 +4380,7 @@ static const char *all_tests(void)
     mu_run_test(test_fflush);
     mu_run_test(test_feof_flag);
     mu_run_test(test_ferror_flag);
+    mu_run_test(test_pthread_create_join);
     mu_run_test(test_pthread);
     mu_run_test(test_pthread_detach);
     mu_run_test(test_pthread_exit);

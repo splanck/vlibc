@@ -72,12 +72,15 @@ int pthread_attr_getstacksize(const pthread_attr_t *attr, size_t *size);
 
 int pthread_create(pthread_t *thread, const void *attr,
                    void *(*start_routine)(void *), void *arg);
-/* Spawn a new thread executing "start_routine" with "arg" using
- * the underlying host pthread implementation. */
+/* Spawn a new thread executing "start_routine" with "arg" via the
+ * host's pthread implementation.  Returns 0 on success or an errno
+ * style value on failure. */
 int pthread_join(pthread_t thread, void **retval);
-/* Wait for the given thread to finish and retrieve its return value. */
+/* Wait for the given thread to finish and retrieve its return value.
+ * The return code mirrors the underlying pthread_join result. */
 int pthread_detach(pthread_t thread);
-/* Mark the thread as detached so its resources are released on exit. */
+/* Mark the thread as detached so its resources are released on exit.
+ * Returns 0 on success or an error number. */
 pthread_t pthread_self(void);
 /* Obtain the identifier of the calling thread. */
 int pthread_equal(pthread_t a, pthread_t b);
