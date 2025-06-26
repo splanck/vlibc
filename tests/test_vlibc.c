@@ -1198,6 +1198,20 @@ static const char *test_widechar_conv(void)
 
     mu_assert("mbsinit", mbsinit(&st));
 
+    const char *m = "h\xC3\xA9llo";
+    const char *mp = m;
+    wchar_t wtmp[8];
+    n = mbsrtowcs(wtmp, &mp, 8, &st);
+    mu_assert("mbsrtowcs len", n == 5 && mp == NULL);
+
+    const wchar_t *wp = wtmp;
+    char mbtmp[16] = {0};
+    mbstate_t st2 = {0};
+    size_t nb = wcsrtombs(mbtmp, &wp, sizeof(mbtmp), &st2);
+    mu_assert("wcsrtombs len", nb == strlen(m));
+    mu_assert("wcsrtombs end", wp == NULL);
+    mu_assert("roundtrip", strcmp(mbtmp, m) == 0);
+
     return 0;
 }
 
