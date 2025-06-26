@@ -91,6 +91,7 @@ programs. Key features include:
 - Device node creation with `mknod()` and `mknodat()`
 - File space reservation with `posix_fallocate()`
 - Access pattern hints with `posix_fadvise()`
+- Memory usage hints with `posix_madvise()`
 - Force file updates to disk with `fsync()` and `fdatasync()`
 - Generic descriptor control with `ioctl()`
 - Query terminal device paths with `ttyname()` and `ttyname_r()`

@@ -26,6 +26,7 @@ int munlock(const void *addr, size_t length);
 int mlockall(int flags);
 int munlockall(void);
 int madvise(void *addr, size_t length, int advice);
+int posix_madvise(void *addr, size_t length, int advice);
 
 /*
  * Some BSD systems expose MAP_ANON instead of MAP_ANONYMOUS.  Provide
@@ -91,6 +92,22 @@ int madvise(void *addr, size_t length, int advice);
 #endif
 #ifndef MADV_DONTNEED
 #define MADV_DONTNEED 4
+#endif
+
+#ifndef POSIX_MADV_NORMAL
+#define POSIX_MADV_NORMAL 0
+#endif
+#ifndef POSIX_MADV_RANDOM
+#define POSIX_MADV_RANDOM 1
+#endif
+#ifndef POSIX_MADV_SEQUENTIAL
+#define POSIX_MADV_SEQUENTIAL 2
+#endif
+#ifndef POSIX_MADV_WILLNEED
+#define POSIX_MADV_WILLNEED 3
+#endif
+#ifndef POSIX_MADV_DONTNEED
+#define POSIX_MADV_DONTNEED 4
 #endif
 
 #endif /* MMAN_H */

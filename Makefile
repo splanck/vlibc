@@ -102,6 +102,7 @@ SRC := \
     src/truncate.c \
     src/posix_fallocate.c \
     src/posix_fadvise.c \
+    src/posix_madvise.c \
     src/dir.c \
     src/access.c \
     src/getcwd.c \

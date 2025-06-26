@@ -875,6 +875,14 @@ static const char *test_posix_fadvise_invalid(void)
     return 0;
 }
 
+static const char *test_posix_madvise_basic(void)
+{
+    char buf[4096];
+    int r = posix_madvise(buf, sizeof(buf), POSIX_MADV_NORMAL);
+    mu_assert("posix_madvise", r == 0);
+    return 0;
+}
+
 static const char *test_link_readlink(void)
 {
     const char *target = "tmp_ln_target";
@@ -4481,6 +4489,7 @@ static const char *all_tests(void)
     mu_run_test(test_posix_fallocate_basic);
     mu_run_test(test_posix_fadvise_basic);
     mu_run_test(test_posix_fadvise_invalid);
+    mu_run_test(test_posix_madvise_basic);
     mu_run_test(test_link_readlink);
     mu_run_test(test_at_wrappers_basic);
     mu_run_test(test_fsync_basic);
