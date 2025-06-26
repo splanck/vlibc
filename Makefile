@@ -201,6 +201,7 @@ SRC := \
     src/vis.c \
     src/wprintf.c \
     src/wscanf.c \
+    src/sigsetjmp.c \
     src/progname.c
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)

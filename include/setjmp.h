@@ -12,4 +12,15 @@
 #  endif
 #endif
 
+#ifndef sigjmp_buf
+typedef jmp_buf sigjmp_buf;
+#endif
+
+#ifndef sigsetjmp
+int sigsetjmp(sigjmp_buf env, int save);
+#endif
+#ifndef siglongjmp
+void siglongjmp(sigjmp_buf env, int val);
+#endif
+
 #endif /* SETJMP_H */

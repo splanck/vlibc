@@ -43,10 +43,13 @@ For targets lacking a native implementation, custom versions live under
 ```c
 int setjmp(jmp_buf env);
 void longjmp(jmp_buf env, int val);
+int sigsetjmp(sigjmp_buf env, int save);
+void siglongjmp(sigjmp_buf env, int val);
 ```
 
-Jumping across signal handlers may leave blocked signals in an undefined
-state.
+Passing a non-zero `save` stores the current signal mask so that
+`siglongjmp` can restore it.  Jumping across signal handlers without
+saving the mask may leave blocked signals in an undefined state.
 
 ## Floating-Point Environment
 
@@ -87,8 +90,9 @@ speeds stored in a `termios` structure are changed with `cfsetispeed()` and
   [process.md](process.md).
 - Locale handling falls back to the host implementation for values other
   than `"C"` or `"POSIX"`.
-- `setjmp`/`longjmp` rely on the host C library when available.
-  Only an x86_64 fallback implementation is provided.
+- `setjmp`/`longjmp` and `sigsetjmp`/`siglongjmp` rely on the host C library
+  when available. Only an x86_64 fallback implementation is provided and
+  the signal-mask fields follow glibc's layout.
 - Regular expressions cover only a subset of POSIX syntax. Capture
   groups and numeric backreferences are supported but more advanced
   features remain unimplemented.
