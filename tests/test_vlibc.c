@@ -401,6 +401,45 @@ static const char *test_readv_writev(void)
     return 0;
 }
 
+static const char *test_preadv_pwritev(void)
+{
+    const char *fname = "tmp_preadv_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+
+    const char *msg = "abcdef";
+    mu_assert("init write", write(fd, msg, 6) == 6);
+    off_t pos = lseek(fd, 0, SEEK_CUR);
+    mu_assert("pos", pos == 6);
+
+    const char *a = "XY";
+    const char *b = "ZZ";
+    struct iovec wv[2];
+    wv[0].iov_base = (void *)a;
+    wv[0].iov_len = 2;
+    wv[1].iov_base = (void *)b;
+    wv[1].iov_len = 2;
+    ssize_t w = pwritev(fd, wv, 2, 2);
+    mu_assert("pwritev", w == 4);
+    mu_assert("offset unchanged", lseek(fd, 0, SEEK_CUR) == pos);
+
+    char buf1[3] = {0};
+    char buf2[3] = {0};
+    struct iovec rv[2];
+    rv[0].iov_base = buf1;
+    rv[0].iov_len = 2;
+    rv[1].iov_base = buf2;
+    rv[1].iov_len = 2;
+    ssize_t r = preadv(fd, rv, 2, 2);
+    mu_assert("preadv", r == 4);
+    mu_assert("vec data", strcmp(buf1, "XY") == 0 && strcmp(buf2, "ZZ") == 0);
+    mu_assert("offset still", lseek(fd, 0, SEEK_CUR) == pos);
+
+    close(fd);
+    unlink(fname);
+    return 0;
+}
+
 static const char *test_sendfile_copy(void)
 {
     const char *src = "tmp_sf_src";
@@ -3981,6 +4020,7 @@ static const char *all_tests(void)
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
     mu_run_test(test_pread_pwrite);
+    mu_run_test(test_preadv_pwritev);
     mu_run_test(test_readv_writev);
     mu_run_test(test_sendfile_copy);
 #ifdef __NetBSD__

@@ -10,7 +10,9 @@ corresponding syscalls or suitable fallbacks.
 `access` and `faccessat` query permissions on files without opening
 them.
 Vector I/O through `readv` and `writev` is available to gather or scatter
-multiple buffers in a single call. Zero-copy transfers are possible with
+multiple buffers in a single call.  The offset aware variants `preadv`
+and `pwritev` operate on multiple buffers at a specific file position.
+Zero-copy transfers are possible with
 `sendfile`, which uses the BSD system call when available and otherwise
 falls back to copying via `read` and `write`.
 
@@ -75,6 +77,9 @@ reading or writing at a specific offset, or duplicating handles.
 off_t pos = lseek(fd, 0, SEEK_SET);
 ssize_t n = pread(fd, buf, 16, 4);
 pwrite(fd, buf, n, 32);
+struct iovec v[2] = { {buf, 4}, {buf + 4, 4} };
+preadv(fd, v, 2, 0);
+pwritev(fd, v, 2, 8);
 int duped = dup(fd);
 int pipefd[2];
 pipe(pipefd);

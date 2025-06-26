@@ -7,6 +7,7 @@
 #define IO_H
 
 #include <sys/types.h>
+#include "sys/uio.h"
 
 /* Open a file using vlibc_syscall with SYS_open or SYS_openat. */
 int open(const char *path, int flags, ...);
@@ -20,6 +21,10 @@ ssize_t write(int fd, const void *buf, size_t count);
 ssize_t pread(int fd, void *buf, size_t count, off_t offset);
 /* Positional write with SYS_pwrite/SYS_pwrite64 or host pwrite. */
 ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset);
+/* Vector positional read using SYS_preadv/preadv2 or a loop fallback. */
+ssize_t preadv(int fd, const struct iovec *iov, int iovcnt, off_t offset);
+/* Vector positional write using SYS_pwritev/pwritev2 or a loop fallback. */
+ssize_t pwritev(int fd, const struct iovec *iov, int iovcnt, off_t offset);
 /* Close a descriptor using SYS_close. */
 int close(int fd);
 off_t lseek(int fd, off_t offset, int whence);
