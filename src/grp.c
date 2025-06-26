@@ -10,6 +10,7 @@
 #include "io.h"
 #include "string.h"
 #include "stdlib.h"
+#include "memory.h"
 #include "env.h"
 #include <fcntl.h>
 #include <unistd.h>
