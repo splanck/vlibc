@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include "stdio.h"
 #include "syscall.h"
 
 int shm_open(const char *name, int oflag, mode_t mode)
