@@ -100,6 +100,10 @@ int nanosleep(const struct timespec *req, struct timespec *rem);
 unsigned int alarm(unsigned int seconds);
 ```
 
+`clock_nanosleep` accepts a clock ID and optional `TIMER_ABSTIME` flag to
+sleep until an absolute time. When the kernel lacks the dedicated syscall the
+wrapper falls back to `nanosleep` and `clock_gettime`.
+
 ## Scheduling
 
 `sched_yield` allows a thread to voluntarily relinquish the CPU, letting

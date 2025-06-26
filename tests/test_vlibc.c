@@ -2235,6 +2235,31 @@ static const char *test_sleep_functions(void)
     return 0;
 }
 
+static const char *test_clock_nanosleep_basic(void)
+{
+    struct timespec ts, start, end;
+
+    ts.tv_sec = 1;
+    ts.tv_nsec = 0;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    mu_assert("clock_nanosleep rel",
+             clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL) == 0);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    mu_assert("rel delay", end.tv_sec - start.tv_sec >= 1 &&
+                             end.tv_sec - start.tv_sec <= 3);
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    ts = start;
+    ts.tv_sec += 1;
+    mu_assert("clock_nanosleep abs",
+             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, NULL) == 0);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    mu_assert("abs delay", end.tv_sec - start.tv_sec >= 1 &&
+                            end.tv_sec - start.tv_sec <= 3);
+
+    return 0;
+}
+
 static const char *test_sched_yield_basic(void)
 {
     mu_assert("sched_yield", sched_yield() == 0);
@@ -4484,6 +4509,7 @@ static const char *all_tests(void)
     mu_run_test(test_select_pipe);
     mu_run_test(test_poll_pipe);
     mu_run_test(test_sleep_functions);
+    mu_run_test(test_clock_nanosleep_basic);
     mu_run_test(test_sched_yield_basic);
     mu_run_test(test_sched_yield_loop);
     mu_run_test(test_priority_wrappers);
