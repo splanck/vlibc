@@ -77,6 +77,9 @@ void srand48(long seedval);
 unsigned short *seed48(unsigned short seed16v[3]);
 void lcong48(unsigned short param[7]);
 
+/* System load averages */
+int getloadavg(double loadavg[], int nelem);
+
 /* Register a function to run at normal process exit */
 int atexit(void (*fn)(void));
 
