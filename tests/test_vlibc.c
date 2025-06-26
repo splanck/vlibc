@@ -1942,6 +1942,22 @@ static const char *test_pthread_mutexattr(void)
     return 0;
 }
 
+static const char *test_pthread_attr_basic(void)
+{
+    pthread_attr_t attr;
+    size_t sz = 0;
+    int st = -1;
+    mu_assert("init", pthread_attr_init(&attr) == 0);
+    mu_assert("get default stack", pthread_attr_getstacksize(&attr, &sz) == 0 && sz == 0);
+    mu_assert("set stack", pthread_attr_setstacksize(&attr, 65536) == 0);
+    mu_assert("get stack", pthread_attr_getstacksize(&attr, &sz) == 0 && sz == 65536);
+    mu_assert("get detach default", pthread_attr_getdetachstate(&attr, &st) == 0 && st == PTHREAD_CREATE_JOINABLE);
+    mu_assert("set detach", pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) == 0);
+    mu_assert("get detach", pthread_attr_getdetachstate(&attr, &st) == 0 && st == PTHREAD_CREATE_DETACHED);
+    mu_assert("destroy", pthread_attr_destroy(&attr) == 0);
+    return 0;
+}
+
 static pthread_rwlock_t rwlock;
 static int rwval;
 
@@ -4283,6 +4299,7 @@ static const char *all_tests(void)
     mu_run_test(test_pthread_cancel);
     mu_run_test(test_pthread_tls);
     mu_run_test(test_pthread_mutexattr);
+    mu_run_test(test_pthread_attr_basic);
     mu_run_test(test_pthread_rwlock);
     mu_run_test(test_pthread_barrier);
     mu_run_test(test_pthread_spinlock);
