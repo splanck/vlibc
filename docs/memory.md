@@ -18,6 +18,7 @@ void *malloc(size_t size);
 void free(void *ptr);
 void *calloc(size_t nmemb, size_t size);
 void *realloc(void *ptr, size_t size);
+void *reallocf(void *ptr, size_t size);
 void *reallocarray(void *ptr, size_t nmemb, size_t size);
 void *recallocarray(void *ptr, size_t nmemb, size_t size);
 int posix_memalign(void **memptr, size_t alignment, size_t size);
@@ -34,6 +35,8 @@ void *aligned_alloc(size_t alignment, size_t size);
 - `calloc` calls `malloc` and zeroes the allocated block.
 - `realloc` always allocates a new block and copies up to `size` bytes from the
   old pointer if one was provided.
+- `reallocf` behaves like `realloc` but frees the original block when the
+  resize fails.
 - `reallocarray` multiplies `nmemb` and `size` with overflow checks, returning
   `NULL` and setting `errno` to `ENOMEM` on overflow.
 - `recallocarray` behaves like `reallocarray` but zeroes any newly allocated
