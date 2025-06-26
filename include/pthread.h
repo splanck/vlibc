@@ -55,6 +55,21 @@ typedef struct {
 #define PTHREAD_ONCE_INIT { ATOMIC_VAR_INIT(0) }
 #define PTHREAD_CANCELED ((void *)-1)
 
+typedef struct {
+    int detachstate;
+    size_t stacksize;
+} pthread_attr_t;
+
+#define PTHREAD_CREATE_JOINABLE 0
+#define PTHREAD_CREATE_DETACHED 1
+
+int pthread_attr_init(pthread_attr_t *attr);
+int pthread_attr_destroy(pthread_attr_t *attr);
+int pthread_attr_setdetachstate(pthread_attr_t *attr, int state);
+int pthread_attr_getdetachstate(const pthread_attr_t *attr, int *state);
+int pthread_attr_setstacksize(pthread_attr_t *attr, size_t size);
+int pthread_attr_getstacksize(const pthread_attr_t *attr, size_t *size);
+
 int pthread_create(pthread_t *thread, const void *attr,
                    void *(*start_routine)(void *), void *arg);
 /* Spawn a new thread executing "start_routine" with "arg" using

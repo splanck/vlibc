@@ -137,6 +137,7 @@ SRC := \
     src/statvfs.c \
     src/utime.c \
     src/pthread.c \
+    src/pthread_attr.c \
     src/pthread_rwlock.c \
     src/pthread_spin.c \
     src/pthread_barrier.c \

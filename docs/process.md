@@ -281,6 +281,15 @@ returned by the start routine. It should only be called once per thread.
 `pthread_detach()` marks a thread so that its resources are reclaimed
 automatically when it terminates. Detached threads cannot be joined.
 
+New threads can be configured with an attribute object prior to creation.
+`pthread_attr_init` initializes the object which tracks the detach state and
+desired stack size. Use `pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED)`
+to start the thread in detached mode or leave it joinable with
+`PTHREAD_CREATE_JOINABLE`. The stack size can be adjusted with
+`pthread_attr_setstacksize(&attr, size)` to override the host default.
+Retrieve the current settings with the matching `pthread_attr_get*` functions
+and release resources with `pthread_attr_destroy()` when done.
+
 `pthread_exit()` terminates the calling thread immediately and supplies the
 given value to any `pthread_join()` waiting on it. Another thread can request
 cancellation with `pthread_cancel()`. When the target reaches a cancellation
