@@ -76,6 +76,19 @@ Thread-safe variants `gmtime_r` and `localtime_r` fill a user-provided
 timezone from the `TZ` environment variable or `/etc/localtime` so
 `localtime`, `mktime` and `ctime` honour the configured offset.
 
+## Clock Adjustment
+
+`clock_settime` updates the value of a particular clock. When the
+`SYS_clock_settime` syscall is present it is invoked directly. On the BSD
+family the wrapper falls back to `settimeofday` when adjusting
+`CLOCK_REALTIME`. Modifying clocks typically requires superuser
+privileges.
+
+```c
+struct timespec ts = { .tv_sec = 1700000000, .tv_nsec = 0 };
+clock_settime(CLOCK_REALTIME, &ts);
+```
+
 ## Sleep Functions
 
 Delay helpers are available in `time.h`:

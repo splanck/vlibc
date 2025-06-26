@@ -111,6 +111,13 @@ int clock_getres(int clk_id, struct timespec *res);
  * systems the host clock_getres implementation is called if
  * no direct syscall is present.
  */
+int clock_settime(int clk_id, const struct timespec *ts);
+/*
+ * Set the specified clock. When SYS_clock_settime exists it is
+ * invoked directly. BSD builds fall back to settimeofday() for
+ * CLOCK_REALTIME.
+ */
+
 
 time_t time(time_t *t);
 /*
