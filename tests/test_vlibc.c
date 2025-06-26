@@ -42,6 +42,7 @@
 #include "../include/process.h"
 #include "../include/getopt.h"
 #include "../include/math.h"
+#include "../include/fenv.h"
 #include "../include/complex.h"
 #include "../include/locale.h"
 #include "../include/regex.h"
@@ -3993,6 +3994,21 @@ static const char *test_fp_checks(void)
     return 0;
 }
 
+static const char *test_fenv_rounding(void)
+{
+    int orig = fegetround();
+    mu_assert("set down", fesetround(FE_DOWNWARD) == 0);
+    mu_assert("down mode", fegetround() == FE_DOWNWARD);
+    double d = __builtin_nearbyint(1.3);
+    mu_assert("round down", d == 1.0);
+    mu_assert("set up", fesetround(FE_UPWARD) == 0);
+    mu_assert("up mode", fegetround() == FE_UPWARD);
+    d = __builtin_nearbyint(1.3);
+    mu_assert("round up", d == 2.0);
+    mu_assert("restore", fesetround(orig) == 0);
+    return 0;
+}
+
 static void encode_vis(const char *src, char *dst, int flags)
 {
     while (*src) {
@@ -4441,6 +4457,7 @@ static const char *all_tests(void)
     mu_run_test(test_vis_roundtrip);
     mu_run_test(test_nvis_basic);
     mu_run_test(test_fp_checks);
+    mu_run_test(test_fenv_rounding);
     mu_run_test(test_getopt_basic);
     mu_run_test(test_getopt_missing);
     mu_run_test(test_dlopen_basic);

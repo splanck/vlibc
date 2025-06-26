@@ -48,6 +48,21 @@ void longjmp(jmp_buf env, int val);
 Jumping across signal handlers may leave blocked signals in an undefined
 state.
 
+## Floating-Point Environment
+
+`<fenv.h>` exposes a small portion of the floating-point environment. Use
+`fegetround` and `fesetround` to query or change the rounding mode and
+`feclearexcept` to reset exception flags. The `fenv_t` type can store the
+environment for later restoration with `fegetenv` and `fesetenv`.
+
+```c
+fenv_t env;
+fegetenv(&env);
+fesetround(FE_DOWNWARD);
+double d = nearbyint(1.2); // rounds toward -INF => 1.0
+fesetenv(&env);
+```
+
 ## Limitations
 
  - The I/O routines perform simple optional buffering and provide only
