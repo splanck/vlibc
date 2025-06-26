@@ -97,6 +97,7 @@ SRC := \
     src/file_perm.c \
     src/flock.c \
     src/fsync.c \
+    src/sync.c \
     src/truncate.c \
     src/posix_fallocate.c \
     src/posix_fadvise.c \

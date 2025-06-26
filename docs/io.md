@@ -86,7 +86,8 @@ pipe(pipefd);
 ```
 
 Flush pending writes with `fsync(fd)` or the data-only variant
-`fdatasync(fd)`. Both return 0 on success.
+`fdatasync(fd)`. Both return 0 on success.  `sync()` forces the kernel to
+write all buffered filesystem data to disk.
 
 Use `isatty(fd)` to query whether a descriptor refers to a terminal.
 
