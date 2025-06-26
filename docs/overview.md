@@ -56,5 +56,13 @@ make install PREFIX=/usr/local
 make test
 ```
 
+You can run a subset using the `TEST_GROUP` variable or convenience targets:
+
+```sh
+make test TEST_GROUP=memory
+make test-memory
+make test-network
+```
+
 This builds `tests/run_tests` and executes the suite.
 

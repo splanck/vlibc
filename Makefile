@@ -213,6 +213,7 @@ LIB := libvlibc.a
 TEST_SRC := $(wildcard tests/*.c)
 TEST_BIN := tests/run_tests
 PLUGIN_SO := tests/plugin.so
+TEST_GROUP ?=
 
 all: $(LIB)
 
@@ -226,7 +227,13 @@ $(TEST_BIN): $(TEST_SRC) $(LIB) $(PLUGIN_SO)
 	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -lpthread -lcrypto -lm -o $@
 
 test: $(TEST_BIN)
-	./$(TEST_BIN)
+	./$(TEST_BIN) $(TEST_GROUP)
+
+test-memory: TEST_GROUP=memory
+test-memory: test
+
+test-network: TEST_GROUP=network
+test-network: test
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -251,4 +258,4 @@ install: $(LIB)
 clean:
 	rm -f $(OBJ) $(LIB) $(TEST_BIN) $(PLUGIN_SO)
 
-.PHONY: all install clean test
+.PHONY: all install clean test test-memory test-network
