@@ -39,6 +39,10 @@ int wcscmp(const wchar_t *s1, const wchar_t *s2);
 int wcsncmp(const wchar_t *s1, const wchar_t *s2, size_t n);
 /* Duplicate a wide-character string */
 wchar_t *wcsdup(const wchar_t *s);
+/* Collate wide-character strings */
+int wcscoll(const wchar_t *s1, const wchar_t *s2);
+/* Transform wide-character string for collation */
+size_t wcsxfrm(wchar_t *dest, const wchar_t *src, size_t n);
 /* Tokenize a wide-character string */
 wchar_t *wcstok(wchar_t *str, const wchar_t *delim, wchar_t **saveptr);
 /* Display width of a wide character */
