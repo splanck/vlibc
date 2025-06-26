@@ -46,8 +46,11 @@ int daemon(int nochdir, int noclose)
 #endif
 #endif
 
-    if (!nochdir)
-        chdir("/");
+    if (!nochdir) {
+        int cdret = chdir("/");
+        if (cdret < 0)
+            return -1;
+    }
     umask(0);
 
     if (!noclose) {
