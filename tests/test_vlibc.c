@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include "../include/arpa/inet.h"
 #include <stdint.h>
+#include <inttypes.h>
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
 #include "../include/pthread.h"
@@ -1012,6 +1013,17 @@ static const char *test_string_helpers(void)
         ldiff = -ldiff;
     mu_assert("strtold", ldiff < 1e-9L && *end == '\0');
     mu_assert("atof", atof("-3.0") == -3.0);
+
+    char numbuf[64];
+    snprintf(numbuf, sizeof(numbuf), "%jd", (intmax_t)INTMAX_MAX);
+    mu_assert("strtoimax max",
+              strtoimax(numbuf, &end, 10) == INTMAX_MAX && *end == '\0');
+    snprintf(numbuf, sizeof(numbuf), "%jd", (intmax_t)INTMAX_MIN);
+    mu_assert("strtoimax min",
+              strtoimax(numbuf, &end, 10) == INTMAX_MIN && *end == '\0');
+    snprintf(numbuf, sizeof(numbuf), "%ju", (uintmax_t)UINTMAX_MAX);
+    mu_assert("strtoumax max",
+              strtoumax(numbuf, &end, 10) == UINTMAX_MAX && *end == '\0');
 
     mu_assert("strnlen zero", strnlen("abc", 0) == 0);
     mu_assert("strnlen short", strnlen("hello", 3) == 3);

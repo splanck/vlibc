@@ -34,7 +34,7 @@ The **string** module provides fundamental operations needed by most C programs:
   memory and is not thread-safe. `strtok_r` lets the caller maintain the
   context and is safe for concurrent use.
   - Simple number conversion helpers `atoi`, `strtol`, `strtoul`, `strtoll`,
-    `strtoull`, `strtof`, `strtod`, `strtold`, and `atof`.
+    `strtoull`, `strtoimax`, `strtoumax`, `strtof`, `strtod`, `strtold`, and `atof`.
 
 ### Example
 
