@@ -131,6 +131,7 @@ SRC := \
     src/clock_settime.c \
     src/time.c \
     src/time_conv.c \
+    src/timespec_get.c \
     src/time_r.c \
     src/times.c \
     src/itimer.c \

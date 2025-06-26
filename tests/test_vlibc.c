@@ -2399,6 +2399,15 @@ static const char *test_getloadavg_basic(void)
     return 0;
 }
 
+static const char *test_timespec_get_basic(void)
+{
+    struct timespec ts;
+    int r = timespec_get(&ts, TIME_UTC);
+    mu_assert("timespec_get ret", r == TIME_UTC);
+    mu_assert("timespec_get sec", ts.tv_sec > 0);
+    return 0;
+}
+
 static const char *test_strftime_basic(void)
 {
     struct tm tm = {
@@ -4664,6 +4673,7 @@ static const char *all_tests(void)
     mu_run_test(test_getrusage_self);
     mu_run_test(test_times_self);
     mu_run_test(test_getloadavg_basic);
+    mu_run_test(test_timespec_get_basic);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_strftime_extended);
     mu_run_test(test_wcsftime_basic);
