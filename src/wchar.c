@@ -8,6 +8,8 @@
 
 #include "wchar.h"
 #include "memory.h"
+#include "string.h"
+#include "locale.h"
 
 /* Convert multibyte sequence to wide character. */
 int mbtowc(wchar_t *pwc, const char *s, size_t n)
@@ -129,6 +131,42 @@ wchar_t *wcsdup(const wchar_t *s)
         return NULL;
     wcscpy(dup, s);
     return dup;
+}
+
+/* Collate two wide-character strings. */
+int wcscoll(const wchar_t *s1, const wchar_t *s2)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    const char *loc = setlocale(LC_COLLATE, NULL);
+    if (loc && strcmp(loc, "C") != 0 && strcmp(loc, "POSIX") != 0) {
+        extern int host_wcscoll(const wchar_t *, const wchar_t *) __asm("wcscoll");
+        return host_wcscoll(s1, s2);
+    }
+#endif
+    return wcscmp(s1, s2);
+}
+
+/* Transform a wide-character string for collation. */
+size_t wcsxfrm(wchar_t *dest, const wchar_t *src, size_t n)
+{
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    const char *loc = setlocale(LC_COLLATE, NULL);
+    if (loc && strcmp(loc, "C") != 0 && strcmp(loc, "POSIX") != 0) {
+        extern size_t host_wcsxfrm(wchar_t *, const wchar_t *, size_t) __asm("wcsxfrm");
+        return host_wcsxfrm(dest, src, n);
+    }
+#endif
+    size_t len = wcslen(src);
+    if (n) {
+        size_t copy = len >= n ? n - 1 : len;
+        if (dest) {
+            wmemcpy(dest, src, copy);
+            dest[copy] = L'\0';
+        }
+    }
+    return len;
 }
 
 /* Helper to test if a character is in the delimiter set. */

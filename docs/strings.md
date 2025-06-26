@@ -12,7 +12,7 @@ The **string** module provides fundamental operations needed by most C programs:
 - Case-insensitive substring search with `strcasestr`.
 - Basic collation helpers `strcoll` and `strxfrm` act on ASCII strings. On
   BSD systems they defer to the host implementations when the active locale is
-  not `"C"` or `"POSIX"`.
+  not `"C"` or `"POSIX"`. The wide-character versions `wcscoll` and `wcsxfrm` behave the same way.
 - Conventional memory routines (`memcpy`, `memmove`, `memset`, `memcmp`) map to
   the internal `v` implementations.
 - `memccpy` stops copying when a byte value is found and returns a pointer past
@@ -73,10 +73,12 @@ of a wide string excluding the terminator.
 
 `wcscpy`, `wcsncpy`, `wcscmp`, `wcsncmp`, and `wcsdup` mirror the
 behaviour of their narrow-string counterparts for copying, comparing and
-duplicating wide strings. The `wcstok` function tokenizes a wide string
-using a caller-supplied save pointer. The `wmemcpy`, `wmemmove`,
-`wmemset` and `wmemcmp` routines operate on arrays of `wchar_t`
-analogous to the byte
+duplicating wide strings. Collation helpers `wcscoll` and `wcsxfrm` use
+simple lexicographic ordering in the `C` locale and delegate to the host
+implementation on BSD when other locales are active. The `wcstok`
+function tokenizes a wide string using a caller-supplied save pointer.
+The `wmemcpy`, `wmemmove`, `wmemset` and `wmemcmp` routines operate on
+arrays of `wchar_t` analogous to the byte-oriented routines.
 
 ### Example
 

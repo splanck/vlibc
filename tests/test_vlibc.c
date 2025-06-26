@@ -1042,6 +1042,17 @@ static const char *test_strcoll_xfrm(void)
     return 0;
 }
 
+static const char *test_wcscoll_xfrm(void)
+{
+    mu_assert("wcscoll eq", wcscoll(L"abc", L"abc") == 0);
+    mu_assert("wcscoll lt", wcscoll(L"abc", L"abd") < 0);
+    wchar_t buf[8];
+    size_t n = wcsxfrm(buf, L"abc", sizeof(buf) / sizeof(wchar_t));
+    mu_assert("wcsxfrm len", n == 3);
+    mu_assert("wcsxfrm copy", wcsncmp(buf, L"abc", 4) == 0);
+    return 0;
+}
+
 static const char *test_ctype_extra(void)
 {
     mu_assert("isprint", isprint('A'));
@@ -4003,6 +4014,7 @@ static const char *all_tests(void)
     mu_run_test(test_memccpy_zero);
     mu_run_test(test_strndup_basic);
     mu_run_test(test_strcoll_xfrm);
+    mu_run_test(test_wcscoll_xfrm);
     mu_run_test(test_ctype_extra);
     mu_run_test(test_widechar_basic);
     mu_run_test(test_widechar_conv);
