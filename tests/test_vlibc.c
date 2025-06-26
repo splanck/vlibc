@@ -59,6 +59,7 @@
 #include <signal.h>
 #include "../include/time.h"
 #include "../include/sys/resource.h"
+#include "../include/sys/times.h"
 #include "../include/sys/mman.h"
 #include "../include/sys/shm.h"
 #include "../include/sys/sem.h"
@@ -2220,6 +2221,19 @@ static const char *test_getrusage_self(void)
     return 0;
 }
 
+static const char *test_times_self(void)
+{
+    struct tms t;
+    volatile long sink = 0;
+    for (long i = 0; i < 1000000; ++i)
+        sink += i;
+    (void)sink;
+    clock_t c = times(&t);
+    mu_assert("times", c != (clock_t)-1);
+    mu_assert("have ticks", t.tms_utime > 0 || t.tms_stime > 0);
+    return 0;
+}
+
 static const char *test_strftime_basic(void)
 {
     struct tm tm = {
@@ -4297,6 +4311,7 @@ static const char *all_tests(void)
     mu_run_test(test_sched_get_set_scheduler);
     mu_run_test(test_timer_basic);
     mu_run_test(test_getrusage_self);
+    mu_run_test(test_times_self);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_strftime_extended);
     mu_run_test(test_wcsftime_basic);

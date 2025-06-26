@@ -183,3 +183,14 @@ printf("user: %ld.%06ld sys: %ld.%06ld\n",
        (long)ru.ru_stime.tv_sec, (long)ru.ru_stime.tv_usec);
 ```
 
+`times` provides similar information measured in clock ticks. It fills a
+`struct tms` with user and system times for the process and its exited
+children and returns the elapsed real time:
+
+```c
+struct tms t;
+clock_t r = times(&t);
+printf("ticks: %ld user: %ld sys: %ld\n",
+       (long)r, (long)t.tms_utime, (long)t.tms_stime);
+```
+

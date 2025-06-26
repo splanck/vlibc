@@ -61,6 +61,11 @@ struct tm {
 int tm_isdst; /* daylight savings time flag */
 };
 
+#ifndef __clock_t_defined
+#define __clock_t_defined 1
+typedef long clock_t;
+#endif
+
 #ifndef __clockid_t_defined
 #define __clockid_t_defined 1
 typedef int clockid_t;
