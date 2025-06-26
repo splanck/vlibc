@@ -127,6 +127,23 @@ wchar_t ch = fgetwc(fp);
 fclose(fp);
 ```
 
+### Wide Memory Streams
+
+`open_wmemstream` returns a stream that stores its output as a dynamically
+allocated wide string. Data written with `fwprintf` or `fputwc` grows the
+buffer automatically and `fclose` exposes the resulting `wchar_t` array and
+character count.
+
+```c
+wchar_t *out = NULL;
+size_t len = 0;
+FILE *ws = open_wmemstream(&out, &len);
+fwprintf(ws, L"%ls %d", L"wide", 42);
+fclose(ws);
+// out -> L"wide 42", len -> 7
+free(out);
+```
+
 ### Character Set Conversion
 
 `iconv_open` returns a descriptor for translating between character

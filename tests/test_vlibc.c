@@ -1195,6 +1195,20 @@ static const char *test_wmem_ops(void)
     return 0;
 }
 
+static const char *test_wmemstream_basic(void)
+{
+    wchar_t *out = NULL;
+    size_t len = 0;
+    FILE *f = open_wmemstream(&out, &len);
+    mu_assert("open_wmemstream", f != NULL);
+    mu_assert("fwprintf", fwprintf(f, L"%ls %d", L"wide", 42) > 0);
+    fclose(f);
+    mu_assert("wmem len", len == 7);
+    mu_assert("wmem content", out && wcsncmp(out, L"wide 42", len) == 0);
+    free(out);
+    return 0;
+}
+
 static const char *test_iconv_ascii_roundtrip(void)
 {
     iconv_t cd = iconv_open("UTF-8", "ASCII");
@@ -4084,6 +4098,7 @@ static const char *all_tests(void)
     mu_run_test(test_widechar_width);
     mu_run_test(test_wctype_checks);
     mu_run_test(test_wmem_ops);
+    mu_run_test(test_wmemstream_basic);
     mu_run_test(test_iconv_ascii_roundtrip);
     mu_run_test(test_iconv_invalid_byte);
     mu_run_test(test_strtok_basic);

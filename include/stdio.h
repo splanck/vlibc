@@ -22,6 +22,7 @@ typedef struct {
     int have_ungot;              /* ungetc() character available */
     unsigned char ungot_char;    /* character from ungetc() */
     int is_mem;                  /* stream operates on memory rather than fd */
+    int is_wmem;                 /* stream stores wchar_t instead of bytes */
     char **mem_bufp;             /* pointer to buffer pointer for mem streams */
     size_t *mem_sizep;           /* pointer to size for mem streams */
 } FILE;
@@ -109,6 +110,7 @@ char *tmpnam(char *s);
 char *tempnam(const char *dir, const char *pfx);
 
 FILE *open_memstream(char **bufp, size_t *sizep);
+FILE *open_wmemstream(wchar_t **bufp, size_t *sizep);
 FILE *fmemopen(void *buf, size_t size, const char *mode);
 
 ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream);

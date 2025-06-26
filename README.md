@@ -70,7 +70,7 @@ programs. Key features include:
   `ldiv` and `lldiv`
 - POSIX-style 48-bit random numbers via the `rand48` family
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
-- Memory-backed streams with `open_memstream()` and `fmemopen()`
+- Memory-backed streams with `open_memstream()`, `open_wmemstream()` and `fmemopen()`
 - Large-file aware seeks
 - Store and restore file positions with `fgetpos()` and `fsetpos()`
 - Zero-copy file transfers with `sendfile()`

@@ -11,6 +11,12 @@ wint_t fgetwc(FILE *stream)
 {
     if (!stream)
         return -1;
+    if (stream->is_wmem) {
+        wchar_t wc = 0;
+        if (fread(&wc, sizeof(wchar_t), 1, stream) != 1)
+            return -1;
+        return (wint_t)wc;
+    }
     int c = fgetc(stream);
     if (c == -1)
         return -1;
@@ -24,6 +30,11 @@ wint_t fputwc(wchar_t wc, FILE *stream)
 {
     if (!stream)
         return -1;
+    if (stream->is_wmem) {
+        if (fwrite(&wc, sizeof(wchar_t), 1, stream) != 1)
+            return -1;
+        return (wint_t)wc;
+    }
     char buf[8];
     size_t len = wcrtomb(buf, wc, NULL);
     if (len == (size_t)-1)
