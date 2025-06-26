@@ -136,6 +136,13 @@ int gettimeofday(struct timeval *tv, void *tz);
 unsigned sleep(unsigned seconds);
 int usleep(useconds_t usec);
 int nanosleep(const struct timespec *req, struct timespec *rem);
+int clock_nanosleep(clockid_t clk_id, int flags,
+                    const struct timespec *req, struct timespec *rem);
+/*
+ * Sleep based on the specified clock. When the SYS_clock_nanosleep
+ * syscall is unavailable the wrapper falls back to nanosleep for
+ * relative delays and uses clock_gettime for TIMER_ABSTIME waits.
+ */
 
 int setitimer(int which, const struct itimerval *new,
               struct itimerval *old);

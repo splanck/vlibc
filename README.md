@@ -100,6 +100,8 @@ programs. Key features include:
 - Filesystem limits with `pathconf()` and `fpathconf()`
 - Query configuration strings with `confstr()`
 - Simple alarm timers with `alarm()`
+- High resolution delays with `clock_nanosleep()` for relative or
+  absolute sleeps
 - Yield the processor with `sched_yield()` from `<sched.h>`
 - Adjust and query nice values with `nice()`, `getpriority()` and
   `setpriority()` from `<sched.h>`
