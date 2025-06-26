@@ -2983,6 +2983,26 @@ static const char *test_rand48_fn(void)
     return 0;
 }
 
+static const char *test_arc4random_uniform_basic(void)
+{
+    enum { BOUND = 5, ITER = 10000 };
+    unsigned counts[BOUND];
+    memset(counts, 0, sizeof(counts));
+
+    for (unsigned i = 0; i < ITER; i++) {
+        unsigned v = arc4random_uniform(BOUND);
+        mu_assert("in range", v < BOUND);
+        counts[v]++;
+    }
+
+    unsigned expected = ITER / BOUND;
+    for (unsigned i = 0; i < BOUND; i++)
+        mu_assert("rough uniform",
+                  counts[i] > expected - 400 && counts[i] < expected + 400);
+
+    return 0;
+}
+
 static const char *test_forkpty_echo(void)
 {
     int mfd;
@@ -4220,6 +4240,7 @@ static const char *all_tests(void)
     mu_run_test(test_popen_fn);
     mu_run_test(test_rand_fn);
     mu_run_test(test_rand48_fn);
+    mu_run_test(test_arc4random_uniform_basic);
     mu_run_test(test_forkpty_echo);
     mu_run_test(test_tcdrain_basic);
     mu_run_test(test_tcflush_basic);
