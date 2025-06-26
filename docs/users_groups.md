@@ -73,3 +73,21 @@ thread-safe.
 order.  As with the passwd enumeration, BSD platforms use the host
 libc while other systems parse `/etc/group` directly.
 
+## Group Membership
+
+Applications can inspect or modify a user's supplementary groups.
+
+```c
+int getgrouplist(const char *user, gid_t basegid,
+                 gid_t *groups, int *ngroups);
+int initgroups(const char *user, gid_t basegid);
+```
+
+`getgrouplist` fills `groups` with the IDs for `user`, starting with
+`basegid`.  `*ngroups` specifies the array capacity and on return holds
+the number of groups found.  If the buffer is too small the function
+returns `-1` and updates `*ngroups` with the required size.
+
+`initgroups` calls `setgroups()` to apply the list retrieved by
+`getgrouplist`.  It typically requires appropriate privileges.
+
