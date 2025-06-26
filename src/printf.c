@@ -31,18 +31,6 @@ static int uint_to_base(unsigned long value, unsigned base, int upper,
     return (int)i;
 }
 
-static int int_to_str(int value, char *buf, size_t size)
-{
-    unsigned int v = (value < 0) ? -value : value;
-    size_t pos = 0;
-    if (value < 0) {
-        if (pos < size)
-            buf[pos] = '-';
-        pos++;
-    }
-    pos += uint_to_base(v, 10, 0, buf + pos, (pos < size) ? size - pos : 0);
-    return (int)pos;
-}
 
 static void out_char(char *dst, size_t size, size_t *pos, char c)
 {
