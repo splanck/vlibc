@@ -3125,7 +3125,10 @@ static const char *test_posix_spawn_pgroup(void)
     posix_spawnattr_t at;
     posix_spawnattr_init(&at);
     posix_spawnattr_setflags(&at, POSIX_SPAWN_SETPGROUP);
-    at.pgroup = 0;
+    posix_spawnattr_setpgroup(&at, 0);
+    pid_t tmp;
+    posix_spawnattr_getpgroup(&at, &tmp);
+    mu_assert("getpgroup", tmp == 0);
 
     char *argv[] = {"/bin/sh", "-c", "ps -o pgid= -p $$", NULL};
     pid_t pid;

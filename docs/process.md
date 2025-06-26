@@ -27,6 +27,8 @@ int posix_spawnp(pid_t *pid, const char *file,
 int posix_spawnattr_init(posix_spawnattr_t *attr);
 int posix_spawnattr_setflags(posix_spawnattr_t *attr, short flags);
 int posix_spawnattr_setsigmask(posix_spawnattr_t *attr, const sigset_t *mask);
+int posix_spawnattr_setpgroup(posix_spawnattr_t *attr, pid_t pgroup);
+int posix_spawnattr_getpgroup(const posix_spawnattr_t *attr, pid_t *pgroup);
 int posix_spawn_file_actions_init(posix_spawn_file_actions_t *acts);
 int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *acts, int fd,
                                      const char *path, int oflag, mode_t mode);
@@ -109,8 +111,9 @@ posix_spawnattr_init(&at);
 sigset_t m;
 sigemptyset(&m);
 sigaddset(&m, SIGUSR1);
-posix_spawnattr_setflags(&at, POSIX_SPAWN_SETSIGMASK);
+posix_spawnattr_setflags(&at, POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETPGROUP);
 posix_spawnattr_setsigmask(&at, &m);
+posix_spawnattr_setpgroup(&at, 0);
 posix_spawn(&pid, "/bin/echo", &fa, &at, args, environ);
 
 /* Install a handler and send the process an interrupt. */
