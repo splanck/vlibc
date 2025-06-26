@@ -21,6 +21,7 @@ void *realloc(void *ptr, size_t size);
 void *reallocarray(void *ptr, size_t nmemb, size_t size);
 void *recallocarray(void *ptr, size_t nmemb, size_t size);
 int posix_memalign(void **memptr, size_t alignment, size_t size);
+void *aligned_alloc(size_t alignment, size_t size);
 ```
 
 ### Behavior and Caveats
@@ -41,12 +42,19 @@ int posix_memalign(void **memptr, size_t alignment, size_t size);
   alignment. It returns `0` on success, `EINVAL` if the alignment is not a power
   of two or not a multiple of `sizeof(void *)`, or `ENOMEM` when the allocation
   fails.
+- `aligned_alloc` wraps `posix_memalign` and returns `NULL` on failure.
 
 ```c
 void *p;
 if (posix_memalign(&p, 64, 128) == 0) {
     /* use memory */
     free(p);
+}
+
+void *q = aligned_alloc(64, 128);
+if (q) {
+    /* use memory */
+    free(q);
 }
 ```
 

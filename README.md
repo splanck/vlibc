@@ -57,6 +57,7 @@ programs. Key features include:
 - Text encoding helpers with `vis()`, `nvis()` and `unvis()`
 - Array sorting with `qsort`, `qsort_r` and `bsearch`
 - Array resizing with `recallocarray()` which zeroes new memory
+- Aligned allocations with `aligned_alloc()`
 - Standard `assert` macro for runtime checks
 - Extended math helpers including `hypot`, `round` and `trunc`
 - Simple complex math with `cabs`, `carg`, `cexp`, `ccos` and `csin`
