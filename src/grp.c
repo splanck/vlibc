@@ -13,6 +13,9 @@
 #include "env.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include "errno.h"
+#include <sys/syscall.h>
+#include "syscall.h"
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
@@ -200,6 +203,115 @@ struct group *getgrent(void)
 void endgrent(void)
 {
     next_line = NULL;
+}
+
+#endif
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+
+extern int host_getgrouplist(const char *, gid_t, gid_t *, int *)
+    __asm("getgrouplist");
+extern int host_initgroups(const char *, gid_t) __asm("initgroups");
+
+int getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups)
+{
+    return host_getgrouplist(user, group, groups, ngroups);
+}
+
+int initgroups(const char *user, gid_t group)
+{
+    return host_initgroups(user, group);
+}
+
+#else
+
+static int do_setgroups(int n, const gid_t *groups)
+{
+#ifdef SYS_setgroups
+    long ret = vlibc_syscall(SYS_setgroups, n, (long)groups, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#else
+    extern int host_setgroups(int, const gid_t *) __asm("setgroups");
+    return host_setgroups(n, groups);
+#endif
+}
+
+int getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups)
+{
+    if (!user || !groups || !ngroups || *ngroups <= 0)
+        return -1;
+
+    int limit = *ngroups;
+    int count = 0;
+    groups[count++] = group;
+
+    int fd = open(group_path(), O_RDONLY, 0);
+    if (fd < 0)
+        return -1;
+    char buf[4096];
+    ssize_t n = read(fd, buf, sizeof(buf) - 1);
+    close(fd);
+    if (n <= 0)
+        return -1;
+    buf[n] = '\0';
+
+    char *save_line;
+    for (char *line = strtok_r(buf, "\n", &save_line); line;
+         line = strtok_r(NULL, "\n", &save_line)) {
+        struct group *g = parse_line(line);
+        if (!g)
+            continue;
+        for (char **m = g->gr_mem; m && *m; m++) {
+            if (strcmp(*m, user) == 0) {
+                int dup = 0;
+                for (int i = 0; i < count; i++) {
+                    if (groups[i] == g->gr_gid) {
+                        dup = 1;
+                        break;
+                    }
+                }
+                if (!dup) {
+                    if (count < limit)
+                        groups[count] = g->gr_gid;
+                    count++;
+                }
+                break;
+            }
+        }
+    }
+
+    if (count > limit) {
+        *ngroups = count;
+        return -1;
+    }
+    *ngroups = count;
+    return count;
+}
+
+int initgroups(const char *user, gid_t group)
+{
+    gid_t stack[32];
+    gid_t *list = stack;
+    int ng = (int)(sizeof(stack) / sizeof(stack[0]));
+    int r = getgrouplist(user, group, list, &ng);
+    if (r == -1) {
+        list = malloc((size_t)ng * sizeof(gid_t));
+        if (!list)
+            return -1;
+        if (getgrouplist(user, group, list, &ng) == -1) {
+            free(list);
+            return -1;
+        }
+    }
+    int ret = do_setgroups(ng, list);
+    if (list != stack)
+        free(list);
+    return ret;
 }
 
 #endif

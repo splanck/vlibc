@@ -25,5 +25,7 @@ int getgrnam_r(const char *name, struct group *grp, char *buf, size_t buflen,
 void setgrent(void);
 struct group *getgrent(void);
 void endgrent(void);
+int getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups);
+int initgroups(const char *user, gid_t group);
 
 #endif /* GRP_H */

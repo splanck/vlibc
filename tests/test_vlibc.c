@@ -3915,6 +3915,59 @@ static const char *test_group_enum(void)
     return 0;
 }
 
+static const char *test_getgrouplist_basic(void)
+{
+    char tmpl[] = "/tmp/glstXXXXXX";
+    int fd = mkstemp(tmpl);
+    mu_assert("mkstemp", fd >= 0);
+    const char data[] =
+        "root:x:0:\n"
+        "staff:x:50:alice,bob\n"
+        "extra:x:60:alice\n";
+    mu_assert("write", write(fd, data, sizeof(data) - 1) ==
+             (ssize_t)(sizeof(data) - 1));
+    close(fd);
+
+    setenv("VLIBC_GROUP", tmpl, 1);
+
+    gid_t groups[4];
+    int ng = 4;
+    int r = getgrouplist("alice", 1000, groups, &ng);
+    mu_assert("grouplist r", r >= 0 && ng == 3);
+    mu_assert("g0", groups[0] == 1000);
+    mu_assert("g1", groups[1] == 50);
+    mu_assert("g2", groups[2] == 60);
+
+    unsetenv("VLIBC_GROUP");
+    unlink(tmpl);
+    return 0;
+}
+
+static const char *test_getgrouplist_overflow(void)
+{
+    char tmpl[] = "/tmp/glstovXXXXXX";
+    int fd = mkstemp(tmpl);
+    mu_assert("mkstemp", fd >= 0);
+    const char data[] =
+        "root:x:0:\n"
+        "staff:x:50:alice,bob\n"
+        "extra:x:60:alice\n";
+    mu_assert("write", write(fd, data, sizeof(data) - 1) ==
+             (ssize_t)(sizeof(data) - 1));
+    close(fd);
+
+    setenv("VLIBC_GROUP", tmpl, 1);
+
+    gid_t groups[1];
+    int ng = 1;
+    int r = getgrouplist("alice", 1000, groups, &ng);
+    mu_assert("overflow", r == -1 && ng == 3);
+
+    unsetenv("VLIBC_GROUP");
+    unlink(tmpl);
+    return 0;
+}
+
 static const char *test_getlogin_fn(void)
 {
     char *name = getlogin();
@@ -4673,6 +4726,8 @@ static const char *all_tests(void)
     mu_run_test(test_group_lookup);
     mu_run_test(test_passwd_enum);
     mu_run_test(test_group_enum);
+    mu_run_test(test_getgrouplist_basic);
+    mu_run_test(test_getgrouplist_overflow);
     mu_run_test(test_getlogin_fn);
     mu_run_test(test_crypt_des);
     mu_run_test(test_crypt_md5);

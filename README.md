@@ -50,6 +50,8 @@ programs. Key features include:
 - Thread-safe user and group lookups with `getpwuid_r`, `getpwnam_r`,
   `getgrgid_r`, and `getgrnam_r`
 - Enumerate all users or groups with `getpwent()` and `getgrent()`
+- Query supplementary groups with `getgrouplist()` and initialize them
+  with `initgroups()`
 - Secure password input with `getpass()`
 - Password hashing with `crypt()`
 - Syslog-style logging
