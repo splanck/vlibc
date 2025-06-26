@@ -43,6 +43,8 @@ int fchdir(int fd);
 char *getlogin(void);
 char *getpass(const char *prompt);
 char *crypt(const char *key, const char *salt);
+char *ttyname(int fd);
+int ttyname_r(int fd, char *buf, size_t len);
 void sync(void);
 
 #ifndef STDIN_FILENO

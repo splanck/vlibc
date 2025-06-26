@@ -92,6 +92,7 @@ programs. Key features include:
 - Access pattern hints with `posix_fadvise()`
 - Force file updates to disk with `fsync()` and `fdatasync()`
 - Generic descriptor control with `ioctl()`
+- Query terminal device paths with `ttyname()` and `ttyname_r()`
 - Terminal attribute helpers `tcgetattr()`, `tcsetattr()`, `cfsetispeed()`,
   `cfgetispeed()`, `cfsetospeed()`, `cfgetospeed()`, `tcdrain()`, `tcflow()`, `tcflush()` and `tcsendbreak()`
 - Pseudo-terminal helpers with `openpty()` and `forkpty()`
