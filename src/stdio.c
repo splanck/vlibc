@@ -52,6 +52,24 @@ static int flush_buffer(FILE *stream)
                 stream->buflen / sizeof(wchar_t) : stream->buflen;
         return 0;
     }
+    if (stream->is_cookie) {
+        size_t off = 0;
+        while (off < stream->buflen) {
+            ssize_t w = 0;
+            if (stream->cookie_write)
+                w = stream->cookie_write(stream->cookie,
+                                         (char *)stream->buf + off,
+                                         stream->buflen - off);
+            if (w <= 0) {
+                stream->error = 1;
+                return -1;
+            }
+            off += (size_t)w;
+        }
+        stream->buflen = 0;
+        stream->bufpos = 0;
+        return 0;
+    }
     size_t off = 0;
     while (off < stream->buflen) {
         ssize_t w = write(stream->fd, stream->buf + off,
@@ -114,6 +132,24 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
     size_t total = size * nmemb;
     size_t copied = 0;
     unsigned char *out = ptr;
+    if (stream->is_cookie) {
+        while (copied < total) {
+            ssize_t r = 0;
+            if (stream->cookie_read)
+                r = stream->cookie_read(stream->cookie,
+                                        (char *)out + copied,
+                                        total - copied);
+            if (r <= 0) {
+                if (r == 0)
+                    stream->eof = 1;
+                else
+                    stream->error = 1;
+                break;
+            }
+            copied += (size_t)r;
+        }
+        return copied / size;
+    }
     while (copied < total) {
         if (stream->is_mem) {
             if (stream->bufpos >= stream->buflen) {
@@ -167,6 +203,21 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
     size_t total = size * nmemb;
     size_t written = 0;
     const unsigned char *in = ptr;
+    if (stream->is_cookie) {
+        while (written < total) {
+            ssize_t w = 0;
+            if (stream->cookie_write)
+                w = stream->cookie_write(stream->cookie,
+                                         (const char *)in + written,
+                                         total - written);
+            if (w <= 0) {
+                stream->error = 1;
+                break;
+            }
+            written += (size_t)w;
+        }
+        return written / size;
+    }
     while (written < total) {
         if (stream->is_mem) {
             size_t needed = stream->bufpos + (total - written);
@@ -220,8 +271,12 @@ int fclose(FILE *stream)
         return -1;
     flush_buffer(stream);
     int ret = 0;
-    if (!stream->is_mem)
+    if (stream->is_cookie) {
+        if (stream->cookie_close)
+            ret = stream->cookie_close(stream->cookie);
+    } else if (!stream->is_mem) {
         ret = close(stream->fd);
+    }
     if (stream->is_mem && stream->mem_bufp)
         stream->buf_owned = 0;
     if (stream->buf && stream->buf_owned)
@@ -253,6 +308,17 @@ int fseek(FILE *stream, long offset, int whence)
         stream->have_ungot = 0;
         return 0;
     }
+    if (stream->is_cookie) {
+        off_t pos = offset;
+        if (!stream->cookie_seek ||
+            stream->cookie_seek(stream->cookie, &pos, whence) < 0) {
+            stream->error = 1;
+            return -1;
+        }
+        stream->eof = 0;
+        stream->have_ungot = 0;
+        return 0;
+    }
     off_t r = lseek(stream->fd, (off_t)offset, whence);
     if (r == (off_t)-1) {
         stream->error = 1;
@@ -273,6 +339,15 @@ long ftell(FILE *stream)
         return -1L;
     if (stream->is_mem)
         return (long)stream->bufpos;
+    if (stream->is_cookie) {
+        off_t pos = 0;
+        if (!stream->cookie_seek ||
+            stream->cookie_seek(stream->cookie, &pos, SEEK_CUR) < 0) {
+            stream->error = 1;
+            return -1L;
+        }
+        return (long)pos;
+    }
     off_t r = lseek(stream->fd, 0, SEEK_CUR);
     if (r == (off_t)-1) {
         stream->error = 1;
@@ -316,6 +391,11 @@ void rewind(FILE *stream)
     flush_buffer(stream);
     if (stream->is_mem) {
         stream->bufpos = 0;
+    } else if (stream->is_cookie) {
+        off_t pos = 0;
+        if (stream->cookie_seek &&
+            stream->cookie_seek(stream->cookie, &pos, SEEK_SET) < 0)
+            stream->error = 1;
     } else if (lseek(stream->fd, 0, SEEK_SET) == (off_t)-1)
         stream->error = 1;
     stream->bufpos = 0;

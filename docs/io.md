@@ -263,3 +263,29 @@ mkfifo("/tmp/myfifo", 0600);
 `mkfifo` creates a FIFO special file. The `mkfifoat` variant allows
 specifying a directory file descriptor in addition to the path.
 
+## Custom Streams
+
+`fopencookie` and the BSD compatible `funopen` create a `FILE` whose
+operations are backed by user supplied callbacks. This makes it possible
+to treat arbitrary data sources as standard streams.
+
+```c
+struct cookie {
+    const char *buf;
+    size_t pos;
+};
+
+static ssize_t c_read(void *c, char *b, size_t n) {
+    struct cookie *ck = c;
+    size_t avail = strlen(ck->buf) - ck->pos;
+    if (n > avail) n = avail;
+    memcpy(b, ck->buf + ck->pos, n);
+    ck->pos += n;
+    return (ssize_t)n;
+}
+
+cookie_io_functions_t io = { c_read, NULL, NULL, NULL };
+struct cookie ck = { "hi", 0 };
+FILE *s = fopencookie(&ck, "r", io);
+```
+

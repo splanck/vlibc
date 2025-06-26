@@ -171,6 +171,7 @@ SRC := \
     src/wctype.c \
     src/wmem.c \
     src/memstream.c \
+    src/fopencookie.c \
     src/tempfile.c \
     src/confstr.c \
     src/sysconf.c \
