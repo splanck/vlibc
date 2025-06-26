@@ -27,7 +27,7 @@ char *getpass(const char *prompt)
     }
 
     if (prompt)
-        write(out_fd, prompt, strlen(prompt));
+        (void)write(out_fd, prompt, strlen(prompt));
 
     struct termios old;
     int restore = 0;
@@ -52,7 +52,7 @@ char *getpass(const char *prompt)
 
     if (restore)
         tcsetattr(fd, TCSAFLUSH, &old);
-    write(out_fd, "\n", 1);
+    (void)write(out_fd, "\n", 1);
 
     if (need_close)
         close(fd);
