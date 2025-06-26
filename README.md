@@ -75,6 +75,7 @@ programs. Key features include:
 - Deterministic uniform numbers with `arc4random_uniform()`
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Memory-backed streams with `open_memstream()`, `open_wmemstream()` and `fmemopen()`
+- Replace an open stream with `freopen()`
 - Large-file aware seeks
 - Store and restore file positions with `fgetpos()` and `fsetpos()`
 - Zero-copy file transfers with `sendfile()`

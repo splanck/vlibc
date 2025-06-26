@@ -71,6 +71,7 @@ int feof(FILE *stream);
 int ferror(FILE *stream);
 void clearerr(FILE *stream);
 int fileno(FILE *stream);
+FILE *freopen(const char *path, const char *mode, FILE *stream);
 FILE *fdopen(int fd, const char *mode);
 
 int printf(const char *format, ...);
