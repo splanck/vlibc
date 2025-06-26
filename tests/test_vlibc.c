@@ -50,6 +50,7 @@
 #include "../include/fts.h"
 #include "../include/wordexp.h"
 #include "../include/vis.h"
+#include "../include/search.h"
 #include "../include/pty.h"
 #include "../include/termios.h"
 #ifndef B9600
@@ -3990,6 +3991,21 @@ static const char *test_qsort_r_desc(void)
     return 0;
 }
 
+static const char *test_hsearch_basic(void)
+{
+    mu_assert("create", hcreate(8) == 1);
+    ENTRY e = {"foo", "bar"};
+    mu_assert("insert foo", hsearch(e, ENTER) != NULL);
+    e.key = "baz";
+    e.data = "qux";
+    mu_assert("insert baz", hsearch(e, ENTER) != NULL);
+    ENTRY q = {"foo", NULL};
+    ENTRY *r = hsearch(q, FIND);
+    mu_assert("lookup foo", r && r->data == (void *)"bar");
+    hdestroy();
+    return 0;
+}
+
 static const char *test_regex_backref_basic(void)
 {
     regex_t re;
@@ -4575,6 +4591,7 @@ static const char *all_tests(void)
     mu_run_test(test_qsort_int);
     mu_run_test(test_qsort_strings);
     mu_run_test(test_qsort_r_desc);
+    mu_run_test(test_hsearch_basic);
     mu_run_test(test_regex_backref_basic);
     mu_run_test(test_regex_backref_fail);
     mu_run_test(test_regex_posix_class);
