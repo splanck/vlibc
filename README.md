@@ -74,7 +74,9 @@ programs. Key features include:
 - Extended character checks like `isprint`, `ispunct`, `iscntrl`,
   `isgraph` and `isblank`
 - String-to-number conversions with `strtol`, `strtoul`, `strtoll`,
-  `strtoull`, `strtoimax`, `strtoumax`, `strtof`, `strtod` and `strtold`
+  `strtoull`, `strtoimax`, `strtoumax`, `strtof`, `strtod`, `strtold`,
+  `wcstol`, `wcstoul`, `wcstoll`, `wcstoull`, `wcstoimax`, `wcstoumax`,
+  `wcstof`, `wcstod` and `wcstold`
 - Integer helpers `abs`, `labs`, `llabs` and division results with `div`,
   `ldiv` and `lldiv`
 - POSIX-style 48-bit random numbers via the `rand48` family
