@@ -18,6 +18,7 @@
 #include <sys/event.h>
 #include <sys/time.h>
 #endif
+#include "memory.h"
 
 struct vlibc_timer {
 #if defined(__linux__) || defined(__NetBSD__)
