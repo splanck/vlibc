@@ -199,6 +199,90 @@ ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset)
     return (ssize_t)ret;
 }
 
+/*
+ * Vector positional read wrapper. Uses SYS_preadv or SYS_preadv2 when
+ * available and otherwise falls back to the host implementation or a
+ * simple loop using pread.
+ */
+ssize_t preadv(int fd, const struct iovec *iov, int iovcnt, off_t offset)
+{
+#ifdef SYS_preadv
+    long ret = vlibc_syscall(SYS_preadv, fd, (long)iov, iovcnt, offset, 0, 0);
+#elif defined(SYS_preadv2)
+    long ret = vlibc_syscall(SYS_preadv2, fd, (long)iov, iovcnt, offset, 0, 0);
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern ssize_t host_preadv(int, const struct iovec *, int, off_t) __asm__("preadv");
+    return host_preadv(fd, iov, iovcnt, offset);
+#else
+    ssize_t total = 0;
+    for (int i = 0; i < iovcnt; i++) {
+        const char *base = (const char *)iov[i].iov_base;
+        size_t len = iov[i].iov_len;
+        size_t off = 0;
+        while (off < len) {
+            ssize_t r = pread(fd, (void *)(base + off), len - off, offset + total);
+            if (r < 0)
+                return total ? total : -1;
+            if (r == 0)
+                return total;
+            off += (size_t)r;
+            total += r;
+        }
+    }
+    return total;
+#endif
+#endif
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+}
+
+/*
+ * Vector positional write wrapper. Uses SYS_pwritev or SYS_pwritev2 when
+ * available and falls back to the host implementation or a manual loop
+ * around pwrite.
+ */
+ssize_t pwritev(int fd, const struct iovec *iov, int iovcnt, off_t offset)
+{
+#ifdef SYS_pwritev
+    long ret = vlibc_syscall(SYS_pwritev, fd, (long)iov, iovcnt, offset, 0, 0);
+#elif defined(SYS_pwritev2)
+    long ret = vlibc_syscall(SYS_pwritev2, fd, (long)iov, iovcnt, offset, 0, 0);
+#else
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern ssize_t host_pwritev(int, const struct iovec *, int, off_t) __asm__("pwritev");
+    return host_pwritev(fd, iov, iovcnt, offset);
+#else
+    ssize_t total = 0;
+    for (int i = 0; i < iovcnt; i++) {
+        const char *base = (const char *)iov[i].iov_base;
+        size_t len = iov[i].iov_len;
+        size_t off = 0;
+        while (off < len) {
+            ssize_t w = pwrite(fd, base + off, len - off, offset + total);
+            if (w < 0)
+                return total ? total : -1;
+            off += (size_t)w;
+            total += w;
+            if ((size_t)w < len - off)
+                break;
+        }
+    }
+    return total;
+#endif
+#endif
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+}
+
 /* Close a file descriptor via SYS_close using vlibc_syscall. */
 int close(int fd)
 {
