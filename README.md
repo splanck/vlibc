@@ -69,7 +69,7 @@ programs. Key features include:
 - Extended character checks like `isprint`, `ispunct`, `iscntrl`,
   `isgraph` and `isblank`
 - String-to-number conversions with `strtol`, `strtoul`, `strtoll`,
-  `strtoull`, `strtof`, `strtod` and `strtold`
+  `strtoull`, `strtoimax`, `strtoumax`, `strtof`, `strtod` and `strtold`
 - Integer helpers `abs`, `labs`, `llabs` and division results with `div`,
   `ldiv` and `lldiv`
 - POSIX-style 48-bit random numbers via the `rand48` family

@@ -8,6 +8,7 @@
 
 #include "stdlib.h"
 #include "string.h"
+#include <stdint.h>
 
 static int digit_val(char c)
 {
@@ -408,5 +409,15 @@ long double strtold(const char *nptr, char **endptr)
         val = -val;
 
     return val;
+}
+
+intmax_t strtoimax(const char *nptr, char **endptr, int base)
+{
+    return (intmax_t)strtoll(nptr, endptr, base);
+}
+
+uintmax_t strtoumax(const char *nptr, char **endptr, int base)
+{
+    return (uintmax_t)strtoull(nptr, endptr, base);
 }
 
