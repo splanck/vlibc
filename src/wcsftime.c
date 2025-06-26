@@ -9,6 +9,7 @@
 #include "wchar.h"
 #include "time.h"
 #include "stdlib.h"
+#include "memory.h"
 
 size_t wcsftime(wchar_t *s, size_t max, const wchar_t *format, const struct tm *tm)
 {
