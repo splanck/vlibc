@@ -16,6 +16,7 @@
 #include "../include/arpa/inet.h"
 #include <stdint.h>
 #include <inttypes.h>
+#include <stddef.h>
 #include "../include/sys/stat.h"
 #include "../include/stdio.h"
 #include "../include/pthread.h"
@@ -81,6 +82,15 @@
 int printf(const char *fmt, ...);
 
 int tests_run = 0;
+
+typedef const char *(*test_func)(void);
+struct test_case {
+    const char *name;
+    const char *category;
+    test_func func;
+};
+
+#define REGISTER_TEST(cat, fn) { #fn, cat, fn }
 
 static int exit_pipe[2];
 
@@ -4766,231 +4776,237 @@ static const char *test_getsubopt_unknown(void)
 
 static const char *all_tests(void)
 {
-    mu_run_test(test_malloc);
-    mu_run_test(test_malloc_reuse);
-    mu_run_test(test_reallocf_fail);
-    mu_run_test(test_posix_memalign_basic);
-    mu_run_test(test_posix_memalign);
-    mu_run_test(test_aligned_alloc);
-    mu_run_test(test_reallocarray_overflow);
-    mu_run_test(test_reallocarray_basic);
-    mu_run_test(test_recallocarray_grow);
-    mu_run_test(test_memory_ops);
-    mu_run_test(test_io);
-    mu_run_test(test_lseek_dup);
-    mu_run_test(test_lseek_negative_offset);
-    mu_run_test(test_pread_pwrite);
-    mu_run_test(test_preadv_pwritev);
-    mu_run_test(test_readv_writev);
-    mu_run_test(test_sendfile_copy);
+    static const struct test_case tests[] = {
+        REGISTER_TEST("default", test_malloc),
+        REGISTER_TEST("default", test_malloc_reuse),
+        REGISTER_TEST("default", test_reallocf_fail),
+        REGISTER_TEST("default", test_posix_memalign_basic),
+        REGISTER_TEST("default", test_posix_memalign),
+        REGISTER_TEST("default", test_aligned_alloc),
+        REGISTER_TEST("default", test_reallocarray_overflow),
+        REGISTER_TEST("default", test_reallocarray_basic),
+        REGISTER_TEST("default", test_recallocarray_grow),
+        REGISTER_TEST("default", test_memory_ops),
+        REGISTER_TEST("default", test_io),
+        REGISTER_TEST("default", test_lseek_dup),
+        REGISTER_TEST("default", test_lseek_negative_offset),
+        REGISTER_TEST("default", test_pread_pwrite),
+        REGISTER_TEST("default", test_preadv_pwritev),
+        REGISTER_TEST("default", test_readv_writev),
+        REGISTER_TEST("default", test_sendfile_copy),
 #ifdef __NetBSD__
-    mu_run_test(test_sendfile_socket);
+        REGISTER_TEST("default", test_sendfile_socket),
 #endif
-    mu_run_test(test_dup3_cloexec);
-    mu_run_test(test_pipe2_cloexec);
-    mu_run_test(test_byte_order);
-    mu_run_test(test_isatty_stdin);
-    mu_run_test(test_ttyname_dev_tty);
-    mu_run_test(test_ttyname_openpty);
-    mu_run_test(test_socket);
-    mu_run_test(test_socketpair_basic);
-    mu_run_test(test_socket_addresses);
-    mu_run_test(test_sendmsg_recvmsg);
-    mu_run_test(test_udp_send_recv);
-    mu_run_test(test_inet_pton_ntop);
-    mu_run_test(test_inet_aton_ntoa);
-    mu_run_test(test_errno_open);
-    mu_run_test(test_errno_stat);
-    mu_run_test(test_stat_wrappers);
-    mu_run_test(test_truncate_resize);
-    mu_run_test(test_posix_fallocate_basic);
-    mu_run_test(test_posix_fadvise_basic);
-    mu_run_test(test_posix_fadvise_invalid);
-    mu_run_test(test_posix_madvise_basic);
-    mu_run_test(test_link_readlink);
-    mu_run_test(test_at_wrappers_basic);
-    mu_run_test(test_fsync_basic);
-    mu_run_test(test_fdatasync_basic);
-    mu_run_test(test_sync_basic);
-    mu_run_test(test_string_helpers);
-    mu_run_test(test_string_casecmp);
-    mu_run_test(test_strlcpy_cat);
-    mu_run_test(test_stpcpy_functions);
-    mu_run_test(test_memccpy_mempcpy);
-    mu_run_test(test_memccpy_zero);
-    mu_run_test(test_strndup_basic);
-    mu_run_test(test_strcoll_xfrm);
-    mu_run_test(test_wcscoll_xfrm);
-    mu_run_test(test_ctype_extra);
-    mu_run_test(test_widechar_basic);
-    mu_run_test(test_widechar_conv);
-    mu_run_test(test_widechar_width);
-    mu_run_test(test_wctype_checks);
-    mu_run_test(test_wmem_ops);
-    mu_run_test(test_wchar_search);
-    mu_run_test(test_wmemstream_basic);
-    mu_run_test(test_fopencookie_basic);
-    mu_run_test(test_iconv_ascii_roundtrip);
-    mu_run_test(test_iconv_invalid_byte);
-    mu_run_test(test_strtok_basic);
-    mu_run_test(test_strtok_r_basic);
-    mu_run_test(test_strsep_basic);
-    mu_run_test(test_wcstok_basic);
-    mu_run_test(test_printf_functions);
-    mu_run_test(test_dprintf_functions);
-    mu_run_test(test_scanf_functions);
-    mu_run_test(test_vscanf_variants);
-    mu_run_test(test_fseek_rewind);
-    mu_run_test(test_fgetpos_fsetpos);
-    mu_run_test(test_fgetc_fputc);
-    mu_run_test(test_fgets_fputs);
-    mu_run_test(test_fgetwc_fputwc);
-    mu_run_test(test_getwc_putwc);
-    mu_run_test(test_getline_various);
-    mu_run_test(test_getdelim_various);
-    mu_run_test(test_fflush);
-    mu_run_test(test_feof_flag);
-    mu_run_test(test_ferror_flag);
-    mu_run_test(test_pthread_create_join);
-    mu_run_test(test_pthread);
-    mu_run_test(test_pthread_detach);
-    mu_run_test(test_pthread_exit);
-    mu_run_test(test_pthread_cancel);
-    mu_run_test(test_pthread_tls);
-    mu_run_test(test_pthread_mutexattr);
-    mu_run_test(test_pthread_attr_basic);
-    mu_run_test(test_pthread_rwlock);
-    mu_run_test(test_pthread_barrier);
-    mu_run_test(test_pthread_spinlock);
-    mu_run_test(test_semaphore_basic);
-    mu_run_test(test_semaphore_trywait);
-    mu_run_test(test_select_pipe);
-    mu_run_test(test_poll_pipe);
-    mu_run_test(test_sleep_functions);
-    mu_run_test(test_clock_nanosleep_basic);
-    mu_run_test(test_sched_yield_basic);
-    mu_run_test(test_sched_yield_loop);
-    mu_run_test(test_priority_wrappers);
-    mu_run_test(test_sched_get_set_scheduler);
-    mu_run_test(test_timer_basic);
-    mu_run_test(test_clock_settime_priv);
-    mu_run_test(test_getrusage_self);
-    mu_run_test(test_times_self);
-    mu_run_test(test_getloadavg_basic);
-    mu_run_test(test_timespec_get_basic);
-    mu_run_test(test_strftime_basic);
-    mu_run_test(test_strftime_extended);
-    mu_run_test(test_wcsftime_basic);
-    mu_run_test(test_wcsftime_extended);
-    mu_run_test(test_strptime_basic);
-    mu_run_test(test_time_conversions);
-    mu_run_test(test_time_r_conversions);
-    mu_run_test(test_asctime_r_threadsafe);
-    mu_run_test(test_difftime_basic);
-    mu_run_test(test_tz_positive);
-    mu_run_test(test_tz_negative);
-    mu_run_test(test_tz_mktime_roundtrip);
-    mu_run_test(test_tz_ctime);
-    mu_run_test(test_environment);
-    mu_run_test(test_clearenv_fn);
-    mu_run_test(test_locale_from_env);
-    mu_run_test(test_locale_objects);
-    mu_run_test(test_gethostname_fn);
-    mu_run_test(test_uname_fn);
-    mu_run_test(test_confstr_path);
-    mu_run_test(test_progname_setget);
-    mu_run_test(test_error_reporting);
-    mu_run_test(test_warn_functions);
-    mu_run_test(test_err_functions);
-    mu_run_test(test_strsignal_names);
-    mu_run_test(test_process_group_wrappers);
-    mu_run_test(test_system_fn);
-    mu_run_test(test_execv_fn);
-    mu_run_test(test_execl_fn);
-    mu_run_test(test_execlp_fn);
-    mu_run_test(test_execle_fn);
-    mu_run_test(test_execvp_fn);
-    mu_run_test(test_fexecve_fn);
-    mu_run_test(test_posix_spawn_fn);
-    mu_run_test(test_posix_spawn_actions);
-    mu_run_test(test_posix_spawn_sigmask);
-    mu_run_test(test_posix_spawn_pgroup);
-    mu_run_test(test_popen_fn);
-    mu_run_test(test_rand_fn);
-    mu_run_test(test_rand48_fn);
-    mu_run_test(test_arc4random_uniform_basic);
-    mu_run_test(test_forkpty_echo);
-    mu_run_test(test_tcdrain_basic);
-    mu_run_test(test_tcflush_basic);
-    mu_run_test(test_termios_speed_roundtrip);
-    mu_run_test(test_temp_files);
-    mu_run_test(test_freopen_basic);
-    mu_run_test(test_abort_fn);
-    mu_run_test(test_sigaction_install);
-    mu_run_test(test_sigprocmask_block);
-    mu_run_test(test_sigwait_basic);
-    mu_run_test(test_sigtimedwait_timeout);
-    mu_run_test(test_sigqueue_value);
-    mu_run_test(test_sigaltstack_basic);
-    mu_run_test(test_sigsetjmp_restore);
-    mu_run_test(test_sigsetjmp_nosave);
-    mu_run_test(test_mlock_basic);
-    mu_run_test(test_mprotect_anon);
-    mu_run_test(test_shm_basic);
-    mu_run_test(test_sysv_shm_segment);
-    mu_run_test(test_mqueue_basic);
-    mu_run_test(test_named_semaphore_create);
-    mu_run_test(test_sysv_sem_basic);
-    mu_run_test(test_ftok_unique);
-    mu_run_test(test_atexit_handler);
-    mu_run_test(test_quick_exit_handler);
-    mu_run_test(test_getcwd_chdir);
-    mu_run_test(test_fchdir_basic);
-    mu_run_test(test_realpath_basic);
-    mu_run_test(test_pathconf_basic);
-    mu_run_test(test_passwd_lookup);
-    mu_run_test(test_group_lookup);
-    mu_run_test(test_passwd_enum);
-    mu_run_test(test_group_enum);
-    mu_run_test(test_getgrouplist_basic);
-    mu_run_test(test_getgrouplist_overflow);
-    mu_run_test(test_getlogin_fn);
-    mu_run_test(test_crypt_des);
-    mu_run_test(test_crypt_md5);
-    mu_run_test(test_crypt_sha256);
-    mu_run_test(test_crypt_sha512);
-    mu_run_test(test_wordexp_basic);
-    mu_run_test(test_dirent);
-    mu_run_test(test_ftw_walk);
-    mu_run_test(test_fts_walk);
-    mu_run_test(test_qsort_int);
-    mu_run_test(test_qsort_strings);
-    mu_run_test(test_qsort_r_desc);
-    mu_run_test(test_hsearch_basic);
-    mu_run_test(test_tsearch_basic);
-    mu_run_test(test_regex_backref_basic);
-    mu_run_test(test_regex_backref_fail);
-    mu_run_test(test_regex_posix_class);
-    mu_run_test(test_regex_alternation);
-    mu_run_test(test_regex_range);
-    mu_run_test(test_math_functions);
-    mu_run_test(test_complex_cabs_cexp);
-    mu_run_test(test_abs_div_functions);
-    mu_run_test(test_vis_roundtrip);
-    mu_run_test(test_nvis_basic);
-    mu_run_test(test_fp_checks);
-    mu_run_test(test_fenv_rounding);
-    mu_run_test(test_getopt_basic);
-    mu_run_test(test_getopt_missing);
-    mu_run_test(test_dlopen_basic);
-    mu_run_test(test_dladdr_basic);
-    mu_run_test(test_getopt_long_missing);
-    mu_run_test(test_getopt_long_basic);
-    mu_run_test(test_getopt_long_only_missing);
-    mu_run_test(test_getopt_long_only_basic);
-    mu_run_test(test_getsubopt_basic);
-    mu_run_test(test_getsubopt_unknown);
-
+        REGISTER_TEST("default", test_dup3_cloexec),
+        REGISTER_TEST("default", test_pipe2_cloexec),
+        REGISTER_TEST("default", test_byte_order),
+        REGISTER_TEST("default", test_isatty_stdin),
+        REGISTER_TEST("default", test_ttyname_dev_tty),
+        REGISTER_TEST("default", test_ttyname_openpty),
+        REGISTER_TEST("default", test_socket),
+        REGISTER_TEST("default", test_socketpair_basic),
+        REGISTER_TEST("default", test_socket_addresses),
+        REGISTER_TEST("default", test_sendmsg_recvmsg),
+        REGISTER_TEST("default", test_udp_send_recv),
+        REGISTER_TEST("default", test_inet_pton_ntop),
+        REGISTER_TEST("default", test_inet_aton_ntoa),
+        REGISTER_TEST("default", test_errno_open),
+        REGISTER_TEST("default", test_errno_stat),
+        REGISTER_TEST("default", test_stat_wrappers),
+        REGISTER_TEST("default", test_truncate_resize),
+        REGISTER_TEST("default", test_posix_fallocate_basic),
+        REGISTER_TEST("default", test_posix_fadvise_basic),
+        REGISTER_TEST("default", test_posix_fadvise_invalid),
+        REGISTER_TEST("default", test_posix_madvise_basic),
+        REGISTER_TEST("default", test_link_readlink),
+        REGISTER_TEST("default", test_at_wrappers_basic),
+        REGISTER_TEST("default", test_fsync_basic),
+        REGISTER_TEST("default", test_fdatasync_basic),
+        REGISTER_TEST("default", test_sync_basic),
+        REGISTER_TEST("default", test_string_helpers),
+        REGISTER_TEST("default", test_string_casecmp),
+        REGISTER_TEST("default", test_strlcpy_cat),
+        REGISTER_TEST("default", test_stpcpy_functions),
+        REGISTER_TEST("default", test_memccpy_mempcpy),
+        REGISTER_TEST("default", test_memccpy_zero),
+        REGISTER_TEST("default", test_strndup_basic),
+        REGISTER_TEST("default", test_strcoll_xfrm),
+        REGISTER_TEST("default", test_wcscoll_xfrm),
+        REGISTER_TEST("default", test_ctype_extra),
+        REGISTER_TEST("default", test_widechar_basic),
+        REGISTER_TEST("default", test_widechar_conv),
+        REGISTER_TEST("default", test_widechar_width),
+        REGISTER_TEST("default", test_wctype_checks),
+        REGISTER_TEST("default", test_wmem_ops),
+        REGISTER_TEST("default", test_wchar_search),
+        REGISTER_TEST("default", test_wmemstream_basic),
+        REGISTER_TEST("default", test_fopencookie_basic),
+        REGISTER_TEST("default", test_iconv_ascii_roundtrip),
+        REGISTER_TEST("default", test_iconv_invalid_byte),
+        REGISTER_TEST("default", test_strtok_basic),
+        REGISTER_TEST("default", test_strtok_r_basic),
+        REGISTER_TEST("default", test_strsep_basic),
+        REGISTER_TEST("default", test_wcstok_basic),
+        REGISTER_TEST("default", test_printf_functions),
+        REGISTER_TEST("default", test_dprintf_functions),
+        REGISTER_TEST("default", test_scanf_functions),
+        REGISTER_TEST("default", test_vscanf_variants),
+        REGISTER_TEST("default", test_fseek_rewind),
+        REGISTER_TEST("default", test_fgetpos_fsetpos),
+        REGISTER_TEST("default", test_fgetc_fputc),
+        REGISTER_TEST("default", test_fgets_fputs),
+        REGISTER_TEST("default", test_fgetwc_fputwc),
+        REGISTER_TEST("default", test_getwc_putwc),
+        REGISTER_TEST("default", test_getline_various),
+        REGISTER_TEST("default", test_getdelim_various),
+        REGISTER_TEST("default", test_fflush),
+        REGISTER_TEST("default", test_feof_flag),
+        REGISTER_TEST("default", test_ferror_flag),
+        REGISTER_TEST("default", test_pthread_create_join),
+        REGISTER_TEST("default", test_pthread),
+        REGISTER_TEST("default", test_pthread_detach),
+        REGISTER_TEST("default", test_pthread_exit),
+        REGISTER_TEST("default", test_pthread_cancel),
+        REGISTER_TEST("default", test_pthread_tls),
+        REGISTER_TEST("default", test_pthread_mutexattr),
+        REGISTER_TEST("default", test_pthread_attr_basic),
+        REGISTER_TEST("default", test_pthread_rwlock),
+        REGISTER_TEST("default", test_pthread_barrier),
+        REGISTER_TEST("default", test_pthread_spinlock),
+        REGISTER_TEST("default", test_semaphore_basic),
+        REGISTER_TEST("default", test_semaphore_trywait),
+        REGISTER_TEST("default", test_select_pipe),
+        REGISTER_TEST("default", test_poll_pipe),
+        REGISTER_TEST("default", test_sleep_functions),
+        REGISTER_TEST("default", test_clock_nanosleep_basic),
+        REGISTER_TEST("default", test_sched_yield_basic),
+        REGISTER_TEST("default", test_sched_yield_loop),
+        REGISTER_TEST("default", test_priority_wrappers),
+        REGISTER_TEST("default", test_sched_get_set_scheduler),
+        REGISTER_TEST("default", test_timer_basic),
+        REGISTER_TEST("default", test_clock_settime_priv),
+        REGISTER_TEST("default", test_getrusage_self),
+        REGISTER_TEST("default", test_times_self),
+        REGISTER_TEST("default", test_getloadavg_basic),
+        REGISTER_TEST("default", test_timespec_get_basic),
+        REGISTER_TEST("default", test_strftime_basic),
+        REGISTER_TEST("default", test_strftime_extended),
+        REGISTER_TEST("default", test_wcsftime_basic),
+        REGISTER_TEST("default", test_wcsftime_extended),
+        REGISTER_TEST("default", test_strptime_basic),
+        REGISTER_TEST("default", test_time_conversions),
+        REGISTER_TEST("default", test_time_r_conversions),
+        REGISTER_TEST("default", test_asctime_r_threadsafe),
+        REGISTER_TEST("default", test_difftime_basic),
+        REGISTER_TEST("default", test_tz_positive),
+        REGISTER_TEST("default", test_tz_negative),
+        REGISTER_TEST("default", test_tz_mktime_roundtrip),
+        REGISTER_TEST("default", test_tz_ctime),
+        REGISTER_TEST("default", test_environment),
+        REGISTER_TEST("default", test_clearenv_fn),
+        REGISTER_TEST("default", test_locale_from_env),
+        REGISTER_TEST("default", test_locale_objects),
+        REGISTER_TEST("default", test_gethostname_fn),
+        REGISTER_TEST("default", test_uname_fn),
+        REGISTER_TEST("default", test_confstr_path),
+        REGISTER_TEST("default", test_progname_setget),
+        REGISTER_TEST("default", test_error_reporting),
+        REGISTER_TEST("default", test_warn_functions),
+        REGISTER_TEST("default", test_err_functions),
+        REGISTER_TEST("default", test_strsignal_names),
+        REGISTER_TEST("default", test_process_group_wrappers),
+        REGISTER_TEST("default", test_system_fn),
+        REGISTER_TEST("default", test_execv_fn),
+        REGISTER_TEST("default", test_execl_fn),
+        REGISTER_TEST("default", test_execlp_fn),
+        REGISTER_TEST("default", test_execle_fn),
+        REGISTER_TEST("default", test_execvp_fn),
+        REGISTER_TEST("default", test_fexecve_fn),
+        REGISTER_TEST("default", test_posix_spawn_fn),
+        REGISTER_TEST("default", test_posix_spawn_actions),
+        REGISTER_TEST("default", test_posix_spawn_sigmask),
+        REGISTER_TEST("default", test_posix_spawn_pgroup),
+        REGISTER_TEST("default", test_popen_fn),
+        REGISTER_TEST("default", test_rand_fn),
+        REGISTER_TEST("default", test_rand48_fn),
+        REGISTER_TEST("default", test_arc4random_uniform_basic),
+        REGISTER_TEST("default", test_forkpty_echo),
+        REGISTER_TEST("default", test_tcdrain_basic),
+        REGISTER_TEST("default", test_tcflush_basic),
+        REGISTER_TEST("default", test_termios_speed_roundtrip),
+        REGISTER_TEST("default", test_temp_files),
+        REGISTER_TEST("default", test_freopen_basic),
+        REGISTER_TEST("default", test_abort_fn),
+        REGISTER_TEST("default", test_sigaction_install),
+        REGISTER_TEST("default", test_sigprocmask_block),
+        REGISTER_TEST("default", test_sigwait_basic),
+        REGISTER_TEST("default", test_sigtimedwait_timeout),
+        REGISTER_TEST("default", test_sigqueue_value),
+        REGISTER_TEST("default", test_sigaltstack_basic),
+        REGISTER_TEST("default", test_sigsetjmp_restore),
+        REGISTER_TEST("default", test_sigsetjmp_nosave),
+        REGISTER_TEST("default", test_mlock_basic),
+        REGISTER_TEST("default", test_mprotect_anon),
+        REGISTER_TEST("default", test_shm_basic),
+        REGISTER_TEST("default", test_sysv_shm_segment),
+        REGISTER_TEST("default", test_mqueue_basic),
+        REGISTER_TEST("default", test_named_semaphore_create),
+        REGISTER_TEST("default", test_sysv_sem_basic),
+        REGISTER_TEST("default", test_ftok_unique),
+        REGISTER_TEST("default", test_atexit_handler),
+        REGISTER_TEST("default", test_quick_exit_handler),
+        REGISTER_TEST("default", test_getcwd_chdir),
+        REGISTER_TEST("default", test_fchdir_basic),
+        REGISTER_TEST("default", test_realpath_basic),
+        REGISTER_TEST("default", test_pathconf_basic),
+        REGISTER_TEST("default", test_passwd_lookup),
+        REGISTER_TEST("default", test_group_lookup),
+        REGISTER_TEST("default", test_passwd_enum),
+        REGISTER_TEST("default", test_group_enum),
+        REGISTER_TEST("default", test_getgrouplist_basic),
+        REGISTER_TEST("default", test_getgrouplist_overflow),
+        REGISTER_TEST("default", test_getlogin_fn),
+        REGISTER_TEST("default", test_crypt_des),
+        REGISTER_TEST("default", test_crypt_md5),
+        REGISTER_TEST("default", test_crypt_sha256),
+        REGISTER_TEST("default", test_crypt_sha512),
+        REGISTER_TEST("default", test_wordexp_basic),
+        REGISTER_TEST("default", test_dirent),
+        REGISTER_TEST("default", test_ftw_walk),
+        REGISTER_TEST("default", test_fts_walk),
+        REGISTER_TEST("default", test_qsort_int),
+        REGISTER_TEST("default", test_qsort_strings),
+        REGISTER_TEST("default", test_qsort_r_desc),
+        REGISTER_TEST("default", test_hsearch_basic),
+        REGISTER_TEST("default", test_tsearch_basic),
+        REGISTER_TEST("default", test_regex_backref_basic),
+        REGISTER_TEST("default", test_regex_backref_fail),
+        REGISTER_TEST("default", test_regex_posix_class),
+        REGISTER_TEST("default", test_regex_alternation),
+        REGISTER_TEST("default", test_regex_range),
+        REGISTER_TEST("default", test_math_functions),
+        REGISTER_TEST("default", test_complex_cabs_cexp),
+        REGISTER_TEST("default", test_abs_div_functions),
+        REGISTER_TEST("default", test_vis_roundtrip),
+        REGISTER_TEST("default", test_nvis_basic),
+        REGISTER_TEST("default", test_fp_checks),
+        REGISTER_TEST("default", test_fenv_rounding),
+        REGISTER_TEST("default", test_getopt_basic),
+        REGISTER_TEST("default", test_getopt_missing),
+        REGISTER_TEST("default", test_dlopen_basic),
+        REGISTER_TEST("default", test_dladdr_basic),
+        REGISTER_TEST("default", test_getopt_long_missing),
+        REGISTER_TEST("default", test_getopt_long_basic),
+        REGISTER_TEST("default", test_getopt_long_only_missing),
+        REGISTER_TEST("default", test_getopt_long_only_basic),
+        REGISTER_TEST("default", test_getsubopt_basic),
+        REGISTER_TEST("default", test_getsubopt_unknown),
+    };
+    for (size_t i = 0; i < sizeof(tests)/sizeof(tests[0]); i++) {
+        const char *msg = tests[i].func();
+        if (msg)
+            return msg;
+    }
     return 0;
 }
 
