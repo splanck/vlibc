@@ -52,6 +52,12 @@
 #include "../include/vis.h"
 #include "../include/pty.h"
 #include "../include/termios.h"
+#ifndef B9600
+#define B9600 13
+#endif
+#ifndef B38400
+#define B38400 15
+#endif
 #include <unistd.h>
 #include <stdio.h>
 #include "../include/err.h"
@@ -3192,6 +3198,33 @@ static const char *test_tcflush_basic(void)
     return 0;
 }
 
+static const char *test_termios_speed_roundtrip(void)
+{
+    int m, s;
+    mu_assert("openpty", openpty(&m, &s, NULL, NULL, NULL) == 0);
+    struct termios t;
+    mu_assert("get", tcgetattr(s, &t) == 0);
+    speed_t in_orig = cfgetispeed(&t);
+    speed_t out_orig = cfgetospeed(&t);
+    speed_t new_in = (in_orig == B9600) ? B38400 : B9600;
+    speed_t new_out = (out_orig == B9600) ? B38400 : B9600;
+    mu_assert("seti", cfsetispeed(&t, new_in) == 0);
+    mu_assert("seto", cfsetospeed(&t, new_out) == 0);
+    mu_assert("geti", cfgetispeed(&t) == new_in);
+    mu_assert("geto", cfgetospeed(&t) == new_out);
+    mu_assert("apply", tcsetattr(s, TCSANOW, &t) == 0);
+    struct termios verify;
+    mu_assert("verify", tcgetattr(s, &verify) == 0);
+    mu_assert("vi", cfgetispeed(&verify) == new_in);
+    mu_assert("vo", cfgetospeed(&verify) == new_out);
+    cfsetispeed(&verify, in_orig);
+    cfsetospeed(&verify, out_orig);
+    tcsetattr(s, TCSANOW, &verify);
+    close(m);
+    close(s);
+    return 0;
+}
+
 static const char *test_temp_files(void)
 {
     char tmpl[] = "/tmp/vlibctestXXXXXX";
@@ -4447,6 +4480,7 @@ static const char *all_tests(void)
     mu_run_test(test_forkpty_echo);
     mu_run_test(test_tcdrain_basic);
     mu_run_test(test_tcflush_basic);
+    mu_run_test(test_termios_speed_roundtrip);
     mu_run_test(test_temp_files);
     mu_run_test(test_abort_fn);
     mu_run_test(test_sigaction_install);

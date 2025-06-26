@@ -15,6 +15,10 @@ extern int host_tcdrain(int) __asm__("tcdrain");
 extern int host_tcflow(int, int) __asm__("tcflow");
 extern int host_tcflush(int, int) __asm__("tcflush");
 extern int host_tcsendbreak(int, int) __asm__("tcsendbreak");
+extern int host_cfsetispeed(struct termios *, speed_t) __asm__("cfsetispeed");
+extern int host_cfsetospeed(struct termios *, speed_t) __asm__("cfsetospeed");
+extern speed_t host_cfgetispeed(const struct termios *) __asm__("cfgetispeed");
+extern speed_t host_cfgetospeed(const struct termios *) __asm__("cfgetospeed");
 
 int tcgetattr(int fd, struct termios *t)
 {
@@ -49,4 +53,24 @@ int tcflush(int fd, int qs)
 int tcsendbreak(int fd, int dur)
 {
     return host_tcsendbreak(fd, dur);
+}
+
+int cfsetispeed(struct termios *t, speed_t sp)
+{
+    return host_cfsetispeed(t, sp);
+}
+
+int cfsetospeed(struct termios *t, speed_t sp)
+{
+    return host_cfsetospeed(t, sp);
+}
+
+speed_t cfgetispeed(const struct termios *t)
+{
+    return host_cfgetispeed(t);
+}
+
+speed_t cfgetospeed(const struct termios *t)
+{
+    return host_cfgetospeed(t);
 }

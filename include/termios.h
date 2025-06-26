@@ -91,5 +91,9 @@ int tcdrain(int fd);
 int tcflow(int fd, int act);
 int tcflush(int fd, int qs);
 int tcsendbreak(int fd, int dur);
+int cfsetispeed(struct termios *t, speed_t sp);
+int cfsetospeed(struct termios *t, speed_t sp);
+speed_t cfgetispeed(const struct termios *t);
+speed_t cfgetospeed(const struct termios *t);
 
 #endif /* TERMIOS_H */
