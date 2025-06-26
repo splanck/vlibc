@@ -375,6 +375,20 @@ make test-network
 
 This builds the test binary and exercises many of the library functions.
 
+Tests are organized into categories that can be run individually.  The
+`default` group contains the standard suite.  To run only a specific
+group pass its name to the test binary or provide the `TEST_GROUP`
+variable when invoking `make`:
+
+```sh
+./tests/run_tests default
+# or
+make test TEST_GROUP=default
+```
+
+Running `make test` without `TEST_GROUP` still executes the entire test
+suite.
+
 ## License
 
 This project is released under the terms of the
