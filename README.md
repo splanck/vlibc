@@ -91,8 +91,8 @@ programs. Key features include:
 - Access pattern hints with `posix_fadvise()`
 - Force file updates to disk with `fsync()` and `fdatasync()`
 - Generic descriptor control with `ioctl()`
-- Terminal attribute helpers `tcgetattr()`, `tcsetattr()`, `tcdrain()`,
-  `tcflow()`, `tcflush()` and `tcsendbreak()`
+- Terminal attribute helpers `tcgetattr()`, `tcsetattr()`, `cfsetispeed()`,
+  `cfgetispeed()`, `cfsetospeed()`, `cfgetospeed()`, `tcdrain()`, `tcflow()`, `tcflush()` and `tcsendbreak()`
 - Pseudo-terminal helpers with `openpty()` and `forkpty()`
 - Filesystem limits with `pathconf()` and `fpathconf()`
 - Query configuration strings with `confstr()`

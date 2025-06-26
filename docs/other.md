@@ -63,6 +63,14 @@ double d = nearbyint(1.2); // rounds toward -INF => 1.0
 fesetenv(&env);
 ```
 
+## Termios Helpers
+
+vlibc wraps standard terminal attribute routines.  Settings are read with
+`tcgetattr()` and applied via `tcsetattr()`.  Queued data can be managed using
+`tcdrain()`, `tcflow()`, `tcflush()` and `tcsendbreak()`.  Input and output
+speeds stored in a `termios` structure are changed with `cfsetispeed()` and
+`cfsetospeed()` or obtained with `cfgetispeed()` and `cfgetospeed()`.
+
 ## Limitations
 
  - The I/O routines perform simple optional buffering and provide only
