@@ -9,6 +9,7 @@
 #include "wchar.h"
 #include_next <wchar.h>
 #include "string.h"
+#include "stdlib.h"
 
 extern size_t host_mbrtowc(wchar_t *, const char *, size_t, mbstate_t *) __asm__("mbrtowc");
 extern size_t host_wcrtomb(char *, wchar_t, mbstate_t *) __asm__("wcrtomb");
@@ -188,4 +189,181 @@ size_t wcsrtombs(char *dst, const wchar_t **src, size_t n, mbstate_t *ps)
         count += r;
         s++;
     }
+}
+
+/* Helper to convert a wide string to a multibyte buffer. */
+static char *wcs_to_mb_tmp(const wchar_t *s, char *stack, size_t stack_sz, size_t *out_len)
+{
+    size_t len = wcstombs(NULL, s, 0);
+    if (len == (size_t)-1)
+        len = 0;
+    *out_len = len;
+    if (len < stack_sz) {
+        wcstombs(stack, s, len + 1);
+        return stack;
+    }
+    char *buf = malloc(len + 1);
+    if (!buf) {
+        *out_len = 0;
+        return NULL;
+    }
+    wcstombs(buf, s, len + 1);
+    return buf;
+}
+
+long wcstol(const wchar_t *nptr, wchar_t **endptr, int base)
+{
+    char stack[128];
+    size_t len;
+    char *mb = wcs_to_mb_tmp(nptr, stack, sizeof(stack), &len);
+    if (!mb) {
+        if (endptr)
+            *endptr = (wchar_t *)nptr;
+        return 0;
+    }
+    char *end;
+    long v = strtol(mb, &end, base);
+    if (endptr)
+        *endptr = (wchar_t *)nptr + (end - mb);
+    if (mb != stack)
+        free(mb);
+    return v;
+}
+
+unsigned long wcstoul(const wchar_t *nptr, wchar_t **endptr, int base)
+{
+    char stack[128];
+    size_t len;
+    char *mb = wcs_to_mb_tmp(nptr, stack, sizeof(stack), &len);
+    if (!mb) {
+        if (endptr)
+            *endptr = (wchar_t *)nptr;
+        return 0;
+    }
+    char *end;
+    unsigned long v = strtoul(mb, &end, base);
+    if (endptr)
+        *endptr = (wchar_t *)nptr + (end - mb);
+    if (mb != stack)
+        free(mb);
+    return v;
+}
+
+long long wcstoll(const wchar_t *nptr, wchar_t **endptr, int base)
+{
+    char stack[128];
+    size_t len;
+    char *mb = wcs_to_mb_tmp(nptr, stack, sizeof(stack), &len);
+    if (!mb) {
+        if (endptr)
+            *endptr = (wchar_t *)nptr;
+        return 0;
+    }
+    char *end;
+    long long v = strtoll(mb, &end, base);
+    if (endptr)
+        *endptr = (wchar_t *)nptr + (end - mb);
+    if (mb != stack)
+        free(mb);
+    return v;
+}
+
+unsigned long long wcstoull(const wchar_t *nptr, wchar_t **endptr, int base)
+{
+    char stack[128];
+    size_t len;
+    char *mb = wcs_to_mb_tmp(nptr, stack, sizeof(stack), &len);
+    if (!mb) {
+        if (endptr)
+            *endptr = (wchar_t *)nptr;
+        return 0;
+    }
+    char *end;
+    unsigned long long v = strtoull(mb, &end, base);
+    if (endptr)
+        *endptr = (wchar_t *)nptr + (end - mb);
+    if (mb != stack)
+        free(mb);
+    return v;
+}
+
+intmax_t wcstoimax(const wchar_t *nptr, wchar_t **endptr, int base)
+{
+    char stack[128];
+    size_t len;
+    char *mb = wcs_to_mb_tmp(nptr, stack, sizeof(stack), &len);
+    if (!mb) {
+        if (endptr)
+            *endptr = (wchar_t *)nptr;
+        return 0;
+    }
+    char *end;
+    intmax_t v = strtoimax(mb, &end, base);
+    if (endptr)
+        *endptr = (wchar_t *)nptr + (end - mb);
+    if (mb != stack)
+        free(mb);
+    return v;
+}
+
+uintmax_t wcstoumax(const wchar_t *nptr, wchar_t **endptr, int base)
+{
+    char stack[128];
+    size_t len;
+    char *mb = wcs_to_mb_tmp(nptr, stack, sizeof(stack), &len);
+    if (!mb) {
+        if (endptr)
+            *endptr = (wchar_t *)nptr;
+        return 0;
+    }
+    char *end;
+    uintmax_t v = strtoumax(mb, &end, base);
+    if (endptr)
+        *endptr = (wchar_t *)nptr + (end - mb);
+    if (mb != stack)
+        free(mb);
+    return v;
+}
+
+double wcstod(const wchar_t *nptr, wchar_t **endptr)
+{
+    char stack[128];
+    size_t len;
+    char *mb = wcs_to_mb_tmp(nptr, stack, sizeof(stack), &len);
+    if (!mb) {
+        if (endptr)
+            *endptr = (wchar_t *)nptr;
+        return 0.0;
+    }
+    char *end;
+    double v = strtod(mb, &end);
+    if (endptr)
+        *endptr = (wchar_t *)nptr + (end - mb);
+    if (mb != stack)
+        free(mb);
+    return v;
+}
+
+float wcstof(const wchar_t *nptr, wchar_t **endptr)
+{
+    return (float)wcstod(nptr, endptr);
+}
+
+long double wcstold(const wchar_t *nptr, wchar_t **endptr)
+{
+    char stack[128];
+    size_t len;
+    char *mb = wcs_to_mb_tmp(nptr, stack, sizeof(stack), &len);
+    if (!mb) {
+        if (endptr)
+            *endptr = (wchar_t *)nptr;
+        return 0.0L;
+    }
+    char *end;
+    long double v = strtold(mb, &end);
+    if (endptr)
+        *endptr = (wchar_t *)nptr + (end - mb);
+    if (mb != stack)
+        free(mb);
+    return v;
 }

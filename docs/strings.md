@@ -85,6 +85,9 @@ The `wmemcpy`, `wmemmove`, `wmemset` and `wmemcmp` routines operate on
 arrays of `wchar_t` analogous to the byte-oriented routines.
 Search helpers `wcschr`, `wcsrchr`, `wcsstr` and `wmemchr` provide character
 and substring lookup for wide strings.
+Number parsing functions `wcstol`, `wcstoul`, `wcstoll`, `wcstoull`,
+`wcstoimax`, `wcstoumax`, `wcstof`, `wcstod` and `wcstold` mirror the
+behaviour of the narrow-string conversions.
 
 ### Example
 

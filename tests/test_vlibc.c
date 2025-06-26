@@ -1033,6 +1033,39 @@ static const char *test_string_helpers(void)
     mu_assert("strtoumax max",
               strtoumax(numbuf, &end, 10) == UINTMAX_MAX && *end == '\0');
 
+    wchar_t wbuf[64];
+    mbstowcs(wbuf, "ff", 64);
+    wchar_t *wend;
+    mu_assert("wcstol hex", wcstol(wbuf, &wend, 16) == 255 && *wend == L'\0');
+    mbstowcs(wbuf, "123", 64);
+    mu_assert("wcstoul basic", wcstoul(wbuf, &wend, 10) == 123ul && *wend == L'\0');
+    mbstowcs(wbuf, "-321", 64);
+    mu_assert("wcstoll neg", wcstoll(wbuf, &wend, 10) == -321ll && *wend == L'\0');
+    mbstowcs(wbuf, "1234567890123", 64);
+    mu_assert("wcstoull big", wcstoull(wbuf, &wend, 10) == 1234567890123ull && *wend == L'\0');
+    mbstowcs(wbuf, "2.5", 64);
+    mu_assert("wcstod basic", wcstod(wbuf, &wend) == 2.5 && *wend == L'\0');
+    mbstowcs(wbuf, "4.5", 64);
+    mu_assert("wcstof", fabsf(wcstof(wbuf, &wend) - 4.5f) < 1e-6f && *wend == L'\0');
+    mbstowcs(wbuf, "6.25", 64);
+    long double wld = wcstold(wbuf, &wend);
+    long double wdiff = wld - 6.25L;
+    if (wdiff < 0)
+        wdiff = -wdiff;
+    mu_assert("wcstold", wdiff < 1e-9L && *wend == L'\0');
+    snprintf(numbuf, sizeof(numbuf), "%jd", (intmax_t)INTMAX_MAX);
+    mbstowcs(wbuf, numbuf, 64);
+    mu_assert("wcstoimax max",
+              wcstoimax(wbuf, &wend, 10) == INTMAX_MAX && *wend == L'\0');
+    snprintf(numbuf, sizeof(numbuf), "%jd", (intmax_t)INTMAX_MIN);
+    mbstowcs(wbuf, numbuf, 64);
+    mu_assert("wcstoimax min",
+              wcstoimax(wbuf, &wend, 10) == INTMAX_MIN && *wend == L'\0');
+    snprintf(numbuf, sizeof(numbuf), "%ju", (uintmax_t)UINTMAX_MAX);
+    mbstowcs(wbuf, numbuf, 64);
+    mu_assert("wcstoumax max",
+              wcstoumax(wbuf, &wend, 10) == UINTMAX_MAX && *wend == L'\0');
+
     mu_assert("strnlen zero", strnlen("abc", 0) == 0);
     mu_assert("strnlen short", strnlen("hello", 3) == 3);
     mu_assert("strnlen full", strnlen("hi", 10) == 2);

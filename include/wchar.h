@@ -8,6 +8,7 @@
 
 #include <stddef.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include "stdio.h"
 
 #ifndef __wchar_t_defined
@@ -71,6 +72,17 @@ size_t wcsrtombs(char *dst, const wchar_t **src, size_t n, mbstate_t *ps);
 size_t mbrlen(const char *s, size_t n, mbstate_t *ps);
 /* Check whether state is initial */
 int mbsinit(const mbstate_t *ps);
+
+/* Wide-string to number conversions */
+long wcstol(const wchar_t *nptr, wchar_t **endptr, int base);
+unsigned long wcstoul(const wchar_t *nptr, wchar_t **endptr, int base);
+long long wcstoll(const wchar_t *nptr, wchar_t **endptr, int base);
+unsigned long long wcstoull(const wchar_t *nptr, wchar_t **endptr, int base);
+intmax_t wcstoimax(const wchar_t *nptr, wchar_t **endptr, int base);
+uintmax_t wcstoumax(const wchar_t *nptr, wchar_t **endptr, int base);
+double wcstod(const wchar_t *nptr, wchar_t **endptr);
+float wcstof(const wchar_t *nptr, wchar_t **endptr);
+long double wcstold(const wchar_t *nptr, wchar_t **endptr);
 
 /* Wide-character formatted output */
 int wprintf(const wchar_t *format, ...);
