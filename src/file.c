@@ -174,17 +174,25 @@ int sendfile(int fd, int s, off_t offset, size_t nbytes,
         ssize_t r = pread(fd, buf, chunk, offset + sent);
         if (r <= 0)
             break;
-        ssize_t w = write(s, buf, (size_t)r);
-        if (w < 0) {
-            if (sbytes)
-                *sbytes = sent;
-            return -1;
+        size_t off = 0;
+        while (off < (size_t)r) {
+            ssize_t w = write(s, buf + off, (size_t)r - off);
+            if (w < 0) {
+                if (errno == EINTR)
+                    continue;
+                if (sbytes)
+                    *sbytes = sent;
+                return -1;
+            }
+            off += (size_t)w;
+            sent += w;
         }
-        sent += w;
-        if (w < r)
+        if (off < (size_t)r)
             break;
     }
-    if (sbytes)
+    if (sbytes) {
         *sbytes = sent;
-    return 0;
+        return 0;
+    }
+    return (int)sent;
 }
