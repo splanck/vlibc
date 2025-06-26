@@ -143,6 +143,20 @@ while ((e = fts_read(f)))
 fts_close(f);
 ```
 
+## Changing Directories
+
+`fchdir` updates the current working directory using an open directory
+file descriptor. This avoids constructing a path again when returning
+to a previously opened location.
+
+```c
+char tmpl[] = "/tmp/dirXXXXXX";
+char *dir = mkdtemp(tmpl);
+int fd = open(dir, O_RDONLY | O_DIRECTORY);
+fchdir(fd);
+close(fd);
+```
+
 ## Path Canonicalization
 
 `realpath` converts a pathname into an absolute canonical form. It

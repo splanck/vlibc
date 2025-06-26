@@ -38,6 +38,8 @@ size_t confstr(int name, char *buf, size_t len);
 long pathconf(const char *path, int name);
 long fpathconf(int fd, int name);
 
+int fchdir(int fd);
+
 char *getlogin(void);
 char *getpass(const char *prompt);
 char *crypt(const char *key, const char *salt);

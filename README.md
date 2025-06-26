@@ -53,6 +53,7 @@ programs. Key features include:
 - Syslog-style logging
 - Simplified `err`/`warn` helpers for fatal and nonfatal messages
 - Change root directories with `chroot()` when supported
+- Change directories by descriptor with `fchdir()`
 - Directory scanning helpers
 - File tree traversal with `fts`
 - Path expansion helpers with `glob()` and `wordexp()`

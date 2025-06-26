@@ -3520,6 +3520,29 @@ static const char *test_getcwd_chdir(void)
     return 0;
 }
 
+static const char *test_fchdir_basic(void)
+{
+    char orig[256];
+    mu_assert("orig cwd", getcwd(orig, sizeof(orig)) != NULL);
+
+    char tmpl[] = "/tmp/fcdXXXXXX";
+    char *dir = mkdtemp(tmpl);
+    mu_assert("mkdtemp", dir != NULL);
+
+    int fd = open(dir, O_RDONLY);
+    mu_assert("open dir", fd >= 0);
+
+    mu_assert("fchdir", fchdir(fd) == 0);
+    char buf[256];
+    mu_assert("cwd dir", getcwd(buf, sizeof(buf)) != NULL);
+    mu_assert("dir path", strcmp(buf, dir) == 0);
+
+    mu_assert("restore", chdir(orig) == 0);
+    close(fd);
+    rmdir(dir);
+    return 0;
+}
+
 static const char *test_realpath_basic(void)
 {
     char cwd[256];
@@ -4465,6 +4488,7 @@ static const char *all_tests(void)
     mu_run_test(test_atexit_handler);
     mu_run_test(test_quick_exit_handler);
     mu_run_test(test_getcwd_chdir);
+    mu_run_test(test_fchdir_basic);
     mu_run_test(test_realpath_basic);
     mu_run_test(test_pathconf_basic);
     mu_run_test(test_passwd_lookup);
