@@ -221,7 +221,17 @@ int posix_memalign(void **memptr, size_t alignment, size_t size)
         alignment % sizeof(void *) != 0)
         return EINVAL;
 
-    size_t total = size + alignment - 1 + sizeof(struct posix_align_hdr);
+    /*
+     * Check that size plus alignment and the header won't exceed SIZE_MAX.
+     * If overflow would occur, return ENOMEM without allocating.
+     */
+    size_t extra = alignment - 1;
+    if (extra > SIZE_MAX - sizeof(struct posix_align_hdr))
+        return ENOMEM;
+    extra += sizeof(struct posix_align_hdr);
+    if (size > SIZE_MAX - extra)
+        return ENOMEM;
+    size_t total = size + extra;
     void *orig = malloc(total);
     if (!orig)
         return ENOMEM;
