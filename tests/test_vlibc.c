@@ -4774,7 +4774,7 @@ static const char *test_getsubopt_unknown(void)
     return 0;
 }
 
-static const char *all_tests(void)
+static const char *run_tests(const char *category)
 {
     static const struct test_case tests[] = {
         REGISTER_TEST("default", test_malloc),
@@ -5003,16 +5003,24 @@ static const char *all_tests(void)
         REGISTER_TEST("default", test_getsubopt_unknown),
     };
     for (size_t i = 0; i < sizeof(tests)/sizeof(tests[0]); i++) {
-        const char *msg = tests[i].func();
-        if (msg)
-            return msg;
+        if (category == NULL || strcmp(tests[i].category, category) == 0) {
+            const char *msg = tests[i].func();
+            if (msg)
+                return msg;
+        }
     }
     return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
-    const char *result = all_tests();
+    const char *category = NULL;
+    if (argc > 1)
+        category = argv[1];
+    else
+        category = getenv("TEST_GROUP");
+
+    const char *result = run_tests(category);
     if (result)
         printf("%s\n", result);
     else
