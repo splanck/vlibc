@@ -154,6 +154,7 @@ SRC := \
     $(SELECT_SRC) \
     src/qsort.c \
     src/search_hash.c \
+    src/search_tree.c \
     src/getopt.c \
     src/dlfcn.c \
     src/getopt_long.c \

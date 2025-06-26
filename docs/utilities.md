@@ -131,3 +131,25 @@ hdestroy();
 
 Only one table may exist at a time and collisions are resolved with linear
 probing.
+
+## Binary Search Trees
+
+`tsearch`, `tfind`, `tdelete` and `twalk` build a minimal binary search tree.
+Insert elements with `tsearch`, locate them using `tfind` and remove them with
+`tdelete`. `twalk` visits each node in preorder, postorder and endorder.
+
+```c
+void *root = NULL;
+int values[] = {4, 2, 7, 1, 6};
+for (int i = 0; i < 5; i++)
+    tsearch(&values[i], &root, int_cmp);
+int *p = tfind(&values[2], &root, int_cmp);  // points to 7
+tdelete(&values[1], &root, int_cmp);         // remove 2
+static int sum = 0;
+void collect(const void *node, VISIT v, int l)
+{
+    if (v == postorder || v == leaf)
+        sum += *(const int *)node;
+}
+twalk(root, collect);   // sum == 18
+```
