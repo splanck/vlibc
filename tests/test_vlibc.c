@@ -2056,6 +2056,19 @@ static const char *test_priority_wrappers(void)
     return 0;
 }
 
+static const char *test_sched_get_set_scheduler(void)
+{
+    struct sched_param sp;
+    int pol = sched_getscheduler(0);
+    if (pol == -1 && errno == ENOSYS)
+        return 0;
+    mu_assert("sched_getscheduler", pol >= 0);
+    mu_assert("sched_getparam", sched_getparam(0, &sp) == 0);
+    mu_assert("sched_setscheduler", sched_setscheduler(0, pol, &sp) == 0);
+    mu_assert("verify", sched_getscheduler(0) == pol);
+    return 0;
+}
+
 static const char *test_timer_basic(void)
 {
     timer_t t;
@@ -4021,6 +4034,7 @@ static const char *all_tests(void)
     mu_run_test(test_sched_yield_basic);
     mu_run_test(test_sched_yield_loop);
     mu_run_test(test_priority_wrappers);
+    mu_run_test(test_sched_get_set_scheduler);
     mu_run_test(test_timer_basic);
     mu_run_test(test_getrusage_self);
     mu_run_test(test_strftime_basic);
