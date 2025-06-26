@@ -8,6 +8,7 @@
 #include "search.h"
 #include "stdlib.h"
 #include "string.h"
+#include "memory.h"
 
 static ENTRY *table;
 static unsigned char *used;
