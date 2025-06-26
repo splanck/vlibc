@@ -774,17 +774,41 @@ int posix_spawn(pid_t *pid, const char *path,
                 switch (a->type) {
                 case SPAWN_ACTION_OPEN: {
                     int fd = open(a->path, a->oflag, a->mode);
-                    if (fd < 0) { err = errno; write(errpipe[1], &err, sizeof(err)); _exit(127); }
+                    if (fd < 0) {
+                        err = errno;
+                        ssize_t w = write(errpipe[1], &err, sizeof(err));
+                        if (w < (ssize_t)sizeof(err))
+                            _exit(127);
+                        _exit(127);
+                    }
                     if (fd != a->fd) {
-                        if (dup2(fd, a->fd) < 0) { err = errno; write(errpipe[1], &err, sizeof(err)); _exit(127); }
+                        if (dup2(fd, a->fd) < 0) {
+                            err = errno;
+                            ssize_t w = write(errpipe[1], &err, sizeof(err));
+                            if (w < (ssize_t)sizeof(err))
+                                _exit(127);
+                            _exit(127);
+                        }
                         close(fd);
                     }
                     break; }
                 case SPAWN_ACTION_CLOSE:
-                    if (close(a->fd) < 0) { err = errno; write(errpipe[1], &err, sizeof(err)); _exit(127); }
+                    if (close(a->fd) < 0) {
+                        err = errno;
+                        ssize_t w = write(errpipe[1], &err, sizeof(err));
+                        if (w < (ssize_t)sizeof(err))
+                            _exit(127);
+                        _exit(127);
+                    }
                     break;
                 case SPAWN_ACTION_DUP2:
-                    if (dup2(a->fd, a->newfd) < 0) { err = errno; write(errpipe[1], &err, sizeof(err)); _exit(127); }
+                    if (dup2(a->fd, a->newfd) < 0) {
+                        err = errno;
+                        ssize_t w = write(errpipe[1], &err, sizeof(err));
+                        if (w < (ssize_t)sizeof(err))
+                            _exit(127);
+                        _exit(127);
+                    }
                     break;
                 }
             }
@@ -792,7 +816,9 @@ int posix_spawn(pid_t *pid, const char *path,
 
         execve(path, argv, envp ? envp : environ);
         err = errno;
-        write(errpipe[1], &err, sizeof(err));
+        ssize_t w = write(errpipe[1], &err, sizeof(err));
+        if (w < (ssize_t)sizeof(err))
+            _exit(127);
         _exit(127);
     }
     close(errpipe[1]);
