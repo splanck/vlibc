@@ -77,6 +77,19 @@ int sigdelset(sigset_t *set, int signo);
 int sigismember(const sigset_t *set, int signo);
 char *strsignal(int signum);
 
+typedef struct {
+    void  *ss_sp;
+    size_t ss_size;
+    int    ss_flags;
+} stack_t;
+
+#define SS_ONSTACK  1
+#define SS_DISABLE  2
+#define MINSIGSTKSZ 2048
+#define SIGSTKSZ    8192
+
+int sigaltstack(const stack_t *ss, stack_t *old);
+
 typedef struct siginfo {
     int si_signo;
     int si_errno;
