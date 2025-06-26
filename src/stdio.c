@@ -30,20 +30,26 @@ static int flush_buffer(FILE *stream)
     if (!stream || !stream->buf || stream->buflen == 0)
         return 0;
     if (stream->is_mem) {
-        if (stream->buflen >= stream->bufsize) {
-            unsigned char *tmp = realloc(stream->buf, stream->buflen + 1);
+        size_t term = stream->is_wmem ? sizeof(wchar_t) : 1;
+        if (stream->buflen + term > stream->bufsize) {
+            size_t need = stream->buflen + term;
+            unsigned char *tmp = realloc(stream->buf, need);
             if (!tmp) {
                 stream->error = 1;
                 return -1;
             }
             stream->buf = tmp;
-            stream->bufsize = stream->buflen + 1;
+            stream->bufsize = need;
         }
-        stream->buf[stream->buflen] = '\0';
+        if (stream->is_wmem)
+            memset(stream->buf + stream->buflen, 0, sizeof(wchar_t));
+        else
+            stream->buf[stream->buflen] = '\0';
         if (stream->mem_bufp)
             *stream->mem_bufp = (char *)stream->buf;
         if (stream->mem_sizep)
-            *stream->mem_sizep = stream->buflen;
+            *stream->mem_sizep = stream->is_wmem ?
+                stream->buflen / sizeof(wchar_t) : stream->buflen;
         return 0;
     }
     size_t off = 0;

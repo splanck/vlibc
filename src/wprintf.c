@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
+#include <errno.h>
 
 static int wuint_to_base(unsigned long value, unsigned base, int upper,
                         wchar_t *buf, size_t size)
@@ -201,6 +202,43 @@ static int vfdwprintf(int fd, const wchar_t *format, va_list ap)
 
 int vfwprintf(FILE *stream, const wchar_t *format, va_list ap)
 {
+    if (stream && stream->is_mem) {
+        va_list copy;
+        va_copy(copy, ap);
+        int len = vswprintf(NULL, 0, format, copy);
+        va_end(copy);
+        if (len < 0)
+            return -1;
+        wchar_t *wbuf = malloc(((size_t)len + 1) * sizeof(wchar_t));
+        if (!wbuf) {
+            errno = ENOMEM;
+            return -1;
+        }
+        vswprintf(wbuf, (size_t)len + 1, format, ap);
+        int ret;
+        if (stream->is_wmem) {
+            size_t written = fwrite(wbuf, sizeof(wchar_t), (size_t)len, stream);
+            ret = (int)written;
+        } else {
+            size_t mlen = wcstombs(NULL, wbuf, 0);
+            if (mlen == (size_t)-1) {
+                free(wbuf);
+                return -1;
+            }
+            char *mbuf = malloc(mlen + 1);
+            if (!mbuf) {
+                free(wbuf);
+                errno = ENOMEM;
+                return -1;
+            }
+            wcstombs(mbuf, wbuf, mlen + 1);
+            size_t written = fwrite(mbuf, 1, mlen, stream);
+            free(mbuf);
+            ret = (int)written;
+        }
+        free(wbuf);
+        return ret;
+    }
     return vfdwprintf(stream ? stream->fd : -1, format, ap);
 }
 
