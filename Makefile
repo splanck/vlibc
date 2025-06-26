@@ -114,6 +114,9 @@ SRC := \
     src/msync.c \
     src/mlock.c \
     src/shm.c \
+    src/sysv_msg.c \
+    src/sysv_sem.c \
+    src/sysv_shm.c \
     src/mqueue.c \
     src/env.c \
     src/hostname.c \

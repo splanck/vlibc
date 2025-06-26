@@ -61,6 +61,8 @@
 #include "../include/sys/resource.h"
 #include "../include/sys/mman.h"
 #include "../include/sys/shm.h"
+#include "../include/sys/sem.h"
+#include "../include/sys/msg.h"
 #include "../include/mqueue.h"
 #include "../include/sched.h"
 
@@ -3328,6 +3330,37 @@ static const char *test_named_semaphore_create(void)
     return 0;
 }
 
+static const char *test_sysv_shm_segment(void)
+{
+    int id = shmget(IPC_PRIVATE, 128, IPC_CREAT | 0600);
+    mu_assert("shmget", id >= 0);
+    void *p = shmat(id, NULL, 0);
+    mu_assert("shmat", p != (void *)-1);
+    strcpy((char *)p, "hi");
+    mu_assert("shmdt", shmdt(p) == 0);
+    mu_assert("shmctl", shmctl(id, IPC_RMID, NULL) == 0);
+    return 0;
+}
+
+static const char *test_sysv_sem_basic(void)
+{
+    int id = semget(IPC_PRIVATE, 1, IPC_CREAT | 0600);
+    mu_assert("semget", id >= 0);
+#ifdef _SEM_SEMUN_UNDEFINED
+    union semun { int val; struct semid_ds *buf; unsigned short *array; } arg;
+#else
+    union semun arg;
+#endif
+    arg.val = 1;
+    mu_assert("semctl", semctl(id, 0, SETVAL, arg) == 0);
+    struct sembuf op = {0, -1, 0};
+    mu_assert("semop down", semop(id, &op, 1) == 0);
+    op.sem_op = 1;
+    mu_assert("semop up", semop(id, &op, 1) == 0);
+    mu_assert("semctl rm", semctl(id, 0, IPC_RMID) == 0);
+    return 0;
+}
+
 static const char *test_atexit_handler(void)
 {
     mu_assert("pipe", pipe(exit_pipe) == 0);
@@ -4303,8 +4336,10 @@ static const char *all_tests(void)
     mu_run_test(test_mlock_basic);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_shm_basic);
+    mu_run_test(test_sysv_shm_segment);
     mu_run_test(test_mqueue_basic);
     mu_run_test(test_named_semaphore_create);
+    mu_run_test(test_sysv_sem_basic);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_quick_exit_handler);
     mu_run_test(test_getcwd_chdir);

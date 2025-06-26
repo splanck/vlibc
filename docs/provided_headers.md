@@ -42,6 +42,10 @@ sys/mman.h   - memory mapping helpers
 sys/select.h - fd_set macros and select wrapper
 sys/socket.h - networking wrappers
 sys/stat.h   - file status functions
+sys/ipc.h    - System-V IPC keys and permissions
+sys/msg.h    - System-V message queues
+sys/sem.h    - System-V semaphores
+sys/shm.h    - System-V shared memory and POSIX helpers
 sys/statvfs.h - filesystem statistics
 syscall.h    - raw syscall interface
 time.h       - time related helpers
