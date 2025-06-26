@@ -10,6 +10,7 @@
 #include_next <wchar.h>
 #include "string.h"
 #include "stdlib.h"
+#include "memory.h"
 
 extern size_t host_mbrtowc(wchar_t *, const char *, size_t, mbstate_t *) __asm__("mbrtowc");
 extern size_t host_wcrtomb(char *, wchar_t, mbstate_t *) __asm__("wcrtomb");
