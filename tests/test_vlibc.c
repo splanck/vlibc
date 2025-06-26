@@ -3609,6 +3609,28 @@ static const char *test_sysv_sem_basic(void)
     return 0;
 }
 
+static const char *test_ftok_unique(void)
+{
+    char path1[] = "/tmp/vlibc_ftok1XXXXXX";
+    char path2[] = "/tmp/vlibc_ftok2XXXXXX";
+    int fd1 = mkstemp(path1);
+    int fd2 = mkstemp(path2);
+    mu_assert("mkstemp1", fd1 >= 0);
+    mu_assert("mkstemp2", fd2 >= 0);
+    close(fd1);
+    close(fd2);
+
+    key_t k1 = ftok(path1, 'A');
+    key_t k2 = ftok(path2, 'A');
+    mu_assert("ftok1", k1 != (key_t)-1);
+    mu_assert("ftok2", k2 != (key_t)-1);
+    mu_assert("unique keys", k1 != k2);
+
+    unlink(path1);
+    unlink(path2);
+    return 0;
+}
+
 static const char *test_atexit_handler(void)
 {
     mu_assert("pipe", pipe(exit_pipe) == 0);
@@ -4735,6 +4757,7 @@ static const char *all_tests(void)
     mu_run_test(test_mqueue_basic);
     mu_run_test(test_named_semaphore_create);
     mu_run_test(test_sysv_sem_basic);
+    mu_run_test(test_ftok_unique);
     mu_run_test(test_atexit_handler);
     mu_run_test(test_quick_exit_handler);
     mu_run_test(test_getcwd_chdir);
