@@ -188,6 +188,18 @@ static const char *test_posix_memalign(void)
     return 0;
 }
 
+static const char *test_aligned_alloc(void)
+{
+    void *p = aligned_alloc(32, 64);
+    mu_assert("aligned_alloc ptr", p != NULL);
+    mu_assert("ptr aligned", ((uintptr_t)p % 32) == 0);
+    char *c = p;
+    for (int i = 0; i < 64; i++)
+        c[i] = (char)i;
+    free(p);
+    return 0;
+}
+
 static const char *test_reallocarray_overflow(void)
 {
     size_t big = (size_t)-1 / 2 + 1;
@@ -3937,6 +3949,7 @@ static const char *all_tests(void)
     mu_run_test(test_malloc_reuse);
     mu_run_test(test_posix_memalign_basic);
     mu_run_test(test_posix_memalign);
+    mu_run_test(test_aligned_alloc);
     mu_run_test(test_reallocarray_overflow);
     mu_run_test(test_reallocarray_basic);
     mu_run_test(test_recallocarray_grow);

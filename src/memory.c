@@ -226,6 +226,18 @@ int posix_memalign(void **memptr, size_t alignment, size_t size)
 }
 
 /*
+ * Allocates a block with the requested alignment using posix_memalign.
+ * Returns NULL on failure like standard aligned_alloc.
+ */
+void *aligned_alloc(size_t alignment, size_t size)
+{
+    void *ptr = NULL;
+    if (posix_memalign(&ptr, alignment, size) != 0)
+        return NULL;
+    return ptr;
+}
+
+/*
  * Resizes an array with overflow checking.
  * Verifies nmemb * size won't overflow and delegates to realloc.
  */
