@@ -126,6 +126,7 @@ SRC := \
     src/sched.c \
     src/clock_gettime.c \
     src/clock_getres.c \
+    src/clock_settime.c \
     src/time.c \
     src/time_conv.c \
     src/time_r.c \

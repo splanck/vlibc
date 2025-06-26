@@ -2287,6 +2287,23 @@ static const char *test_timer_basic(void)
     return 0;
 }
 
+static const char *test_clock_settime_priv(void)
+{
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
+        return "gettime";
+    int r = clock_settime(CLOCK_MONOTONIC, &ts);
+    if (r != 0) {
+        if (errno == EPERM || errno == ENOSYS || errno == EINVAL)
+            return 0; /* skip when not permitted */
+        return "clock_settime";
+    }
+    struct timespec check;
+    mu_assert("verify", clock_gettime(CLOCK_MONOTONIC, &check) == 0);
+    mu_assert("compare", check.tv_sec >= ts.tv_sec);
+    return 0;
+}
+
 static const char *test_getrusage_self(void)
 {
     struct rusage r;
@@ -4472,6 +4489,7 @@ static const char *all_tests(void)
     mu_run_test(test_priority_wrappers);
     mu_run_test(test_sched_get_set_scheduler);
     mu_run_test(test_timer_basic);
+    mu_run_test(test_clock_settime_priv);
     mu_run_test(test_getrusage_self);
     mu_run_test(test_times_self);
     mu_run_test(test_strftime_basic);

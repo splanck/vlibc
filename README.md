@@ -209,6 +209,7 @@ clock_gettime(CLOCK_MONOTONIC, &ts);
 ```
 
 `CLOCK_REALTIME` returns the wall-clock time.
+`clock_settime` adjusts it when privileges allow.
 `clock_getres` queries the resolution of a given clock.
 Use `difftime` to compute the difference between two `time_t` values.
 
