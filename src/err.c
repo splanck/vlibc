@@ -12,6 +12,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "errno.h"
+#include "process.h"
 
 static void vwarn_internal(const char *fmt, va_list ap, int use_errno)
 {
@@ -52,10 +53,12 @@ void warnx(const char *fmt, ...)
     va_end(ap);
 }
 
-static void verr_internal(int status, const char *fmt, va_list ap, int use_errno)
+static void __attribute__((noreturn))
+verr_internal(int status, const char *fmt, va_list ap, int use_errno)
 {
     vwarn_internal(fmt, ap, use_errno);
     exit(status);
+    __builtin_unreachable();
 }
 
 void verr(int status, const char *fmt, va_list ap)
