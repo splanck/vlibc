@@ -1244,6 +1244,26 @@ static const char *test_wmem_ops(void)
     return 0;
 }
 
+static const char *test_wchar_search(void)
+{
+    const wchar_t *p = wcschr(L"hello", L'e');
+    mu_assert("wcschr", p && p - L"hello" == 1);
+
+    const wchar_t *r = wcsrchr(L"abca", L'a');
+    mu_assert("wcsrchr", r && r - L"abca" == 3);
+
+    const wchar_t *h = L"abcabc";
+    const wchar_t *s = wcsstr(h, L"cab");
+    mu_assert("wcsstr", s && s - h == 2);
+
+    wchar_t buf[4] = { L'x', L'y', L'z', L'y' };
+    wchar_t *m = wmemchr(buf, L'z', 4);
+    mu_assert("wmemchr", m == &buf[2]);
+    mu_assert("wmemchr none", wmemchr(buf, L'a', 4) == NULL);
+
+    return 0;
+}
+
 static const char *test_wmemstream_basic(void)
 {
     wchar_t *out = NULL;
@@ -4285,6 +4305,7 @@ static const char *all_tests(void)
     mu_run_test(test_widechar_width);
     mu_run_test(test_wctype_checks);
     mu_run_test(test_wmem_ops);
+    mu_run_test(test_wchar_search);
     mu_run_test(test_wmemstream_basic);
     mu_run_test(test_iconv_ascii_roundtrip);
     mu_run_test(test_iconv_invalid_byte);
