@@ -59,6 +59,7 @@ programs. Key features include:
 - Path expansion helpers with `glob()` and `wordexp()`
 - Text encoding helpers with `vis()`, `nvis()` and `unvis()`
 - Array sorting with `qsort`, `qsort_r` and `bsearch`
+- Simple hash table via `hcreate`, `hdestroy` and `hsearch`
 - Array resizing with `recallocarray()` which zeroes new memory
 - Aligned allocations with `aligned_alloc()`
 - Standard `assert` macro for runtime checks

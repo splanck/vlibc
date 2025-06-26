@@ -153,6 +153,7 @@ SRC := \
     src/ctype.c \
     $(SELECT_SRC) \
     src/qsort.c \
+    src/search_hash.c \
     src/getopt.c \
     src/dlfcn.c \
     src/getopt_long.c \

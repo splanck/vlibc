@@ -111,3 +111,23 @@ while (*p) {
     }
 }
 ```
+
+## Hash Table Search
+
+`hcreate`, `hdestroy` and `hsearch` implement a very small global hash table.
+Create the table with `hcreate(nel)`, insert elements using `hsearch` with
+`ENTER`, and look them up with `FIND`. `hdestroy` releases the table.
+
+```c
+hcreate(8);
+ENTRY e = {"key", "value"};
+hsearch(e, ENTER);
+ENTRY q = {"key", NULL};
+ENTRY *r = hsearch(q, FIND);
+if (r)
+    printf("%s\n", (char *)r->data);
+hdestroy();
+```
+
+Only one table may exist at a time and collisions are resolved with linear
+probing.
