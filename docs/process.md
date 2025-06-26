@@ -485,3 +485,10 @@ if (n > 0 && n < sizeof(path))
     printf("search path: %s\n", path);
 ```
 
+## Load Average
+
+`getloadavg()` fills an array with the 1, 5 and 15 minute system load
+averages. The function writes up to three values and returns the count
+stored or `-1` on error. BSD systems retrieve the numbers via a `sysctl`
+query while Linux parses `/proc/loadavg`.
+

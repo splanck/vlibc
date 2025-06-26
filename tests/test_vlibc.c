@@ -2381,6 +2381,16 @@ static const char *test_times_self(void)
     return 0;
 }
 
+static const char *test_getloadavg_basic(void)
+{
+    double l[3];
+    int n = getloadavg(l, 3);
+    mu_assert("getloadavg", n >= 1);
+    for (int i = 0; i < n; ++i)
+        mu_assert("nonnegative", l[i] >= 0.0);
+    return 0;
+}
+
 static const char *test_strftime_basic(void)
 {
     struct tm tm = {
@@ -4588,6 +4598,7 @@ static const char *all_tests(void)
     mu_run_test(test_clock_settime_priv);
     mu_run_test(test_getrusage_self);
     mu_run_test(test_times_self);
+    mu_run_test(test_getloadavg_basic);
     mu_run_test(test_strftime_basic);
     mu_run_test(test_strftime_extended);
     mu_run_test(test_wcsftime_basic);

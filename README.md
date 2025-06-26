@@ -110,6 +110,7 @@ programs. Key features include:
   On NetBSD the native timer syscalls are used when present, with a
   kqueue fallback otherwise.
 - Resource usage statistics with `getrusage()`
+- Retrieve system load averages with `getloadavg()`
 - Basic character set conversion with `iconv`
 - Register quick-exit handlers with `at_quick_exit()` and trigger them via
   `quick_exit()`
