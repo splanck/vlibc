@@ -3225,6 +3225,21 @@ static const char *test_temp_files(void)
     return 0;
 }
 
+static const char *test_freopen_basic(void)
+{
+    FILE *f = fopen("tmp_reopen", "w");
+    mu_assert("fopen", f != NULL);
+    mu_assert("write", fwrite("data", 1, 4, f) == 4);
+    f = freopen("tmp_reopen", "r", f);
+    mu_assert("freopen", f != NULL);
+    char buf[5] = {0};
+    mu_assert("read", fread(buf, 1, 4, f) == 4);
+    fclose(f);
+    unlink("tmp_reopen");
+    mu_assert("content", strcmp(buf, "data") == 0);
+    return 0;
+}
+
 static const char *test_abort_fn(void)
 {
     pid_t pid = fork();
@@ -4471,6 +4486,7 @@ static const char *all_tests(void)
     mu_run_test(test_tcdrain_basic);
     mu_run_test(test_tcflush_basic);
     mu_run_test(test_temp_files);
+    mu_run_test(test_freopen_basic);
     mu_run_test(test_abort_fn);
     mu_run_test(test_sigaction_install);
     mu_run_test(test_sigprocmask_block);

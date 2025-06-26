@@ -209,6 +209,18 @@ Streams may be given a custom buffer with `setvbuf` or the simpler
 `setbuf`. When buffered, I/O operates on that memory until it is filled
 or explicitly flushed.
 
+`freopen` can replace the file associated with an existing stream so the same
+`FILE` handle refers to a new path. This is handy for redirecting a standard
+stream:
+
+```c
+FILE *f = fopen("swap.txt", "w");
+fputs("hello", f);
+freopen("swap.txt", "r", f);
+char buf[16];
+fgets(buf, sizeof(buf), f);
+```
+
 ```c
 int a;
 unsigned b;

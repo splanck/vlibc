@@ -470,6 +470,28 @@ int fileno(FILE *stream)
     return stream ? stream->fd : -1;
 }
 
+FILE *freopen(const char *path, const char *mode, FILE *stream)
+{
+    if (!path || !mode || !stream)
+        return NULL;
+
+    FILE *tmp = fopen(path, mode);
+    if (!tmp)
+        return NULL;
+
+    flush_buffer(stream);
+    if (!stream->is_mem)
+        close(stream->fd);
+    if (stream->is_mem && stream->mem_bufp)
+        stream->buf_owned = 0;
+    if (stream->buf && stream->buf_owned)
+        free(stream->buf);
+
+    *stream = *tmp;
+    free(tmp);
+    return stream;
+}
+
 FILE *fdopen(int fd, const char *mode)
 {
     (void)mode; /* mode is ignored for now */
