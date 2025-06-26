@@ -1,3 +1,5 @@
+[← Back to index](index.md)
+
 ## Random Numbers
 
 vlibc provides a minimal pseudo-random number generator implemented as a

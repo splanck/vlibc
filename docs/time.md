@@ -1,3 +1,5 @@
+[← Back to index](index.md)
+
 ## Time Formatting
 
 `strftime` understands `%Y`, `%m`, `%d`, `%H`, `%M`, and `%S` along with `%a`, `%b`, `%Z`, `%z`, and weekday numbers (`%w`/`%u`).
@@ -138,7 +140,8 @@ timer_settime(t, 0, &its, NULL);
 ## Resource Limits
 
 Processes may query and update operating system limits using
-`getrlimit` and `setrlimit` from `sys/resource.h`.
+`getrlimit` and `setrlimit` from `sys/resource.h`. See
+[process.md](process.md) for process creation and signal helpers.
 
 ```c
 struct rlimit lim;

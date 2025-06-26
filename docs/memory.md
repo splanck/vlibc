@@ -1,3 +1,5 @@
+[← Back to index](index.md)
+
 ## Memory Management
 
 The **memory** module provides a very small heap allocator implemented in
@@ -98,7 +100,8 @@ shm_unlink(name);
 
 ## POSIX Message Queues
 
-Message queues allow processes to exchange fixed-size messages. Create or
+Message queues allow processes to exchange fixed-size messages. For creating
+new processes see [process.md](process.md). Create or
 open a queue with `mq_open` and use `mq_send`/`mq_receive` to transfer
 data:
 

@@ -1,80 +1,25 @@
 # vlibc Documentation
 
-This document outlines the architecture, planned modules, and API design for **vlibc**. The goal is to provide a clear overview for contributors and users who wish to understand how the library is organized. For usage examples see the [README](README.md).
+vlibc is a lightweight C library aimed at UNIX-like systems.  It provides only
+the essential runtime helpers so small programs can be statically linked
+without dragging in a full featured libc.  For usage examples see the
+[README](../README.md).
 
-## Table of Contents
+## Documentation
 
-1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Provided Headers](#provided-headers)
-4. [Memory Management](#memory-management)
-5. [Memory Mapping](#memory-mapping)
-6. [Shared Memory](#shared-memory)
-7. [POSIX Message Queues](#posix-message-queues)
-8. [String Handling](#string-handling)
-9. [Character Classification](#character-classification)
-10. [Option Parsing](#option-parsing)
-11. [Random Numbers](#random-numbers)
-12. [rand48 API](#rand48-api)
-13. [Sorting Helpers](#sorting-helpers)
-14. [Utilities](#utilities)
-15. [Regular Expressions](#regular-expressions)
-16. [Math Functions](#math-functions)
-17. [Process Control](#process-control)
-18. [Error Reporting](#error-reporting)
-19. [Errno Access](#errno-access)
-20. [Threading](#threading)
-21. [Dynamic Loading](#dynamic-loading)
-22. [Environment Variables](#environment-variables)
-23. [System Information](#system-information)
-24. [Basic File I/O](#basic-file-io)
-25. [File Descriptor Helpers](#file-descriptor-helpers)
-26. [File Control](#file-control)
-27. [File Locking](#file-locking)
-28. [Terminal Attributes](#terminal-attributes)
-29. [Pseudo-terminals](#pseudo-terminals)
-30. [Secure Password Input](#secure-password-input)
-31. [Standard Streams](#standard-streams)
-32. [Temporary Files](#temporary-files)
-33. [Networking](#networking)
-34. [I/O Multiplexing](#io-multiplexing)
-35. [File Permissions](#file-permissions)
-36. [Filesystem *at Wrappers](#filesystem-at-wrappers)
-37. [File Status](#file-status)
-38. [Directory Iteration](#directory-iteration)
-39. [Path Canonicalization](#path-canonicalization)
-40. [Path Utilities](#path-utilities)
-41. [User Database](#user-database)
-42. [Group Database](#group-database)
-43. [Time Formatting](#time-formatting)
-44. [Locale Support](#locale-support)
-45. [Time Retrieval](#time-retrieval)
-46. [Sleep Functions](#sleep-functions)
-47. [Scheduling](#scheduling)
-48. [Interval Timers](#interval-timers)
-49. [Raw System Calls](#raw-system-calls)
-50. [Non-local Jumps](#non-local-jumps)
-51. [Limitations](#limitations)
-52. [Conclusion](#conclusion)
-53. [Logging](#logging)
-54. [Path Expansion](#path-expansion)
-55. [Filesystem Statistics](#filesystem-statistics)
-56. [Resource Limits](#resource-limits)
-
-
-The sections of this documentation have been split into separate files:
-
-- [Overview](overview.md)
-- [Architecture](architecture.md)
-- [Provided Headers](provided_headers.md)
-- [Memory](memory.md)
-- [Strings](strings.md)
-- [Random Numbers](random.md)
-- [Utilities](utilities.md)
-- [Process Control](process.md)
-- [File I/O](io.md)
-- [Networking](network.md)
-- [Filesystem](filesystem.md)
-- [Users and Groups](users_groups.md)
-- [Time](time.md)
-- [Other Topics](other.md)
+| Topic | Description |
+|-------|-------------|
+| [Overview](overview.md) | Project goals and guiding principles |
+| [Architecture](architecture.md) | Source layout and planned modules |
+| [Provided Headers](provided_headers.md) | Public header files installed by vlibc |
+| [Memory](memory.md) | Heap allocator, memory mapping and shared memory |
+| [Process Control](process.md) | Fork, exec, signals and basic threading |
+| [File I/O](io.md) | System call wrappers for file descriptors |
+| [Networking](network.md) | Socket helpers and address utilities |
+| [Filesystem](filesystem.md) | Permissions, directory walking and path helpers |
+| [Strings](strings.md) | Common string manipulation functions |
+| [Random Numbers](random.md) | Pseudo-random number generation |
+| [Utilities](utilities.md) | Miscellaneous helpers such as `abs` and `div` |
+| [Users and Groups](users_groups.md) | Access to system user and group databases |
+| [Time](time.md) | Formatting, timers and resource usage |
+| [Other Topics](other.md) | Logging and assorted functionality |
