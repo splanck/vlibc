@@ -77,6 +77,8 @@ Convenience wrappers `getpgrp()` and `setpgrp()` map to `getpgid(0)` and
 `setpgid(0, 0)` for portability.
 `sigqueue` delivers a queued signal with a small data payload when the
 platform exposes `rt_sigqueueinfo` or falls back to the native implementation.
+`sigaltstack` configures an alternate stack for signal handlers using the
+`sigaltstack` system call when available or delegating to the host on BSD.
 
 `posix_spawn` accepts an attribute object controlling the signal mask and
 process group of the new process. File actions can be supplied to open, close

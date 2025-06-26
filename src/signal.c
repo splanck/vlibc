@@ -245,3 +245,29 @@ int sigqueue(pid_t pid, int signo, const union sigval value)
     return -1;
 #endif
 }
+
+/*
+ * sigaltstack() - install or retrieve an alternate signal stack. When
+ * SYS_sigaltstack is present the syscall is invoked directly. On the BSD
+ * family the call is delegated to the host implementation.
+ */
+int sigaltstack(const stack_t *ss, stack_t *old)
+{
+#ifdef SYS_sigaltstack
+    long ret = vlibc_syscall(SYS_sigaltstack, (long)ss, (long)old,
+                             0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__) || defined(__APPLE__)
+    extern int host_sigaltstack(const stack_t *, stack_t *) __asm("sigaltstack");
+    return host_sigaltstack(ss, old);
+#else
+    (void)ss; (void)old;
+    errno = ENOSYS;
+    return -1;
+#endif
+}

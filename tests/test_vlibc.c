@@ -3254,6 +3254,21 @@ static const char *test_sigqueue_value(void)
     return 0;
 }
 
+static const char *test_sigaltstack_basic(void)
+{
+    stack_t old;
+    stack_t ss;
+    char buf[SIGSTKSZ];
+    ss.ss_sp = buf;
+    ss.ss_size = sizeof(buf);
+    ss.ss_flags = 0;
+    mu_assert("set altstack", sigaltstack(&ss, &old) == 0);
+    ss.ss_flags = SS_DISABLE;
+    mu_assert("disable altstack", sigaltstack(&ss, NULL) == 0);
+    (void)old;
+    return 0;
+}
+
 static const char *test_mlock_basic(void)
 {
     char buf[128];
@@ -4333,6 +4348,7 @@ static const char *all_tests(void)
     mu_run_test(test_sigwait_basic);
     mu_run_test(test_sigtimedwait_timeout);
     mu_run_test(test_sigqueue_value);
+    mu_run_test(test_sigaltstack_basic);
     mu_run_test(test_mlock_basic);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_shm_basic);
