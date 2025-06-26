@@ -81,6 +81,7 @@ int munlock(const void *addr, size_t length);
 int mlockall(int flags);
 int munlockall(void);
 int madvise(void *addr, size_t length, int advice);
+int posix_madvise(void *addr, size_t length, int advice);
 ```
 
 `mmap` creates new mappings, `munmap` releases them and `mprotect` changes
@@ -90,6 +91,8 @@ while `mlockall` and `munlockall` operate on the entire address space.
 `madvise` provides usage hints to the kernel.  When the raw syscall is
 unavailable the BSD wrapper is used instead, so some platforms may ignore
 unsupported flags.
+`posix_madvise` offers the same interface but returns an error code
+instead of setting `errno`.
 
 ## Shared Memory
 
