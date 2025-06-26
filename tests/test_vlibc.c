@@ -66,6 +66,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include "../include/setjmp.h"
 #include "../include/time.h"
 #include "../include/sys/resource.h"
 #include "../include/sys/times.h"
@@ -3621,6 +3622,48 @@ static const char *test_sigaltstack_basic(void)
     return 0;
 }
 
+static sigjmp_buf jbuf1;
+static const char *test_sigsetjmp_restore(void)
+{
+    sigset_t set, cur;
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+    sigprocmask(SIG_BLOCK, &set, NULL);
+
+    if (sigsetjmp(jbuf1, 1) == 0) {
+        sigprocmask(SIG_UNBLOCK, &set, NULL);
+        sigprocmask(SIG_BLOCK, NULL, &cur);
+        mu_assert("unblock", sigismember(&cur, SIGUSR1) == 0);
+        siglongjmp(jbuf1, 1);
+    }
+
+    sigprocmask(SIG_BLOCK, NULL, &cur);
+    int blocked = sigismember(&cur, SIGUSR1);
+    sigprocmask(SIG_UNBLOCK, &set, NULL);
+    mu_assert("restored", blocked == 1);
+    return 0;
+}
+
+static sigjmp_buf jbuf2;
+static const char *test_sigsetjmp_nosave(void)
+{
+    sigset_t set, cur;
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+    sigprocmask(SIG_BLOCK, &set, NULL);
+
+    if (sigsetjmp(jbuf2, 0) == 0) {
+        sigprocmask(SIG_UNBLOCK, &set, NULL);
+        siglongjmp(jbuf2, 1);
+    }
+
+    sigprocmask(SIG_BLOCK, NULL, &cur);
+    int blocked = sigismember(&cur, SIGUSR1);
+    sigprocmask(SIG_UNBLOCK, &set, NULL);
+    mu_assert("not restored", blocked == 0);
+    return 0;
+}
+
 static const char *test_mlock_basic(void)
 {
     char buf[128];
@@ -4871,6 +4914,8 @@ static const char *all_tests(void)
     mu_run_test(test_sigtimedwait_timeout);
     mu_run_test(test_sigqueue_value);
     mu_run_test(test_sigaltstack_basic);
+    mu_run_test(test_sigsetjmp_restore);
+    mu_run_test(test_sigsetjmp_nosave);
     mu_run_test(test_mlock_basic);
     mu_run_test(test_mprotect_anon);
     mu_run_test(test_shm_basic);
