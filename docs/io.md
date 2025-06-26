@@ -90,6 +90,8 @@ Flush pending writes with `fsync(fd)` or the data-only variant
 write all buffered filesystem data to disk.
 
 Use `isatty(fd)` to query whether a descriptor refers to a terminal.
+The path of that terminal can be obtained with `ttyname(fd)` or the
+reentrant `ttyname_r(fd, buf, len)`.
 
 ## File Control
 

@@ -624,6 +624,20 @@ static const char *test_isatty_stdin(void)
     return 0;
 }
 
+static const char *test_ttyname_dev_tty(void)
+{
+    int fd = open("/dev/tty", O_RDWR);
+    if (fd < 0)
+        return 0; /* skip when not available */
+    char buf[64];
+    int r = ttyname_r(fd, buf, sizeof(buf));
+    char *name = ttyname(fd);
+    close(fd);
+    mu_assert("ttyname_r", r == 0 && buf[0] != '\0');
+    mu_assert("ttyname", name && name[0] != '\0');
+    return 0;
+}
+
 static const char *test_udp_send_recv(void)
 {
     int s1 = socket(AF_INET, SOCK_DGRAM, 0);
@@ -4411,6 +4425,7 @@ static const char *all_tests(void)
     mu_run_test(test_pipe2_cloexec);
     mu_run_test(test_byte_order);
     mu_run_test(test_isatty_stdin);
+    mu_run_test(test_ttyname_dev_tty);
     mu_run_test(test_socket);
     mu_run_test(test_socketpair_basic);
     mu_run_test(test_socket_addresses);
