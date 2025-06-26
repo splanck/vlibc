@@ -64,6 +64,7 @@ int rand(void);
 void srand(unsigned seed);
 unsigned int arc4random(void);
 void arc4random_buf(void *buf, size_t len);
+unsigned int arc4random_uniform(unsigned int upper_bound);
 int rand_r(unsigned *state);
 double drand48(void);
 double erand48(unsigned short xseed[3]);

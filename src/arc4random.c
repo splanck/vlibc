@@ -46,6 +46,22 @@ unsigned int arc4random(void)
     return v;
 }
 
+unsigned int arc4random_uniform(unsigned int upper_bound)
+{
+    unsigned int r, min;
+
+    if (upper_bound < 2)
+        return 0;
+
+    min = -upper_bound % upper_bound;
+    for (;;) {
+        r = arc4random();
+        if (r >= min)
+            break;
+    }
+    return r % upper_bound;
+}
+
 int rand_r(unsigned *state)
 {
     *state = *state * 1103515245 + 12345;

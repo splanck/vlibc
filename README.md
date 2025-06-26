@@ -69,6 +69,7 @@ programs. Key features include:
 - Integer helpers `abs`, `labs`, `llabs` and division results with `div`,
   `ldiv` and `lldiv`
 - POSIX-style 48-bit random numbers via the `rand48` family
+- Deterministic uniform numbers with `arc4random_uniform()`
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Memory-backed streams with `open_memstream()` and `fmemopen()`
 - Large-file aware seeks
