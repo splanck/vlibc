@@ -702,7 +702,7 @@ int posix_spawnattr_getpgroup(const posix_spawnattr_t *attr, pid_t *pgroup)
 }
 
 /* Internal helper to use vfork()/fork as available */
-static pid_t vlibc_vfork(void)
+static __attribute__((unused)) pid_t vlibc_vfork(void)
 {
 #ifdef SYS_vfork
     long ret = vlibc_syscall(SYS_vfork, 0, 0, 0, 0, 0, 0);
