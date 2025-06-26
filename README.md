@@ -360,6 +360,19 @@ Example tests live in the `tests/` directory. Run them with:
 make test
 ```
 
+Set `TEST_GROUP` to run only a subset:
+
+```sh
+make test TEST_GROUP=memory
+```
+
+Convenience targets are also available:
+
+```sh
+make test-memory
+make test-network
+```
+
 This builds the test binary and exercises many of the library functions.
 
 ## License
