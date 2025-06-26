@@ -15,7 +15,7 @@ struct node {
     struct node *right;
 };
 
-static void *node_key(struct node *n)
+static __attribute__((unused)) void *node_key(struct node *n)
 {
     return n ? (void *)&n->key : NULL;
 }
