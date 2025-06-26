@@ -1,3 +1,5 @@
+[← Back to index](index.md)
+
 ## File Permissions
 
 Simple helpers adjust permissions and ownership:

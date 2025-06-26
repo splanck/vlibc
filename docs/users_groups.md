@@ -1,3 +1,5 @@
+[← Back to index](index.md)
+
 ## User Database
 
 `pwd.h` exposes minimal lookup helpers for entries in `/etc/passwd`.

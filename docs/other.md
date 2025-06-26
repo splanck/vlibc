@@ -1,3 +1,5 @@
+[← Back to index](index.md)
+
 ## Logging
 
 `syslog.h` provides simple helpers to send log messages to `/dev/log` on
@@ -58,7 +60,8 @@ state.
 - Thread support is limited to basic mutexes, condition variables,
   semaphores, barriers and join/detach.
 - Named semaphores fall back to process-local objects on non-BSD systems and are
-  not shareable across processes.
+  not shareable across processes. For fork and exec helpers see
+  [process.md](process.md).
 - Locale handling falls back to the host implementation for values other
   than `"C"` or `"POSIX"`.
 - `setjmp`/`longjmp` rely on the host C library when available.

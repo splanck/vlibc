@@ -1,3 +1,5 @@
+[← Back to index](index.md)
+
 ## Utilities
 
 Basic integer helpers cover simple absolute value and division routines.

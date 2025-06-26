@@ -1,3 +1,5 @@
+[← Back to index](index.md)
+
 ## Basic File I/O
 
 Thin wrappers around the kernel's file APIs live in `io.h`. Functions
@@ -39,7 +41,8 @@ chdir("/");
 
 `chroot` confines the process to a new root directory. The wrapper simply
 invokes the `chroot(2)` system call when available and fails with `ENOSYS`
-on platforms lacking the call.
+on platforms lacking the call. For spawning child processes see
+[process.md](process.md).
 
 Additional helpers inspect and reset a stream's state. `feof(stream)`
 returns non-zero once the end of input has been reached while
@@ -103,7 +106,8 @@ ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);
 
 ## File Locking
 
-Use `flock` to coordinate access to files between multiple processes.
+Use `flock` to coordinate access to files between multiple processes. See
+[process.md](process.md) for process creation utilities.
 Shared locks (`LOCK_SH`) allow concurrent readers while an exclusive lock
 (`LOCK_EX`) grants write access. Combine `LOCK_NB` to return immediately if
 the lock cannot be obtained.
