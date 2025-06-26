@@ -9,6 +9,7 @@
 #include "process.h"
 #include "stdlib.h"
 #include "string.h"
+#include "errno.h"
 #include "vlibc.h"
 
 /*
@@ -34,7 +35,11 @@ int system(const char *command)
     }
 
     int status = 0;
-    if (waitpid(pid, &status, 0) < 0)
+    pid_t r;
+    do {
+        r = waitpid(pid, &status, 0);
+    } while (r < 0 && errno == EINTR);
+    if (r < 0)
         return -1;
     return status;
 }

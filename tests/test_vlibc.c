@@ -90,6 +90,9 @@ struct test_case {
     test_func func;
 };
 
+static void handle_usr1(int);
+static void *send_signal(void *);
+
 #define REGISTER_TEST(cat, fn) { #fn, cat, fn }
 
 static int exit_pipe[2];
@@ -3122,6 +3125,25 @@ static const char *test_system_fn(void)
     return 0;
 }
 
+static const char *test_system_interrupted(void)
+{
+    struct sigaction sa;
+    sa.sa_handler = handle_usr1;
+    sa.sa_flags = 0;
+    sa.sa_mask = 0;
+    sigaction(SIGUSR1, &sa, NULL);
+
+    pthread_t t;
+    int sig = SIGUSR1;
+    pthread_create(&t, NULL, send_signal, &sig);
+
+    int r = system("sleep 1");
+    pthread_join(t, NULL);
+
+    mu_assert("system interrupted", r == 0);
+    return 0;
+}
+
 static const char *test_execv_fn(void)
 {
     extern char **__environ;
@@ -4942,6 +4964,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_strsignal_names),
         REGISTER_TEST("default", test_process_group_wrappers),
         REGISTER_TEST("default", test_system_fn),
+        REGISTER_TEST("default", test_system_interrupted),
         REGISTER_TEST("default", test_execv_fn),
         REGISTER_TEST("default", test_execl_fn),
         REGISTER_TEST("default", test_execlp_fn),
