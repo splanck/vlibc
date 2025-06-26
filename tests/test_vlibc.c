@@ -514,12 +514,28 @@ static const char *test_sendfile_copy(void)
     close(in);
 
     in = open(src, O_RDONLY);
-    int out = open(dst, O_CREAT | O_RDWR | O_TRUNC, 0644);
-    mu_assert("open out", out >= 0 && in >= 0);
+    int out;
+    off_t sent;
+    int r;
 
-    off_t sent = 0;
-    int r = sendfile(in, out, 0, strlen(msg), NULL, &sent, 0);
+    out = open(dst, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    mu_assert("open out", out >= 0 && in >= 0);
+    sent = 0;
+    r = sendfile(in, out, 0, strlen(msg), NULL, &sent, 0);
     mu_assert("sendfile", r == 0 && sent == (off_t)strlen(msg));
+    close(out);
+
+    out = open(dst, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    mu_assert("open out2", out >= 0);
+    sent = 0;
+    r = sendfile(in, out, 0, strlen(msg) + 4, NULL, &sent, 0);
+    mu_assert("sendfile partial", r == 0 && sent == (off_t)strlen(msg));
+    close(out);
+
+    out = open(dst, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    mu_assert("open out3", out >= 0);
+    r = sendfile(in, out, 0, strlen(msg), NULL, NULL, 0);
+    mu_assert("sendfile result", r == (int)strlen(msg));
 
     lseek(out, 0, SEEK_SET);
     char buf[16] = {0};
