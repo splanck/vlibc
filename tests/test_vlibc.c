@@ -370,6 +370,23 @@ static const char *test_lseek_dup(void)
     return 0;
 }
 
+static const char *test_lseek_negative_offset(void)
+{
+    const char *fname = "tmp_neg_seek";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open failed", fd >= 0);
+
+    const char *msg = "abcdef";
+    mu_assert("write", write(fd, msg, strlen(msg)) == (ssize_t)strlen(msg));
+
+    off_t off = lseek(fd, -2, SEEK_END);
+    mu_assert("seek result", off == (off_t)strlen(msg) - 2);
+
+    close(fd);
+    unlink(fname);
+    return 0;
+}
+
 static const char *test_pread_pwrite(void)
 {
     const char *fname = "tmp_pread_file";
@@ -4761,6 +4778,7 @@ static const char *all_tests(void)
     mu_run_test(test_memory_ops);
     mu_run_test(test_io);
     mu_run_test(test_lseek_dup);
+    mu_run_test(test_lseek_negative_offset);
     mu_run_test(test_pread_pwrite);
     mu_run_test(test_preadv_pwritev);
     mu_run_test(test_readv_writev);

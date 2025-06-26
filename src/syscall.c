@@ -25,7 +25,14 @@ long vlibc_syscall(long number, ...)
     va_end(ap);
 
     long ret = syscall(number, a1, a2, a3, a4, a5, a6);
-    if (ret < 0)
-        return -errno;
+    /*
+     * POSIX semantics: syscall() returns -1 on failure and sets errno.
+     * Negative values other than -1 are valid results for some calls,
+     * so check explicitly for -1 and propagate errno as a negative code.
+     */
+    if (ret == -1) {
+        int err = errno;
+        return -err;
+    }
     return ret;
 }
