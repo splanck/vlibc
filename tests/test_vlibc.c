@@ -946,6 +946,12 @@ static const char *test_fdatasync_basic(void)
     return 0;
 }
 
+static const char *test_sync_basic(void)
+{
+    sync();
+    return 0;
+}
+
 static const char *test_string_helpers(void)
 {
     mu_assert("strcmp equal", strcmp("abc", "abc") == 0);
@@ -4290,6 +4296,7 @@ static const char *all_tests(void)
     mu_run_test(test_at_wrappers_basic);
     mu_run_test(test_fsync_basic);
     mu_run_test(test_fdatasync_basic);
+    mu_run_test(test_sync_basic);
     mu_run_test(test_string_helpers);
     mu_run_test(test_string_casecmp);
     mu_run_test(test_strlcpy_cat);
