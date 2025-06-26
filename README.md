@@ -84,6 +84,7 @@ programs. Key features include:
 - FIFO creation with `mkfifo()` and `mkfifoat()`
 - Device node creation with `mknod()` and `mknodat()`
 - File space reservation with `posix_fallocate()`
+- Access pattern hints with `posix_fadvise()`
 - Force file updates to disk with `fsync()` and `fdatasync()`
 - Generic descriptor control with `ioctl()`
 - Terminal attribute helpers `tcgetattr()`, `tcsetattr()`, `tcdrain()`,

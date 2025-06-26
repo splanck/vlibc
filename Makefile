@@ -99,6 +99,7 @@ SRC := \
     src/fsync.c \
     src/truncate.c \
     src/posix_fallocate.c \
+    src/posix_fadvise.c \
     src/dir.c \
     src/access.c \
     src/getcwd.c \

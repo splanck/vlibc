@@ -70,6 +70,21 @@ host `statvfs` implementation on BSD systems to answer these queries.
 long n = pathconf("/", _PC_NAME_MAX); /* typically 255 */
 ```
 
+## Access Advisories
+
+Applications may offer hints about expected file usage patterns with
+`posix_fadvise`.  The call is a no-op on some platforms but allows the
+kernel to optimize caching when supported.
+
+```c
+int fd = open("data.bin", O_RDONLY);
+posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
+```
+
+Valid advice values include `POSIX_FADV_NORMAL`, `POSIX_FADV_RANDOM`,
+`POSIX_FADV_SEQUENTIAL`, `POSIX_FADV_WILLNEED`, `POSIX_FADV_DONTNEED`
+and `POSIX_FADV_NOREUSE`.
+
 ## Directory Iteration
 
 Use `opendir`, `readdir`, and `closedir` from `dirent.h` to traverse
