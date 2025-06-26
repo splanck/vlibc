@@ -62,6 +62,7 @@
 #include <arpa/inet.h>
 #include <pwd.h>
 #include <string.h>
+#include "stdlib.h"
 #include <alloca.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
