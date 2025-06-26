@@ -181,6 +181,8 @@ waitpid(pid, NULL, 0);
 remap file descriptors or specify a signal mask for the new process.
 
 For detailed documentation, see [docs/index.md](docs/index.md).
+Suboption parsing with `getsubopt` is covered in
+[docs/utilities.md](docs/utilities.md).
 
 ## Thread-Local Storage
 

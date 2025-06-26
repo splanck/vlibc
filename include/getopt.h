@@ -29,4 +29,7 @@ int getopt_long(int argc, char * const argv[], const char *optstring,
 int getopt_long_only(int argc, char * const argv[], const char *optstring,
                      const struct option *longopts, int *longindex);
 
+/* parse comma separated suboptions */
+int getsubopt(char **optionp, char * const *tokens, char **valuep);
+
 #endif /* GETOPT_H */

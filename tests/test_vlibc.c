@@ -4029,6 +4029,46 @@ static const char *test_getopt_long_only_basic(void)
     return 0;
 }
 
+static const char *test_getsubopt_basic(void)
+{
+    char opts[] = "foo=1,bar,baz=2";
+    char *p = opts;
+    char *val = NULL;
+    char *tokens[] = {"foo", "bar", "baz", NULL};
+
+    int r = getsubopt(&p, tokens, &val);
+    mu_assert("foo index", r == 0);
+    mu_assert("foo val", val && strcmp(val, "1") == 0);
+
+    r = getsubopt(&p, tokens, &val);
+    mu_assert("bar index", r == 1);
+    mu_assert("bar val", val == NULL);
+
+    r = getsubopt(&p, tokens, &val);
+    mu_assert("baz index", r == 2);
+    mu_assert("baz val", val && strcmp(val, "2") == 0);
+
+    return 0;
+}
+
+static const char *test_getsubopt_unknown(void)
+{
+    char opts[] = "foo=1,unknown";
+    char *p = opts;
+    char *val = NULL;
+    char *tokens[] = {"foo", NULL};
+
+    int r = getsubopt(&p, tokens, &val);
+    mu_assert("known index", r == 0);
+    mu_assert("known val", val && strcmp(val, "1") == 0);
+
+    r = getsubopt(&p, tokens, &val);
+    mu_assert("unknown ret", r == -1);
+    mu_assert("unknown val", val == NULL);
+
+    return 0;
+}
+
 static const char *all_tests(void)
 {
     mu_run_test(test_malloc);
@@ -4220,6 +4260,8 @@ static const char *all_tests(void)
     mu_run_test(test_getopt_long_basic);
     mu_run_test(test_getopt_long_only_missing);
     mu_run_test(test_getopt_long_only_basic);
+    mu_run_test(test_getsubopt_basic);
+    mu_run_test(test_getsubopt_unknown);
 
     return 0;
 }

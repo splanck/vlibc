@@ -80,3 +80,34 @@ negative infinity, and `isfinite(x)` reports true only for finite values.  When
 the compiler supplies built-ins for these checks the macros map directly to
 them, otherwise simple fallback tests are used.
 
+
+## Suboption Parsing
+
+`getsubopt` breaks down a comma separated list of `name=value` pairs. The
+function compares each name against a provided token array and returns the
+matching index. `*optionp` is updated to point past the parsed element and
+`*valuep` receives the option's value if one was specified.
+
+```c
+char opts[] = "foo=1,bar,baz=2";
+char *p = opts;
+char *val;
+char *tokens[] = {"foo", "bar", "baz", NULL};
+
+while (*p) {
+    switch (getsubopt(&p, tokens, &val)) {
+    case 0:
+        printf("foo=%s\n", val);
+        break;
+    case 1:
+        puts("bar present");
+        break;
+    case 2:
+        printf("baz=%s\n", val);
+        break;
+    default:
+        printf("unknown option\n");
+        break;
+    }
+}
+```
