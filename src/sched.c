@@ -84,3 +84,150 @@ int nice(int incr)
         return -1;
     return cur + incr;
 }
+
+int sched_getscheduler(pid_t pid)
+{
+#ifdef SYS_sched_getscheduler
+    long ret = vlibc_syscall(SYS_sched_getscheduler, pid, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_sched_getscheduler(pid_t) __asm("sched_getscheduler");
+    return host_sched_getscheduler(pid);
+#else
+    (void)pid;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param)
+{
+#ifdef SYS_sched_setscheduler
+    long ret = vlibc_syscall(SYS_sched_setscheduler, pid, policy,
+                             (long)param, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_sched_setscheduler(pid_t, int, const struct sched_param *)
+        __asm("sched_setscheduler");
+    return host_sched_setscheduler(pid, policy, param);
+#else
+    (void)pid; (void)policy; (void)param;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int sched_getparam(pid_t pid, struct sched_param *param)
+{
+#ifdef SYS_sched_getparam
+    long ret = vlibc_syscall(SYS_sched_getparam, pid, (long)param,
+                             0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_sched_getparam(pid_t, struct sched_param *)
+        __asm("sched_getparam");
+    return host_sched_getparam(pid, param);
+#else
+    (void)pid; (void)param;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int sched_setparam(pid_t pid, const struct sched_param *param)
+{
+#ifdef SYS_sched_setparam
+    long ret = vlibc_syscall(SYS_sched_setparam, pid, (long)param,
+                             0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_sched_setparam(pid_t, const struct sched_param *)
+        __asm("sched_setparam");
+    return host_sched_setparam(pid, param);
+#else
+    (void)pid; (void)param;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int sched_get_priority_max(int policy)
+{
+#ifdef SYS_sched_get_priority_max
+    long ret = vlibc_syscall(SYS_sched_get_priority_max, policy,
+                             0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_sched_get_priority_max(int) __asm("sched_get_priority_max");
+    return host_sched_get_priority_max(policy);
+#else
+    (void)policy;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int sched_get_priority_min(int policy)
+{
+#ifdef SYS_sched_get_priority_min
+    long ret = vlibc_syscall(SYS_sched_get_priority_min, policy,
+                             0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || \
+      defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_sched_get_priority_min(int) __asm("sched_get_priority_min");
+    return host_sched_get_priority_min(policy);
+#else
+    (void)policy;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int sched_rr_get_interval(pid_t pid, struct timespec *interval)
+{
+#ifdef SYS_sched_rr_get_interval_time64
+    long ret = vlibc_syscall(SYS_sched_rr_get_interval_time64, pid,
+                             (long)interval, 0, 0, 0, 0);
+#elif defined(SYS_sched_rr_get_interval)
+    long ret = vlibc_syscall(SYS_sched_rr_get_interval, pid,
+                             (long)interval, 0, 0, 0, 0);
+#else
+    (void)pid; (void)interval;
+    long ret = -ENOSYS;
+#endif
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+}

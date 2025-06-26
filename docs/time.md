@@ -114,6 +114,25 @@ int getpriority(int which, int who);
 int setpriority(int which, int who, int prio);
 ```
 
+`sched_getscheduler` queries the current scheduling policy for a
+process. `sched_setscheduler` changes the policy and priority using a
+`struct sched_param`. `sched_getparam` and `sched_setparam` adjust only
+the priority.  `sched_get_priority_max` and `sched_get_priority_min`
+return the valid priority range for a policy and
+`sched_rr_get_interval` reports the time slice for round-robin
+scheduling.  When the corresponding syscalls are unavailable the
+wrappers call the host implementations on BSD systems.
+
+```c
+int sched_getscheduler(pid_t pid);
+int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param);
+int sched_getparam(pid_t pid, struct sched_param *param);
+int sched_setparam(pid_t pid, const struct sched_param *param);
+int sched_get_priority_max(int policy);
+int sched_get_priority_min(int policy);
+int sched_rr_get_interval(pid_t pid, struct timespec *interval);
+```
+
 ## Interval Timers
 
 `setitimer` schedules periodic `SIGALRM` delivery or CPU timers. `getitimer`
