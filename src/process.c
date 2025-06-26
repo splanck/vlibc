@@ -108,9 +108,6 @@ int fexecve(int fd, char *const argv[], char *const envp[])
  */
 int execvp(const char *file, char *const argv[])
 {
-    if (!file || !argv)
-        return -1;
-
     if (strchr(file, '/'))
         return execve(file, argv, environ);
 
