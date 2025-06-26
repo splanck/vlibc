@@ -61,6 +61,15 @@ struct timespec ts;
 clock_gettime(CLOCK_REALTIME, &ts);
 ```
 
+The C11 helper `timespec_get` fills a `struct timespec` using `TIME_UTC`:
+
+```c
+struct timespec ts;
+if (timespec_get(&ts, TIME_UTC)) {
+    /* ts now holds the current time */
+}
+```
+
 The resolution of a clock can be determined with `clock_getres`:
 
 ```c

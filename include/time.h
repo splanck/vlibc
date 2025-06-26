@@ -98,6 +98,9 @@ typedef struct vlibc_timer *timer_t;
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
 #endif
+#ifndef TIME_UTC
+#define TIME_UTC 1
+#endif
 
 int clock_gettime(int clk_id, struct timespec *ts);
 /*
@@ -130,6 +133,11 @@ int gettimeofday(struct timeval *tv, void *tz);
  * Populate *tv with CLOCK_REALTIME expressed in seconds and
  * microseconds. Implemented via SYS_time or SYS_clock_gettime
  * with a host fallback when unavailable.
+ */
+int timespec_get(struct timespec *ts, int base);
+/*
+ * Fill *ts with the current time when base is TIME_UTC. Returns
+ * base on success and 0 on failure.
  */
 
 /* sleep helpers */
