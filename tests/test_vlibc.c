@@ -804,6 +804,38 @@ static const char *test_posix_fallocate_basic(void)
     return 0;
 }
 
+static const char *test_posix_fadvise_basic(void)
+{
+    const char *fname = "tmp_padvise_file";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+
+    int r = posix_fadvise(fd, 0, 4096, POSIX_FADV_NORMAL);
+    mu_assert("posix_fadvise", r == 0);
+
+    close(fd);
+    unlink(fname);
+    return 0;
+}
+
+static const char *test_posix_fadvise_invalid(void)
+{
+    const char *fname = "tmp_padvise_file2";
+    int fd = open(fname, O_CREAT | O_RDWR, 0644);
+    mu_assert("open", fd >= 0);
+
+    int r = posix_fadvise(fd, 0, 4096, -1);
+#ifdef SYS_posix_fadvise
+    mu_assert("posix_fadvise invalid", r == EINVAL);
+#else
+    mu_assert("posix_fadvise ignored", r == 0);
+#endif
+
+    close(fd);
+    unlink(fname);
+    return 0;
+}
+
 static const char *test_link_readlink(void)
 {
     const char *target = "tmp_ln_target";
@@ -4139,6 +4171,8 @@ static const char *all_tests(void)
     mu_run_test(test_stat_wrappers);
     mu_run_test(test_truncate_resize);
     mu_run_test(test_posix_fallocate_basic);
+    mu_run_test(test_posix_fadvise_basic);
+    mu_run_test(test_posix_fadvise_invalid);
     mu_run_test(test_link_readlink);
     mu_run_test(test_at_wrappers_basic);
     mu_run_test(test_fsync_basic);
