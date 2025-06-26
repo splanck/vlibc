@@ -7,6 +7,7 @@
 
 #include "search.h"
 #include "stdlib.h"
+#include "memory.h"
 
 struct node {
     const void *key;
