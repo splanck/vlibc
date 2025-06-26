@@ -93,6 +93,14 @@ Use `isatty(fd)` to query whether a descriptor refers to a terminal.
 The path of that terminal can be obtained with `ttyname(fd)` or the
 reentrant `ttyname_r(fd, buf, len)`.
 
+```c
+int master, slave;
+openpty(&master, &slave, NULL, NULL, NULL);
+printf("%s\n", ttyname(slave));
+close(master);
+close(slave);
+```
+
 ## File Control
 
 `fcntl` adjusts descriptor flags such as `FD_CLOEXEC` or toggles

@@ -91,7 +91,7 @@ SRC := \
     src/fcntl.c \
     src/ioctl.c \
     src/isatty.c \
-    src/tty.c \
+    src/ttyname.c \
     src/termios.c \
     src/pty.c \
     src/file.c \
