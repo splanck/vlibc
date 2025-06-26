@@ -80,6 +80,7 @@ programs. Key features include:
   `mlockall()`/`munlockall()` plus usage hints via `madvise()`
 - POSIX shared memory objects with `shm_open()` and `shm_unlink()`
 - POSIX message queues with `mq_open()`, `mq_send()` and `mq_receive()`
+- System-V IPC primitives like `shmget()`, `semget()` and `msgget()`
 - Advisory file locking with `flock()`
 - FIFO creation with `mkfifo()` and `mkfifoat()`
 - Device node creation with `mknod()` and `mknodat()`
