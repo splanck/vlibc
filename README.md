@@ -60,6 +60,7 @@ programs. Key features include:
 - Text encoding helpers with `vis()`, `nvis()` and `unvis()`
 - Array sorting with `qsort`, `qsort_r` and `bsearch`
 - Simple hash table via `hcreate`, `hdestroy` and `hsearch`
+- Binary search trees with `tsearch`, `tfind`, `tdelete` and `twalk`
 - Array resizing with `recallocarray()` which zeroes new memory
 - Aligned allocations with `aligned_alloc()`
 - Standard `assert` macro for runtime checks

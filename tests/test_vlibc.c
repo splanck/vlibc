@@ -4045,6 +4045,33 @@ static const char *test_hsearch_basic(void)
     return 0;
 }
 
+static int tree_sum;
+static void sum_action(const void *node, VISIT v, int lvl)
+{
+    (void)lvl;
+    if (v == postorder || v == leaf)
+        tree_sum += *(const int *)node;
+}
+
+static const char *test_tsearch_basic(void)
+{
+    void *root = NULL;
+    int vals[] = {4, 2, 7, 1, 6};
+    for (int i = 0; i < 5; i++)
+        mu_assert("insert", tsearch(&vals[i], &root, int_cmp) != NULL);
+
+    int *p = tfind(&vals[2], &root, int_cmp);
+    mu_assert("find 7", p && *p == 7);
+
+    tdelete(&vals[1], &root, int_cmp);
+    mu_assert("deleted", tfind(&vals[1], &root, int_cmp) == NULL);
+
+    tree_sum = 0;
+    twalk(root, sum_action);
+    mu_assert("walk sum", tree_sum == 18);
+    return 0;
+}
+
 static const char *test_regex_backref_basic(void)
 {
     regex_t re;
@@ -4633,6 +4660,7 @@ static const char *all_tests(void)
     mu_run_test(test_qsort_strings);
     mu_run_test(test_qsort_r_desc);
     mu_run_test(test_hsearch_basic);
+    mu_run_test(test_tsearch_basic);
     mu_run_test(test_regex_backref_basic);
     mu_run_test(test_regex_backref_fail);
     mu_run_test(test_regex_posix_class);
