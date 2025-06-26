@@ -162,6 +162,11 @@ void free(void *ptr)
  */
 void *calloc(size_t nmemb, size_t size)
 {
+    if (size != 0 && nmemb > SIZE_MAX / size) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
     size_t total = nmemb * size;
     void *ptr = malloc(total);
     if (ptr)

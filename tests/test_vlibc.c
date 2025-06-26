@@ -227,6 +227,16 @@ static const char *test_aligned_alloc(void)
     return 0;
 }
 
+static const char *test_calloc_overflow(void)
+{
+    size_t big = (size_t)-1 / 2 + 1;
+    errno = 0;
+    void *p = calloc(big, 2);
+    mu_assert("overflow NULL", p == NULL);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    return 0;
+}
+
 static const char *test_reallocarray_overflow(void)
 {
     size_t big = (size_t)-1 / 2 + 1;
@@ -4755,6 +4765,7 @@ static const char *all_tests(void)
     mu_run_test(test_posix_memalign_basic);
     mu_run_test(test_posix_memalign);
     mu_run_test(test_aligned_alloc);
+    mu_run_test(test_calloc_overflow);
     mu_run_test(test_reallocarray_overflow);
     mu_run_test(test_reallocarray_basic);
     mu_run_test(test_recallocarray_grow);
