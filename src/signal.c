@@ -11,6 +11,7 @@
 #include <sys/syscall.h>
 #include "syscall.h"
 #include "memory.h"
+#include "string.h"
 #include <stddef.h>
 
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
@@ -51,13 +52,23 @@ int sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
 
 int sigemptyset(sigset_t *set)
 {
+#ifdef VLIBC_HAS___SIGSET_T
+    for (size_t i = 0; i < sizeof(set->__val) / sizeof(set->__val[0]); ++i)
+        set->__val[i] = 0;
+#else
     *set = 0;
+#endif
     return 0;
 }
 
 int sigfillset(sigset_t *set)
 {
+#ifdef VLIBC_HAS___SIGSET_T
+    for (size_t i = 0; i < sizeof(set->__val) / sizeof(set->__val[0]); ++i)
+        set->__val[i] = ~0UL;
+#else
     *set = ~(sigset_t)0;
+#endif
     return 0;
 }
 
@@ -65,7 +76,13 @@ int sigaddset(sigset_t *set, int signo)
 {
     if (signo <= 0 || signo > 8 * (int)sizeof(sigset_t))
         return -1;
+#ifdef VLIBC_HAS___SIGSET_T
+    size_t idx = (signo - 1) / (8 * sizeof(unsigned long));
+    unsigned long mask = 1UL << ((signo - 1) % (8 * sizeof(unsigned long)));
+    set->__val[idx] |= mask;
+#else
     *set |= (sigset_t)1 << (signo - 1);
+#endif
     return 0;
 }
 
@@ -73,7 +90,13 @@ int sigdelset(sigset_t *set, int signo)
 {
     if (signo <= 0 || signo > 8 * (int)sizeof(sigset_t))
         return -1;
+#ifdef VLIBC_HAS___SIGSET_T
+    size_t idx = (signo - 1) / (8 * sizeof(unsigned long));
+    unsigned long mask = 1UL << ((signo - 1) % (8 * sizeof(unsigned long)));
+    set->__val[idx] &= ~mask;
+#else
     *set &= ~((sigset_t)1 << (signo - 1));
+#endif
     return 0;
 }
 
@@ -81,7 +104,13 @@ int sigismember(const sigset_t *set, int signo)
 {
     if (signo <= 0 || signo > 8 * (int)sizeof(sigset_t))
         return 0;
+#ifdef VLIBC_HAS___SIGSET_T
+    size_t idx = (signo - 1) / (8 * sizeof(unsigned long));
+    unsigned long mask = 1UL << ((signo - 1) % (8 * sizeof(unsigned long)));
+    return (set->__val[idx] & mask) ? 1 : 0;
+#else
     return (*set & ((sigset_t)1 << (signo - 1))) ? 1 : 0;
+#endif
 }
 
 struct sig_name {
