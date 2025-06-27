@@ -95,7 +95,14 @@ FILE *tmpfile(void)
 
 char *tmpnam(char *s)
 {
-    static char buf[32];
+    static char buf[L_tmpnam];
+    if (s) {
+        size_t sz = __builtin_object_size(s, 0);
+        if (sz != (size_t)-1 && sz < L_tmpnam) {
+            errno = ERANGE;
+            return NULL;
+        }
+    }
     char *out = s ? s : buf;
     strcpy(out, "/tmp/vlibcXXXXXX");
     int fd = mkstemp(out);

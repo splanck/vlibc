@@ -3772,6 +3772,18 @@ static const char *test_temp_files(void)
     mu_assert("tmpnam open", fd >= 0);
     close(fd);
     unlink(name);
+
+    char small[8];
+    errno = 0;
+    mu_assert("tmpnam ERANGE", tmpnam(small) == NULL && errno == ERANGE);
+
+    char buf2[L_tmpnam];
+    errno = 0;
+    mu_assert("tmpnam sized", tmpnam(buf2) == buf2);
+    fd = open(buf2, O_RDWR | O_CREAT | O_EXCL, 0600);
+    mu_assert("tmpnam open2", fd >= 0);
+    close(fd);
+    unlink(buf2);
     return 0;
 }
 
