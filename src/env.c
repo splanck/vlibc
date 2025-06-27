@@ -12,13 +12,16 @@
 
 /* pointer to current environment */
 char **environ = 0;
-/* whether environ was allocated by vlibc */
+/* whether environ array was allocated by vlibc */
 static int environ_owned = 0;
+/* per-entry ownership flags when environ_owned */
+static unsigned char *environ_flags = 0;
 
 void env_init(char **envp)
 {
     environ = envp;
     environ_owned = 0;
+    environ_flags = 0;
 }
 
 char *getenv(const char *name)
@@ -80,24 +83,55 @@ int setenv(const char *name, const char *value, int overwrite)
     }
 
     char **newenv;
+    unsigned char *newflags;
     if (environ_owned) {
         newenv = realloc(environ, sizeof(char *) * (count + 2));
-        if (!newenv) {
+        newflags = realloc(environ_flags, sizeof(unsigned char) * (count + 2));
+        if (!newenv || !newflags) {
             free(entry);
             return -1;
+        }
+        environ = newenv;
+        environ_flags = newflags;
+        for (int i = 0; i < count; ++i) {
+            if (!environ_flags[i]) {
+                char *dup = strdup(environ[i]);
+                if (!dup) {
+                    free(entry);
+                    return -1;
+                }
+                environ[i] = dup;
+                environ_flags[i] = 1;
+            }
         }
     } else {
         newenv = malloc(sizeof(char *) * (count + 2));
-        if (!newenv) {
+        newflags = malloc(sizeof(unsigned char) * (count + 2));
+        if (!newenv || !newflags) {
             free(entry);
+            free(newenv);
+            free(newflags);
             return -1;
         }
-        for (int i = 0; i < count; ++i)
-            newenv[i] = environ[i];
+        for (int i = 0; i < count; ++i) {
+            newenv[i] = strdup(environ[i]);
+            if (!newenv[i]) {
+                for (int j = 0; j < i; ++j)
+                    free(newenv[j]);
+                free(newenv);
+                free(newflags);
+                free(entry);
+                return -1;
+            }
+            newflags[i] = 1;
+        }
         environ_owned = 1;
+        environ = newenv;
+        environ_flags = newflags;
     }
-    environ = newenv;
     environ[count] = entry;
+    if (environ_owned)
+        environ_flags[count] = 1;
     environ[count + 1] = NULL;
     return 0;
 }
@@ -125,20 +159,49 @@ int putenv(const char *str)
     }
 
     char **newenv;
+    unsigned char *newflags;
     if (environ_owned) {
         newenv = realloc(environ, sizeof(char *) * (count + 2));
-        if (!newenv)
+        newflags = realloc(environ_flags, sizeof(unsigned char) * (count + 2));
+        if (!newenv || !newflags)
             return -1;
+        environ = newenv;
+        environ_flags = newflags;
+        for (int i = 0; i < count; ++i) {
+            if (!environ_flags[i]) {
+                char *dup = strdup(environ[i]);
+                if (!dup)
+                    return -1;
+                environ[i] = dup;
+                environ_flags[i] = 1;
+            }
+        }
     } else {
         newenv = malloc(sizeof(char *) * (count + 2));
-        if (!newenv)
+        newflags = malloc(sizeof(unsigned char) * (count + 2));
+        if (!newenv || !newflags) {
+            free(newenv);
+            free(newflags);
             return -1;
-        for (int i = 0; i < count; ++i)
-            newenv[i] = environ[i];
+        }
+        for (int i = 0; i < count; ++i) {
+            newenv[i] = strdup(environ[i]);
+            if (!newenv[i]) {
+                for (int j = 0; j < i; ++j)
+                    free(newenv[j]);
+                free(newenv);
+                free(newflags);
+                return -1;
+            }
+            newflags[i] = 1;
+        }
         environ_owned = 1;
+        environ = newenv;
+        environ_flags = newflags;
     }
-    environ = newenv;
     environ[count] = (char *)str;
+    if (environ_owned)
+        environ_flags[count] = 0;
     environ[count + 1] = NULL;
     return 0;
 }
@@ -151,8 +214,16 @@ int unsetenv(const char *name)
     int idx = find_env_index(name, len);
     if (idx < 0)
         return 0;
-    for (int i = idx; environ[i]; ++i)
+    if (environ_owned && environ_flags && environ_flags[idx])
+        free(environ[idx]);
+    int i;
+    for (i = idx; environ[i]; ++i) {
         environ[i] = environ[i + 1];
+        if (environ_owned)
+            environ_flags[i] = environ_flags[i + 1];
+    }
+    if (environ_owned)
+        environ_flags[i] = 0;
     return 0;
 }
 
@@ -161,14 +232,19 @@ int clearenv(void)
     if (!environ)
         return 0;
     if (environ_owned) {
-        for (char **e = environ; *e; ++e)
-            free(*e);
+        for (int i = 0; environ[i]; ++i) {
+            if (environ_flags && environ_flags[i])
+                free(environ[i]);
+        }
         free(environ);
+        free(environ_flags);
         environ = malloc(sizeof(char *));
-        if (!environ)
+        environ_flags = malloc(sizeof(unsigned char));
+        if (!environ || !environ_flags)
             return -1;
         environ_owned = 1;
         environ[0] = NULL;
+        environ_flags[0] = 0;
     } else {
         for (char **e = environ; *e; ++e)
             *e = NULL;
