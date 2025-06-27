@@ -583,8 +583,19 @@ int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *acts, int fd,
     a->oflag = oflag;
     a->mode = mode;
     a->path = strdup(path);
-    if (!a->path)
+    if (!a->path) {
+        acts->count--;
+        if (acts->count == 0) {
+            free(acts->actions);
+            acts->actions = NULL;
+        } else {
+            struct posix_spawn_file_action *tmp =
+                realloc(acts->actions, acts->count * sizeof(*tmp));
+            if (tmp)
+                acts->actions = tmp;
+        }
         return ENOMEM;
+    }
     return 0;
 }
 
