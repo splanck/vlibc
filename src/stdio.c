@@ -122,6 +122,16 @@ FILE *fopen(const char *path, const char *mode)
     }
     memset(f, 0, sizeof(FILE));
     f->fd = fd;
+    if (mode[0] == 'r')
+        f->readable = 1;
+    if (mode[0] == 'w' || mode[0] == 'a')
+        f->writable = 1;
+    if (strchr(mode, '+')) {
+        f->readable = 1;
+        f->writable = 1;
+    }
+    if (mode[0] == 'a')
+        f->append = 1;
     return f;
 }
 
@@ -574,7 +584,43 @@ FILE *freopen(const char *path, const char *mode, FILE *stream)
 
 FILE *fdopen(int fd, const char *mode)
 {
-    (void)mode; /* mode is ignored for now */
+    if (!mode) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    int want_read = 0, want_write = 0, want_append = 0;
+    switch (mode[0]) {
+    case 'r':
+        want_read = 1;
+        break;
+    case 'w':
+        want_write = 1;
+        break;
+    case 'a':
+        want_write = 1;
+        want_append = 1;
+        break;
+    default:
+        errno = EINVAL;
+        return NULL;
+    }
+    if (strchr(mode, '+')) {
+        want_read = 1;
+        want_write = 1;
+    }
+
+    int fl = fcntl(fd, F_GETFL);
+    if (fl < 0)
+        return NULL;
+    int acc = fl & (O_RDONLY | O_WRONLY | O_RDWR);
+    int fd_read = acc == O_RDONLY || acc == O_RDWR;
+    int fd_write = acc == O_WRONLY || acc == O_RDWR;
+    if ((want_read && !fd_read) || (want_write && !fd_write)) {
+        errno = EBADF;
+        return NULL;
+    }
+
     FILE *f = malloc(sizeof(FILE));
     if (!f) {
         errno = ENOMEM;
@@ -582,6 +628,9 @@ FILE *fdopen(int fd, const char *mode)
     }
     memset(f, 0, sizeof(FILE));
     f->fd = fd;
+    f->readable = want_read;
+    f->writable = want_write;
+    f->append = want_append;
     return f;
 }
 

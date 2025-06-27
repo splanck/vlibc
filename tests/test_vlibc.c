@@ -3677,6 +3677,70 @@ static const char *test_freopen_basic(void)
     return 0;
 }
 
+static const char *test_fdopen_readonly(void)
+{
+    int fd = open("tmp_fdopen_r", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    mu_assert("open", fd >= 0);
+    mu_assert("write", write(fd, "abc", 3) == 3);
+    close(fd);
+
+    fd = open("tmp_fdopen_r", O_RDONLY);
+    mu_assert("open2", fd >= 0);
+    FILE *f = fdopen(fd, "r");
+    mu_assert("fdopen", f != NULL);
+    char buf[4] = {0};
+    mu_assert("read", fread(buf, 1, 3, f) == 3);
+    mu_assert("content", strcmp(buf, "abc") == 0);
+    fclose(f);
+
+    fd = open("tmp_fdopen_r", O_WRONLY);
+    mu_assert("open3", fd >= 0);
+    errno = 0;
+    f = fdopen(fd, "r");
+    mu_assert("fdopen fail", f == NULL && errno == EBADF);
+    close(fd);
+    unlink("tmp_fdopen_r");
+    return 0;
+}
+
+static const char *test_fdopen_writeonly(void)
+{
+    int fd = open("tmp_fdopen_w", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    mu_assert("open", fd >= 0);
+    FILE *f = fdopen(fd, "w");
+    mu_assert("fdopen", f != NULL);
+    mu_assert("write", fwrite("hi", 1, 2, f) == 2);
+    fclose(f);
+
+    fd = open("tmp_fdopen_w", O_RDONLY);
+    mu_assert("open2", fd >= 0);
+    errno = 0;
+    f = fdopen(fd, "w");
+    mu_assert("fdopen fail", f == NULL && errno == EBADF);
+    close(fd);
+    unlink("tmp_fdopen_w");
+    return 0;
+}
+
+static const char *test_fdopen_append(void)
+{
+    int fd = open("tmp_fdopen_a", O_WRONLY | O_CREAT | O_APPEND, 0644);
+    mu_assert("open", fd >= 0);
+    FILE *f = fdopen(fd, "a");
+    mu_assert("fdopen", f != NULL);
+    mu_assert("write", fwrite("x", 1, 1, f) == 1);
+    fclose(f);
+
+    fd = open("tmp_fdopen_a", O_RDONLY);
+    mu_assert("open2", fd >= 0);
+    errno = 0;
+    f = fdopen(fd, "a");
+    mu_assert("fdopen fail", f == NULL && errno == EBADF);
+    close(fd);
+    unlink("tmp_fdopen_a");
+    return 0;
+}
+
 static const char *test_abort_fn(void)
 {
     pid_t pid = fork();
@@ -5099,6 +5163,9 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_termios_speed_roundtrip),
         REGISTER_TEST("default", test_temp_files),
         REGISTER_TEST("default", test_freopen_basic),
+        REGISTER_TEST("fdopen", test_fdopen_readonly),
+        REGISTER_TEST("fdopen", test_fdopen_writeonly),
+        REGISTER_TEST("fdopen", test_fdopen_append),
         REGISTER_TEST("default", test_abort_fn),
         REGISTER_TEST("default", test_sigaction_install),
         REGISTER_TEST("default", test_sigprocmask_block),

@@ -23,6 +23,7 @@ FILE *open_memstream(char **bufp, size_t *sizep)
     memset(f, 0, sizeof(FILE));
     f->fd = -1;
     f->is_mem = 1;
+    f->writable = 1;
     f->mem_bufp = bufp;
     f->mem_sizep = sizep;
     f->bufsize = 128;
@@ -51,6 +52,7 @@ FILE *open_wmemstream(wchar_t **bufp, size_t *sizep)
     f->fd = -1;
     f->is_mem = 1;
     f->is_wmem = 1;
+    f->writable = 1;
     f->mem_bufp = (char **)bufp;
     f->mem_sizep = sizep;
     f->bufsize = 128 * sizeof(wchar_t);
@@ -78,6 +80,17 @@ FILE *fmemopen(void *buf, size_t size, const char *mode)
     memset(f, 0, sizeof(FILE));
     f->fd = -1;
     f->is_mem = 1;
+    if (mode && strchr(mode, '+')) {
+        f->readable = 1;
+        f->writable = 1;
+    } else if (mode && mode[0] == 'w') {
+        f->writable = 1;
+    } else if (mode && mode[0] == 'a') {
+        f->writable = 1;
+        f->append = 1;
+    } else {
+        f->readable = 1;
+    }
     f->buf = buf ? (unsigned char *)buf : malloc(size);
     if (!f->buf) {
         free(f);
