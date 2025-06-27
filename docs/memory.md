@@ -47,7 +47,8 @@ void *aligned_alloc(size_t alignment, size_t size);
   alignment. It returns `0` on success, `EINVAL` if the alignment is not a power
   of two or not a multiple of `sizeof(void *)`, or `ENOMEM` when the allocation
   fails.
-- `aligned_alloc` wraps `posix_memalign` and returns `NULL` on failure.
+- `aligned_alloc` wraps `posix_memalign` and returns `NULL` on failure or when
+  `size` is not a multiple of `alignment`.
 
 ```c
 void *p;
