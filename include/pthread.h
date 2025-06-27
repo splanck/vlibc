@@ -19,6 +19,9 @@ typedef unsigned long pthread_t;
 
 typedef struct {
     atomic_flag locked;
+    int type;             /* mutex behavior */
+    pthread_t owner;      /* thread holding the lock */
+    unsigned recursion;   /* recursion depth for recursive mutexes */
 } pthread_mutex_t;
 
 typedef struct {
