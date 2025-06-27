@@ -5000,6 +5000,9 @@ static const char *test_abs_div_functions(void)
     mu_assert("labs neg", labs(-7L) == 7L);
     mu_assert("llabs pos", llabs(9LL) == 9LL);
     mu_assert("llabs neg", llabs(-9LL) == 9LL);
+    mu_assert("abs INT_MIN", abs(INT_MIN) == INT_MIN);
+    mu_assert("labs LONG_MIN", labs(LONG_MIN) == LONG_MIN);
+    mu_assert("llabs LLONG_MIN", llabs(LLONG_MIN) == LLONG_MIN);
 
     div_t di = div(7, 3);
     mu_assert("div quot", di.quot == 2);
