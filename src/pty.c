@@ -20,16 +20,26 @@
 extern int host_openpty(int *, int *, char *, struct termios *, struct winsize *) __asm("openpty");
 extern int host_forkpty(int *, char *, struct termios *, struct winsize *) __asm("forkpty");
 
-int openpty(int *amaster, int *aslave, char *name,
+int openpty(int *amaster, int *aslave, char *name, size_t namesz,
             struct termios *termp, struct winsize *winp)
 {
-    return host_openpty(amaster, aslave, name, termp, winp);
+    if (!amaster || !aslave)
+        return (errno = EINVAL, -1);
+    char buf[64];
+    int r = host_openpty(amaster, aslave, name ? buf : NULL, termp, winp);
+    if (r == 0 && name)
+        strlcpy(name, buf, namesz);
+    return r;
 }
 
-int forkpty(int *amaster, char *name,
+int forkpty(int *amaster, char *name, size_t namesz,
             struct termios *termp, struct winsize *winp)
 {
-    return host_forkpty(amaster, name, termp, winp);
+    char buf[64];
+    int pid = host_forkpty(amaster, name ? buf : NULL, termp, winp);
+    if (pid >= 0 && name)
+        strlcpy(name, buf, namesz);
+    return pid;
 }
 
 #else
@@ -39,7 +49,7 @@ extern int host_grantpt(int) __asm("grantpt");
 extern int host_unlockpt(int) __asm("unlockpt");
 extern int host_ptsname_r(int, char *, size_t) __asm("ptsname_r");
 
-static int do_openpty(int *amaster, int *aslave, char *name,
+static int do_openpty(int *amaster, int *aslave, char *name, size_t namesz,
                       struct termios *termp, struct winsize *winp)
 {
     int m = host_posix_openpt(O_RDWR | O_NOCTTY);
@@ -64,25 +74,25 @@ static int do_openpty(int *amaster, int *aslave, char *name,
     if (winp)
         ioctl(s, TIOCSWINSZ, winp);
     if (name)
-        strncpy(name, buf, strlen(buf) + 1);
+        strlcpy(name, buf, namesz);
     *amaster = m;
     *aslave = s;
     return 0;
 }
 
-int openpty(int *amaster, int *aslave, char *name,
+int openpty(int *amaster, int *aslave, char *name, size_t namesz,
             struct termios *termp, struct winsize *winp)
 {
     if (!amaster || !aslave)
         return (errno = EINVAL, -1);
-    return do_openpty(amaster, aslave, name, termp, winp);
+    return do_openpty(amaster, aslave, name, namesz, termp, winp);
 }
 
-int forkpty(int *amaster, char *name,
+int forkpty(int *amaster, char *name, size_t namesz,
             struct termios *termp, struct winsize *winp)
 {
     int m, s;
-    if (openpty(&m, &s, name, termp, winp) < 0)
+    if (openpty(&m, &s, name, namesz, termp, winp) < 0)
         return -1;
     pid_t pid = fork();
     if (pid < 0) {

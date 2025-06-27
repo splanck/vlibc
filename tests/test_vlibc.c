@@ -735,7 +735,7 @@ static const char *test_ttyname_openpty(void)
 {
     int m, s;
     char expect[64];
-    mu_assert("openpty", openpty(&m, &s, expect, NULL, NULL) == 0);
+    mu_assert("openpty", openpty(&m, &s, expect, sizeof(expect), NULL, NULL) == 0);
     char buf[64];
     int r = ttyname_r(s, buf, sizeof(buf));
     char *name = ttyname(s);
@@ -743,6 +743,17 @@ static const char *test_ttyname_openpty(void)
     close(s);
     mu_assert("ttyname_r openpty", r == 0 && strcmp(buf, expect) == 0);
     mu_assert("ttyname openpty", name && strcmp(name, expect) == 0);
+    return 0;
+}
+
+static const char *test_openpty_truncation(void)
+{
+    int m, s;
+    char buf[4];
+    mu_assert("openpty", openpty(&m, &s, buf, sizeof(buf), NULL, NULL) == 0);
+    mu_assert("terminated", buf[sizeof(buf)-1] == '\0');
+    close(m);
+    close(s);
     return 0;
 }
 
@@ -3663,7 +3674,7 @@ static const char *test_arc4random_uniform_basic(void)
 static const char *test_forkpty_echo(void)
 {
     int mfd;
-    pid_t pid = forkpty(&mfd, NULL, NULL, NULL);
+    pid_t pid = forkpty(&mfd, NULL, 0, NULL, NULL);
     mu_assert("forkpty", pid >= 0);
     if (pid == 0) {
         char buf[6] = {0};
@@ -3687,7 +3698,7 @@ static const char *test_forkpty_echo(void)
 static const char *test_tcdrain_basic(void)
 {
     int m, s;
-    mu_assert("openpty", openpty(&m, &s, NULL, NULL, NULL) == 0);
+    mu_assert("openpty", openpty(&m, &s, NULL, 0, NULL, NULL) == 0);
     const char *msg = "hi";
     mu_assert("write", write(s, msg, 2) == 2);
     mu_assert("tcdrain", tcdrain(s) == 0);
@@ -3702,7 +3713,7 @@ static const char *test_tcdrain_basic(void)
 static const char *test_tcflush_basic(void)
 {
     int m, s;
-    mu_assert("openpty", openpty(&m, &s, NULL, NULL, NULL) == 0);
+    mu_assert("openpty", openpty(&m, &s, NULL, 0, NULL, NULL) == 0);
     fcntl(s, F_SETFL, O_NONBLOCK);
     const char *msg = "xx";
     mu_assert("write", write(m, msg, 2) == 2);
@@ -3718,7 +3729,7 @@ static const char *test_tcflush_basic(void)
 static const char *test_termios_speed_roundtrip(void)
 {
     int m, s;
-    mu_assert("openpty", openpty(&m, &s, NULL, NULL, NULL) == 0);
+    mu_assert("openpty", openpty(&m, &s, NULL, 0, NULL, NULL) == 0);
     struct termios t;
     mu_assert("get", tcgetattr(s, &t) == 0);
     speed_t in_orig = cfgetispeed(&t);
@@ -5156,6 +5167,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_isatty_stdin),
         REGISTER_TEST("default", test_ttyname_dev_tty),
         REGISTER_TEST("default", test_ttyname_openpty),
+        REGISTER_TEST("default", test_openpty_truncation),
         REGISTER_TEST("network", test_socket),
         REGISTER_TEST("network", test_socketpair_basic),
         REGISTER_TEST("network", test_socket_addresses),
