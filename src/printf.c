@@ -105,8 +105,10 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
         case 'd': {
             int v = va_arg(ap, int);
             sign = v < 0;
-            len = uint_to_base(sign ? (unsigned int)-v : (unsigned int)v,
-                              10, 0, buf, sizeof(buf));
+            unsigned int uv = (unsigned int)v;
+            if (sign)
+                uv = 0u - uv;
+            len = uint_to_base(uv, 10, 0, buf, sizeof(buf));
             break;
         }
         case 'u': {
