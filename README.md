@@ -372,6 +372,17 @@ Convenience targets are also available:
 ```sh
 make test-memory
 make test-network
+make test-io
+make test-fs
+make test-thread
+make test-process
+make test-time
+make test-string
+make test-env
+make test-util
+make test-math
+make test-regex
+make test-crypto
 ```
 
 This builds the test binary and exercises many of the library functions.

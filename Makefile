@@ -235,6 +235,39 @@ test-memory: test
 test-network: TEST_GROUP=network
 test-network: test
 
+test-io: TEST_GROUP=io
+test-io: test
+
+test-fs: TEST_GROUP=fs
+test-fs: test
+
+test-thread: TEST_GROUP=thread
+test-thread: test
+
+test-process: TEST_GROUP=process
+test-process: test
+
+test-time: TEST_GROUP=time
+test-time: test
+
+test-string: TEST_GROUP=string
+test-string: test
+
+test-env: TEST_GROUP=env
+test-env: test
+
+test-util: TEST_GROUP=util
+test-util: test
+
+test-math: TEST_GROUP=math
+test-math: test
+
+test-regex: TEST_GROUP=regex
+test-regex: test
+
+test-crypto: TEST_GROUP=crypto
+test-crypto: test
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -258,4 +291,4 @@ install: $(LIB)
 clean:
 	rm -f $(OBJ) $(LIB) $(TEST_BIN) $(PLUGIN_SO)
 
-.PHONY: all install clean test test-memory test-network
+.PHONY: all install clean test test-memory test-network test-io test-fs test-thread test-process test-time test-string test-env test-util test-math test-regex test-crypto

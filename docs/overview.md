@@ -62,6 +62,17 @@ You can run a subset using the `TEST_GROUP` variable or convenience targets:
 make test TEST_GROUP=memory
 make test-memory
 make test-network
+make test-io
+make test-fs
+make test-thread
+make test-process
+make test-time
+make test-string
+make test-env
+make test-util
+make test-math
+make test-regex
+make test-crypto
 ```
 
 This builds `tests/run_tests` and executes the suite.
