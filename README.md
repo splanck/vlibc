@@ -361,13 +361,14 @@ Example tests live in the `tests/` directory. Run them with:
 make test
 ```
 
-Set `TEST_GROUP` to run only a subset:
+Set `TEST_GROUP` to run only a subset. Available groups are `default`,
+`memory`, `network`, and `fdopen`:
 
 ```sh
-make test TEST_GROUP=memory
+make test TEST_GROUP=fdopen
 ```
 
-Convenience targets are also available:
+Convenience targets are available for the `memory` and `network` groups:
 
 ```sh
 make test-memory
@@ -377,9 +378,10 @@ make test-network
 This builds the test binary and exercises many of the library functions.
 
 Tests are organized into categories that can be run individually.  The
-`default` group contains the standard suite.  To run only a specific
-group pass its name to the test binary or provide the `TEST_GROUP`
-variable when invoking `make`:
+`default` group contains the standard suite.  Additional groups include
+`memory`, `network`, and `fdopen`.  To run only a specific group pass its
+name to the test binary or provide the `TEST_GROUP` variable when invoking
+`make`:
 
 ```sh
 ./tests/run_tests default
