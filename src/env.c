@@ -66,6 +66,8 @@ int setenv(const char *name, const char *value, int overwrite)
     entry[nlen + 1 + vlen] = '\0';
 
     if (idx >= 0) {
+        if (environ_owned)
+            free(environ[idx]);
         environ[idx] = entry;
         return 0;
     }
