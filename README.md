@@ -81,6 +81,7 @@ programs. Key features include:
   `ldiv` and `lldiv`
 - POSIX-style 48-bit random numbers via the `rand48` family
 - Deterministic uniform numbers with `arc4random_uniform()`
+- Runtime detection of `getrandom`/`/dev/urandom` with a `rand()` fallback
 - Descriptor-based printing with `dprintf()`/`vdprintf()`
 - Memory-backed streams with `open_memstream()`, `open_wmemstream()` and `fmemopen()`
 - Replace an open stream with `freopen()`

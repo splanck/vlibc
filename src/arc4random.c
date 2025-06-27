@@ -8,35 +8,96 @@
 
 #include "stdlib.h"
 #include "io.h"
+#include "syscall.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <sys/syscall.h>
+#include <errno.h>
 
 /*
- * Simple arc4random implementation. Use the system getrandom if available
- * in the future. For now read from /dev/urandom which is present on most
- * Unix-like systems. On BSD systems with arc4random in libc this fallback
- * keeps us portable when that function is absent.
+ * Simple arc4random implementation. Entropy is gathered from the best
+ * available source at runtime. getrandom(2) is attempted first when the
+ * kernel supports it. If that fails we fall back to reading
+ * /dev/urandom. Should both mechanisms be unavailable the buffer is
+ * filled using the rand() PRNG which provides very little entropy.
  */
 
-static void fill_urandom(void *buf, size_t len)
+static ssize_t try_urandom(void *buf, size_t len)
 {
     int fd = open("/dev/urandom", O_RDONLY);
     if (fd < 0)
-        return;
+        return -1;
     size_t off = 0;
     while (off < len) {
         ssize_t r = read(fd, (unsigned char *)buf + off, len - off);
-        if (r <= 0)
+        if (r <= 0) {
+            if (r < 0 && errno == EINTR)
+                continue;
             break;
+        }
         off += (size_t)r;
     }
     close(fd);
+    return off == len ? (ssize_t)off : -1;
+}
+
+static ssize_t try_getrandom(void *buf, size_t len)
+{
+#ifdef SYS_getrandom
+    size_t off = 0;
+    while (off < len) {
+        long r = vlibc_syscall(SYS_getrandom, (long)((unsigned char *)buf + off),
+                               len - off, 0, 0, 0);
+        if (r < 0) {
+            if (r == -EINTR)
+                continue;
+            if (r == -ENOSYS)
+                return -1;
+            break;
+        }
+        off += (size_t)r;
+    }
+    return off == len ? (ssize_t)off : -1;
+#else
+    (void)buf;
+    (void)len;
+    return -1;
+#endif
+}
+
+static void fill_prng(void *buf, size_t len)
+{
+    unsigned char *p = buf;
+    for (size_t i = 0; i < len; i++)
+        p[i] = (unsigned char)(rand() & 0xff);
 }
 
 void arc4random_buf(void *buf, size_t len)
 {
-    fill_urandom(buf, len);
+    if (len == 0)
+        return;
+
+#ifdef SYS_getrandom
+    static int have_getrandom = -1;
+    if (have_getrandom == -1) {
+        long r = vlibc_syscall(SYS_getrandom, 0, 0, 0, 0, 0);
+        if (r >= 0 || r == -EINVAL)
+            have_getrandom = 1;
+        else if (r == -ENOSYS)
+            have_getrandom = 0;
+        else
+            have_getrandom = 0;
+    }
+    if (have_getrandom == 1 &&
+        try_getrandom(buf, len) == (ssize_t)len)
+        return;
+#endif
+
+    if (try_urandom(buf, len) == (ssize_t)len)
+        return;
+
+    fill_prng(buf, len);
 }
 
 unsigned int arc4random(void)
