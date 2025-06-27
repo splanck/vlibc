@@ -59,6 +59,9 @@ typedef struct {
 #ifndef BUFSIZ
 #define BUFSIZ 1024
 #endif
+#ifndef L_tmpnam
+#define L_tmpnam 20
+#endif
 
 extern FILE *stdin;
 extern FILE *stdout;
@@ -123,6 +126,7 @@ int pclose(FILE *stream);
 
 int mkstemp(char *template);
 FILE *tmpfile(void);
+/* Buffer must hold at least L_tmpnam characters or be NULL */
 char *tmpnam(char *s);
 char *tempnam(const char *dir, const char *pfx);
 
