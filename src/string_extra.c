@@ -264,7 +264,7 @@ char *stpncpy(char *dest, const char *src, size_t n)
     }
     if (n) {
         vmemset(d, 0, n);
-        return d;
+        return d + n;
     }
     return d;
 }

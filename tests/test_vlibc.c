@@ -1227,6 +1227,11 @@ static const char *test_stpcpy_functions(void)
     mu_assert("stpncpy trunc", p == buf3 + 3);
     mu_assert("stpncpy trunc str", strncmp(buf3, "xyz", 3) == 0);
 
+    char buf4[8];
+    p = stpncpy(buf4, "hi", 6);
+    mu_assert("stpncpy pad end", p == buf4 + 6);
+    mu_assert("stpncpy pad str", strcmp(buf4, "hi") == 0 && buf4[2] == '\0');
+
     return 0;
 }
 
