@@ -8,6 +8,7 @@
 
 #include "memory.h"
 #include "string.h"
+#include "pthread.h"
 #include <stdint.h>
 #include <errno.h>
 
@@ -35,6 +36,7 @@ struct block_header {
 };
 
 static struct block_header *free_list = NULL;
+static pthread_mutex_t free_lock = { ATOMIC_FLAG_INIT };
 
 static void free_impl(void *ptr)
 {
@@ -42,8 +44,10 @@ static void free_impl(void *ptr)
         return;
 
     struct block_header *hdr = (struct block_header *)ptr - 1;
+    pthread_mutex_lock(&free_lock);
     hdr->next = free_list;
     free_list = hdr;
+    pthread_mutex_unlock(&free_lock);
 }
 
 /*
@@ -56,6 +60,7 @@ void *malloc(size_t size)
         return NULL;
 
     /* first-fit search through free list */
+    pthread_mutex_lock(&free_lock);
     struct block_header *prev = NULL;
     struct block_header *b = free_list;
     while (b) {
@@ -64,12 +69,14 @@ void *malloc(size_t size)
                 prev->next = b->next;
             else
                 free_list = b->next;
+            pthread_mutex_unlock(&free_lock);
             b->size = size;
             return (void *)(b + 1);
         }
         prev = b;
         b = b->next;
     }
+    pthread_mutex_unlock(&free_lock);
 
     /* allocate new block from the system */
     struct block_header *hdr = sbrk(sizeof(struct block_header) + size);

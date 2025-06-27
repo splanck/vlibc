@@ -9,7 +9,9 @@ obtaining memory from the kernel. The implementation deliberately keeps things
 simple. Each allocation stores a small header so the most recent block can be
 released on `free()`. Memory for older blocks is not recycled when using
 `sbrk`, keeping the code easy to audit at the cost of efficiency. When built
-with the `mmap` backend each `free` call unmaps the region entirely.
+with the `mmap` backend each `free` call unmaps the region entirely. The free
+list is protected by a mutex so all allocation functions are safe to call from
+multiple threads.
 
 ### API
 
