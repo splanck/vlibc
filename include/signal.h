@@ -9,6 +9,16 @@
 #include <sys/types.h>
 #include "time.h"
 
+#if defined(__has_include)
+#  if __has_include("/usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h")
+#    include "/usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h"
+#    define VLIBC_HAS___SIGSET_T 1
+#  elif __has_include("/usr/include/bits/types/__sigset_t.h")
+#    include "/usr/include/bits/types/__sigset_t.h"
+#    define VLIBC_HAS___SIGSET_T 1
+#  endif
+#endif
+
 /* basic signal numbers */
 #define SIGHUP    1
 #define SIGINT    2
@@ -60,7 +70,11 @@ typedef int sig_atomic_t;
 #define SIG_UNBLOCK 1
 #define SIG_SETMASK 2
 
+#ifdef VLIBC_HAS___SIGSET_T
+typedef __sigset_t sigset_t;
+#else
 typedef unsigned long sigset_t;
+#endif
 
 struct sigaction {
     sighandler_t sa_handler;
