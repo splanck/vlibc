@@ -103,15 +103,17 @@ int pthread_cond_init(pthread_cond_t *cond, void *attr)
 {
     (void)attr;
     atomic_store(&cond->seq, 0);
+    atomic_store(&cond->next, 0);
     return 0;
 }
 
 /* Wait for a condition signal while temporarily releasing the mutex. */
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
-    int seq = atomic_load_explicit(&cond->seq, memory_order_relaxed);
+    int ticket = atomic_fetch_add_explicit(&cond->next, 1,
+                                           memory_order_acquire);
     pthread_mutex_unlock(mutex);
-    while (atomic_load_explicit(&cond->seq, memory_order_acquire) == seq) {
+    while (atomic_load_explicit(&cond->seq, memory_order_acquire) <= ticket) {
         struct timespec ts = {0, 1000000};
         nanosleep(&ts, NULL);
     }
@@ -126,12 +128,13 @@ int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
     if (!abstime)
         return pthread_cond_wait(cond, mutex);
 
-    int seq = atomic_load_explicit(&cond->seq, memory_order_relaxed);
+    int ticket = atomic_fetch_add_explicit(&cond->next, 1,
+                                           memory_order_acquire);
     pthread_mutex_unlock(mutex);
 
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    while (atomic_load_explicit(&cond->seq, memory_order_acquire) == seq) {
+    while (atomic_load_explicit(&cond->seq, memory_order_acquire) <= ticket) {
         if (now.tv_sec > abstime->tv_sec ||
             (now.tv_sec == abstime->tv_sec &&
              now.tv_nsec >= abstime->tv_nsec)) {
@@ -150,14 +153,19 @@ int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
 /* Wake one thread waiting on the condition. */
 int pthread_cond_signal(pthread_cond_t *cond)
 {
-    atomic_fetch_add_explicit(&cond->seq, 1, memory_order_release);
+    int next = atomic_load_explicit(&cond->next, memory_order_acquire);
+    int seq = atomic_load_explicit(&cond->seq, memory_order_acquire);
+    if (seq < next)
+        atomic_fetch_add_explicit(&cond->seq, 1, memory_order_release);
     return 0;
 }
 
 /* Wake all threads waiting on the condition. */
 int pthread_cond_broadcast(pthread_cond_t *cond)
 {
-    return pthread_cond_signal(cond);
+    int next = atomic_load_explicit(&cond->next, memory_order_acquire);
+    atomic_store_explicit(&cond->seq, next, memory_order_release);
+    return 0;
 }
 
 #define KEY_MAX 64

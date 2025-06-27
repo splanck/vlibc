@@ -2365,6 +2365,82 @@ static const char *test_pthread_spinlock(void)
     return 0;
 }
 
+static pthread_mutex_t cond_mutex;
+static pthread_cond_t cond_var;
+static int cond_step;
+static int cond_woken[2];
+
+struct cond_arg {
+    int step;
+    int idx;
+};
+
+static void *cond_worker(void *arg)
+{
+    struct cond_arg *a = arg;
+    pthread_mutex_lock(&cond_mutex);
+    while (cond_step < a->step)
+        pthread_cond_wait(&cond_var, &cond_mutex);
+    cond_woken[a->idx] = 1;
+    pthread_mutex_unlock(&cond_mutex);
+    return NULL;
+}
+
+static const char *test_pthread_cond_signal(void)
+{
+    pthread_t t1, t2;
+    struct cond_arg a1 = {1, 0};
+    struct cond_arg a2 = {2, 1};
+    pthread_mutex_init(&cond_mutex, NULL);
+    pthread_cond_init(&cond_var, NULL);
+    cond_step = 0;
+    cond_woken[0] = cond_woken[1] = 0;
+    pthread_create(&t1, NULL, cond_worker, &a1);
+    pthread_create(&t2, NULL, cond_worker, &a2);
+    usleep(100000);
+    pthread_mutex_lock(&cond_mutex);
+    cond_step = 1;
+    pthread_cond_signal(&cond_var);
+    pthread_mutex_unlock(&cond_mutex);
+    usleep(100000);
+    int first_woken = cond_woken[0] + cond_woken[1];
+    pthread_mutex_lock(&cond_mutex);
+    cond_step = 2;
+    pthread_cond_signal(&cond_var);
+    pthread_mutex_unlock(&cond_mutex);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    pthread_cond_destroy(&cond_var);
+    pthread_mutex_destroy(&cond_mutex);
+    mu_assert("first signal woke one", first_woken == 1);
+    mu_assert("both signaled", cond_woken[0] == 1 && cond_woken[1] == 1);
+    return 0;
+}
+
+static const char *test_pthread_cond_broadcast(void)
+{
+    pthread_t t1, t2;
+    struct cond_arg a1 = {1, 0};
+    struct cond_arg a2 = {1, 1};
+    pthread_mutex_init(&cond_mutex, NULL);
+    pthread_cond_init(&cond_var, NULL);
+    cond_step = 0;
+    cond_woken[0] = cond_woken[1] = 0;
+    pthread_create(&t1, NULL, cond_worker, &a1);
+    pthread_create(&t2, NULL, cond_worker, &a2);
+    usleep(100000);
+    pthread_mutex_lock(&cond_mutex);
+    cond_step = 1;
+    pthread_cond_broadcast(&cond_var);
+    pthread_mutex_unlock(&cond_mutex);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    pthread_cond_destroy(&cond_var);
+    pthread_mutex_destroy(&cond_mutex);
+    mu_assert("broadcast woke all", cond_woken[0] == 1 && cond_woken[1] == 1);
+    return 0;
+}
+
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
@@ -4923,6 +4999,8 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_pthread_rwlock),
         REGISTER_TEST("default", test_pthread_barrier),
         REGISTER_TEST("default", test_pthread_spinlock),
+        REGISTER_TEST("default", test_pthread_cond_signal),
+        REGISTER_TEST("default", test_pthread_cond_broadcast),
         REGISTER_TEST("default", test_semaphore_basic),
         REGISTER_TEST("default", test_semaphore_trywait),
         REGISTER_TEST("default", test_select_pipe),

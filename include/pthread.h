@@ -29,7 +29,8 @@ typedef struct {
 #define PTHREAD_MUTEX_RECURSIVE 1
 
 typedef struct {
-    atomic_int seq;
+    atomic_int seq;  /* number of signals issued */
+    atomic_int next; /* next ticket for waiting threads */
 } pthread_cond_t;
 
 typedef struct {
