@@ -77,6 +77,7 @@
 #include "../include/sys/msg.h"
 #include "../include/mqueue.h"
 #include "../include/sched.h"
+#include <limits.h>
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
@@ -1731,6 +1732,12 @@ static const char *test_printf_functions(void)
 
     n = snprintf(buf, sizeof(buf), "[%.4x]", 3);
     mu_assert("precision", strcmp(buf, "[0003]") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%d", INT_MIN);
+    mu_assert("snprintf INT_MIN len", n == (int)strlen(buf));
+    char *endptr;
+    mu_assert("snprintf INT_MIN value",
+              strtol(buf, &endptr, 10) == INT_MIN && *endptr == '\0');
 
     FILE *f = fopen("tmp_pf", "w");
     mu_assert("fopen failed", f != NULL);
