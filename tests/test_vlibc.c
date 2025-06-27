@@ -3132,7 +3132,7 @@ static const char *test_system_interrupted(void)
     struct sigaction sa;
     sa.sa_handler = handle_usr1;
     sa.sa_flags = 0;
-    sa.sa_mask = 0;
+    sigemptyset(&sa.sa_mask);
     sigaction(SIGUSR1, &sa, NULL);
 
     pthread_t t;
@@ -3593,7 +3593,7 @@ static const char *test_sigaction_install(void)
     got_signal = 0;
     struct sigaction sa;
     sa.sa_handler = handle_usr1;
-    sa.sa_mask = 0;
+    sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
     mu_assert("sigaction", sigaction(SIGUSR1, &sa, NULL) == 0);
     kill(getpid(), SIGUSR1);
@@ -3606,7 +3606,7 @@ static const char *test_sigprocmask_block(void)
     got_signal = 0;
     struct sigaction sa;
     sa.sa_handler = handle_usr1;
-    sa.sa_mask = 0;
+    sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
     sigaction(SIGUSR1, &sa, NULL);
     sigset_t mask;
