@@ -119,7 +119,7 @@ int unvis(char *cp, int c, int *state, int flag)
             *state = (val << 8) | S_OCT2;
             return UNVIS_NOCHAR;
         }
-        /* fallthrough to finish with two digits */
+        /* FALLTHROUGH */
     case S_OCT2:
         *state = S_GROUND;
         *cp = val;
