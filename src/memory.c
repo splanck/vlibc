@@ -59,6 +59,11 @@ void *malloc(size_t size)
     if (size == 0)
         return NULL;
 
+    if (size > SIZE_MAX - sizeof(struct block_header)) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
     /* first-fit search through free list */
     pthread_mutex_lock(&free_lock);
     struct block_header *prev = NULL;
@@ -121,6 +126,11 @@ void *malloc(size_t size)
 {
     if (size == 0)
         return NULL;
+
+    if (size > SIZE_MAX - sizeof(struct mmap_header)) {
+        errno = ENOMEM;
+        return NULL;
+    }
 
     size_t total = sizeof(struct mmap_header) + size;
     struct mmap_header *hdr = mmap(NULL, total, PROT_READ | PROT_WRITE,
