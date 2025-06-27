@@ -150,7 +150,14 @@ FTSENT *fts_read(FTS *fts)
                 if (add)
                     child[len] = '/';
                 strcpy(child + len + add, e->d_name);
-                queue_push(fts, child, n->level + 1);
+                if (queue_push(fts, child, n->level + 1) < 0) {
+                    closedir(d);
+                    free(child);
+                    free_entry(ent);
+                    free(n);
+                    errno = ENOMEM;
+                    return NULL;
+                }
                 free(child);
             }
             closedir(d);

@@ -28,4 +28,10 @@ int posix_memalign(void **memptr, size_t alignment, size_t size);
 /* Allocate memory with a given alignment. Returns NULL on failure. */
 void *aligned_alloc(size_t alignment, size_t size);
 
+/*
+ * Unit tests can set this variable to N to fail the Nth allocation call.
+ * Set to -1 to disable the failure mechanism.
+ */
+extern int vlibc_test_alloc_fail_after;
+
 #endif /* MEMORY_H */
