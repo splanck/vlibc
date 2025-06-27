@@ -65,8 +65,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include <alloca.h>
-#include <openssl/md5.h>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 #include "crypt.h"
 
 #ifndef u_char
@@ -727,7 +726,7 @@ crypt_des(const char *key, const char *setting, char *buffer)
 static int
 crypt_md5(const char *pw, const char *salt, char *buffer)
 {
-        MD5_CTX ctx, ctx1;
+        EVP_MD_CTX *ctx, *ctx1;
         unsigned long l;
         int sl, pl;
         unsigned int i;
@@ -742,47 +741,52 @@ crypt_md5(const char *pw, const char *salt, char *buffer)
                 continue;
         sl = ep - salt;
 
-        MD5_Init(&ctx);
-        MD5_Update(&ctx, pw, strlen(pw));
-        MD5_Update(&ctx, magic, strlen(magic));
-        MD5_Update(&ctx, salt, sl);
+        ctx = EVP_MD_CTX_new();
+        ctx1 = EVP_MD_CTX_new();
+        if (ctx == NULL || ctx1 == NULL)
+                return (-1);
 
-        MD5_Init(&ctx1);
-        MD5_Update(&ctx1, pw, strlen(pw));
-        MD5_Update(&ctx1, salt, sl);
-        MD5_Update(&ctx1, pw, strlen(pw));
-        MD5_Final(final, &ctx1);
+        EVP_DigestInit_ex(ctx, EVP_md5(), NULL);
+        EVP_DigestUpdate(ctx, pw, strlen(pw));
+        EVP_DigestUpdate(ctx, magic, strlen(magic));
+        EVP_DigestUpdate(ctx, salt, sl);
+
+        EVP_DigestInit_ex(ctx1, EVP_md5(), NULL);
+        EVP_DigestUpdate(ctx1, pw, strlen(pw));
+        EVP_DigestUpdate(ctx1, salt, sl);
+        EVP_DigestUpdate(ctx1, pw, strlen(pw));
+        EVP_DigestFinal_ex(ctx1, final, NULL);
         for (pl = strlen(pw); pl > 0; pl -= 16)
-                MD5_Update(&ctx, final, pl > 16 ? 16 : pl);
+                EVP_DigestUpdate(ctx, final, pl > 16 ? 16 : pl);
         memset(final, 0, sizeof(final));
 
         for (i = strlen(pw); i; i >>= 1)
                 if (i & 1)
-                        MD5_Update(&ctx, final, 1);
+                        EVP_DigestUpdate(ctx, final, 1);
                 else
-                        MD5_Update(&ctx, pw, 1);
+                        EVP_DigestUpdate(ctx, pw, 1);
 
         buffer = stpcpy(buffer, magic);
         buffer = stpncpy(buffer, salt, sl);
         *buffer++ = '$';
 
-        MD5_Final(final, &ctx);
+        EVP_DigestFinal_ex(ctx, final, NULL);
 
         for (i = 0; i < 1000; i++) {
-                MD5_Init(&ctx1);
+                EVP_DigestInit_ex(ctx1, EVP_md5(), NULL);
                 if (i & 1)
-                        MD5_Update(&ctx1, pw, strlen(pw));
+                        EVP_DigestUpdate(ctx1, pw, strlen(pw));
                 else
-                        MD5_Update(&ctx1, final, 16);
+                        EVP_DigestUpdate(ctx1, final, 16);
                 if (i % 3)
-                        MD5_Update(&ctx1, salt, sl);
+                        EVP_DigestUpdate(ctx1, salt, sl);
                 if (i % 7)
-                        MD5_Update(&ctx1, pw, strlen(pw));
+                        EVP_DigestUpdate(ctx1, pw, strlen(pw));
                 if (i & 1)
-                        MD5_Update(&ctx1, final, 16);
+                        EVP_DigestUpdate(ctx1, final, 16);
                 else
-                        MD5_Update(&ctx1, pw, strlen(pw));
-                MD5_Final(final, &ctx1);
+                        EVP_DigestUpdate(ctx1, pw, strlen(pw));
+                EVP_DigestFinal_ex(ctx1, final, NULL);
         }
 
         l = (final[0] << 16) | (final[6] << 8) | final[12];
@@ -800,6 +804,8 @@ crypt_md5(const char *pw, const char *salt, char *buffer)
         *buffer = '\0';
 
         memset(final, 0, sizeof(final));
+        EVP_MD_CTX_free(ctx);
+        EVP_MD_CTX_free(ctx1);
         return (0);
 }
 
@@ -808,7 +814,7 @@ crypt_sha256(const char *key, const char *salt, char *buffer)
 {
         unsigned long srounds;
         uint8_t alt_result[32], temp_result[32];
-        SHA256_CTX ctx, alt_ctx;
+        EVP_MD_CTX *ctx, *alt_ctx;
         size_t salt_len, key_len, cnt, rounds;
         char *cp, *p_bytes, *s_bytes, *endp;
         const char *num;
@@ -840,32 +846,37 @@ crypt_sha256(const char *key, const char *salt, char *buffer)
                 salt_len = 16;
         key_len = strlen(key);
 
-        SHA256_Init(&ctx);
-        SHA256_Update(&ctx, key, key_len);
-        SHA256_Update(&ctx, salt, salt_len);
+        ctx = EVP_MD_CTX_new();
+        alt_ctx = EVP_MD_CTX_new();
+        if (ctx == NULL || alt_ctx == NULL)
+                return (-1);
 
-        SHA256_Init(&alt_ctx);
-        SHA256_Update(&alt_ctx, key, key_len);
-        SHA256_Update(&alt_ctx, salt, salt_len);
-        SHA256_Update(&alt_ctx, key, key_len);
-        SHA256_Final(alt_result, &alt_ctx);
+        EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
+        EVP_DigestUpdate(ctx, key, key_len);
+        EVP_DigestUpdate(ctx, salt, salt_len);
+
+        EVP_DigestInit_ex(alt_ctx, EVP_sha256(), NULL);
+        EVP_DigestUpdate(alt_ctx, key, key_len);
+        EVP_DigestUpdate(alt_ctx, salt, salt_len);
+        EVP_DigestUpdate(alt_ctx, key, key_len);
+        EVP_DigestFinal_ex(alt_ctx, alt_result, NULL);
 
         for (cnt = key_len; cnt > 32; cnt -= 32)
-                SHA256_Update(&ctx, alt_result, 32);
-        SHA256_Update(&ctx, alt_result, cnt);
+                EVP_DigestUpdate(ctx, alt_result, 32);
+        EVP_DigestUpdate(ctx, alt_result, cnt);
 
         for (cnt = key_len; cnt > 0; cnt >>= 1)
                 if (cnt & 1)
-                        SHA256_Update(&ctx, alt_result, 32);
+                        EVP_DigestUpdate(ctx, alt_result, 32);
                 else
-                        SHA256_Update(&ctx, key, key_len);
+                        EVP_DigestUpdate(ctx, key, key_len);
 
-        SHA256_Final(alt_result, &ctx);
+        EVP_DigestFinal_ex(ctx, alt_result, NULL);
 
-        SHA256_Init(&alt_ctx);
+        EVP_DigestInit_ex(alt_ctx, EVP_sha256(), NULL);
         for (cnt = 0; cnt < key_len; ++cnt)
-                SHA256_Update(&alt_ctx, key, key_len);
-        SHA256_Final(temp_result, &alt_ctx);
+                EVP_DigestUpdate(alt_ctx, key, key_len);
+        EVP_DigestFinal_ex(alt_ctx, temp_result, NULL);
 
         cp = p_bytes = alloca(key_len);
         for (cnt = key_len; cnt >= 32; cnt -= 32) {
@@ -874,10 +885,10 @@ crypt_sha256(const char *key, const char *salt, char *buffer)
         }
         memcpy(cp, temp_result, cnt);
 
-        SHA256_Init(&alt_ctx);
+        EVP_DigestInit_ex(alt_ctx, EVP_sha256(), NULL);
         for (cnt = 0; cnt < 16 + alt_result[0]; ++cnt)
-                SHA256_Update(&alt_ctx, salt, salt_len);
-        SHA256_Final(temp_result, &alt_ctx);
+                EVP_DigestUpdate(alt_ctx, salt, salt_len);
+        EVP_DigestFinal_ex(alt_ctx, temp_result, NULL);
 
         cp = s_bytes = alloca(salt_len);
         for (cnt = salt_len; cnt >= 32; cnt -= 32) {
@@ -887,20 +898,20 @@ crypt_sha256(const char *key, const char *salt, char *buffer)
         memcpy(cp, temp_result, cnt);
 
         for (cnt = 0; cnt < rounds; ++cnt) {
-                SHA256_Init(&ctx);
+                EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
                 if (cnt & 1)
-                        SHA256_Update(&ctx, p_bytes, key_len);
+                        EVP_DigestUpdate(ctx, p_bytes, key_len);
                 else
-                        SHA256_Update(&ctx, alt_result, 32);
+                        EVP_DigestUpdate(ctx, alt_result, 32);
                 if (cnt % 3)
-                        SHA256_Update(&ctx, s_bytes, salt_len);
+                        EVP_DigestUpdate(ctx, s_bytes, salt_len);
                 if (cnt % 7)
-                        SHA256_Update(&ctx, p_bytes, key_len);
+                        EVP_DigestUpdate(ctx, p_bytes, key_len);
                 if (cnt & 1)
-                        SHA256_Update(&ctx, alt_result, 32);
+                        EVP_DigestUpdate(ctx, alt_result, 32);
                 else
-                        SHA256_Update(&ctx, p_bytes, key_len);
-                SHA256_Final(alt_result, &ctx);
+                        EVP_DigestUpdate(ctx, p_bytes, key_len);
+                EVP_DigestFinal_ex(ctx, alt_result, NULL);
         }
 
         cp = stpcpy(buffer, prefix);
@@ -922,6 +933,8 @@ crypt_sha256(const char *key, const char *salt, char *buffer)
         b64_from_24bit(0, alt_result[31], alt_result[30], 3, &cp);
         *cp = '\0';
 
+        EVP_MD_CTX_free(ctx);
+        EVP_MD_CTX_free(alt_ctx);
         return (0);
 }
 
@@ -930,7 +943,7 @@ crypt_sha512(const char *key, const char *salt, char *buffer)
 {
         unsigned long srounds;
         uint8_t alt_result[64], temp_result[64];
-        SHA512_CTX ctx, alt_ctx;
+        EVP_MD_CTX *ctx, *alt_ctx;
         size_t salt_len, key_len, cnt, rounds;
         char *cp, *p_bytes, *s_bytes, *endp;
         const char *num;
@@ -962,32 +975,37 @@ crypt_sha512(const char *key, const char *salt, char *buffer)
                 salt_len = 16;
         key_len = strlen(key);
 
-        SHA512_Init(&ctx);
-        SHA512_Update(&ctx, key, key_len);
-        SHA512_Update(&ctx, salt, salt_len);
+        ctx = EVP_MD_CTX_new();
+        alt_ctx = EVP_MD_CTX_new();
+        if (ctx == NULL || alt_ctx == NULL)
+                return (-1);
 
-        SHA512_Init(&alt_ctx);
-        SHA512_Update(&alt_ctx, key, key_len);
-        SHA512_Update(&alt_ctx, salt, salt_len);
-        SHA512_Update(&alt_ctx, key, key_len);
-        SHA512_Final(alt_result, &alt_ctx);
+        EVP_DigestInit_ex(ctx, EVP_sha512(), NULL);
+        EVP_DigestUpdate(ctx, key, key_len);
+        EVP_DigestUpdate(ctx, salt, salt_len);
+
+        EVP_DigestInit_ex(alt_ctx, EVP_sha512(), NULL);
+        EVP_DigestUpdate(alt_ctx, key, key_len);
+        EVP_DigestUpdate(alt_ctx, salt, salt_len);
+        EVP_DigestUpdate(alt_ctx, key, key_len);
+        EVP_DigestFinal_ex(alt_ctx, alt_result, NULL);
 
         for (cnt = key_len; cnt > 64; cnt -= 64)
-                SHA512_Update(&ctx, alt_result, 64);
-        SHA512_Update(&ctx, alt_result, cnt);
+                EVP_DigestUpdate(ctx, alt_result, 64);
+        EVP_DigestUpdate(ctx, alt_result, cnt);
 
         for (cnt = key_len; cnt > 0; cnt >>= 1)
                 if (cnt & 1)
-                        SHA512_Update(&ctx, alt_result, 64);
+                        EVP_DigestUpdate(ctx, alt_result, 64);
                 else
-                        SHA512_Update(&ctx, key, key_len);
+                        EVP_DigestUpdate(ctx, key, key_len);
 
-        SHA512_Final(alt_result, &ctx);
+        EVP_DigestFinal_ex(ctx, alt_result, NULL);
 
-        SHA512_Init(&alt_ctx);
+        EVP_DigestInit_ex(alt_ctx, EVP_sha512(), NULL);
         for (cnt = 0; cnt < key_len; ++cnt)
-                SHA512_Update(&alt_ctx, key, key_len);
-        SHA512_Final(temp_result, &alt_ctx);
+                EVP_DigestUpdate(alt_ctx, key, key_len);
+        EVP_DigestFinal_ex(alt_ctx, temp_result, NULL);
 
         cp = p_bytes = alloca(key_len);
         for (cnt = key_len; cnt >= 64; cnt -= 64) {
@@ -996,10 +1014,10 @@ crypt_sha512(const char *key, const char *salt, char *buffer)
         }
         memcpy(cp, temp_result, cnt);
 
-        SHA512_Init(&alt_ctx);
+        EVP_DigestInit_ex(alt_ctx, EVP_sha512(), NULL);
         for (cnt = 0; cnt < 16 + alt_result[0]; ++cnt)
-                SHA512_Update(&alt_ctx, salt, salt_len);
-        SHA512_Final(temp_result, &alt_ctx);
+                EVP_DigestUpdate(alt_ctx, salt, salt_len);
+        EVP_DigestFinal_ex(alt_ctx, temp_result, NULL);
 
         cp = s_bytes = alloca(salt_len);
         for (cnt = salt_len; cnt >= 64; cnt -= 64) {
@@ -1009,20 +1027,20 @@ crypt_sha512(const char *key, const char *salt, char *buffer)
         memcpy(cp, temp_result, cnt);
 
         for (cnt = 0; cnt < rounds; ++cnt) {
-                SHA512_Init(&ctx);
+                EVP_DigestInit_ex(ctx, EVP_sha512(), NULL);
                 if (cnt & 1)
-                        SHA512_Update(&ctx, p_bytes, key_len);
+                        EVP_DigestUpdate(ctx, p_bytes, key_len);
                 else
-                        SHA512_Update(&ctx, alt_result, 64);
+                        EVP_DigestUpdate(ctx, alt_result, 64);
                 if (cnt % 3)
-                        SHA512_Update(&ctx, s_bytes, salt_len);
+                        EVP_DigestUpdate(ctx, s_bytes, salt_len);
                 if (cnt % 7)
-                        SHA512_Update(&ctx, p_bytes, key_len);
+                        EVP_DigestUpdate(ctx, p_bytes, key_len);
                 if (cnt & 1)
-                        SHA512_Update(&ctx, alt_result, 64);
+                        EVP_DigestUpdate(ctx, alt_result, 64);
                 else
-                        SHA512_Update(&ctx, p_bytes, key_len);
-                SHA512_Final(alt_result, &ctx);
+                        EVP_DigestUpdate(ctx, p_bytes, key_len);
+                EVP_DigestFinal_ex(ctx, alt_result, NULL);
         }
 
         cp = stpcpy(buffer, prefix);
@@ -1055,6 +1073,8 @@ crypt_sha512(const char *key, const char *salt, char *buffer)
         b64_from_24bit(0, 0, alt_result[63], 2, &cp);
         *cp = '\0';
 
+        EVP_MD_CTX_free(ctx);
+        EVP_MD_CTX_free(alt_ctx);
         return (0);
 }
 
