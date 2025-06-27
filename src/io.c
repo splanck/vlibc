@@ -142,12 +142,13 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
         size_t off = 0;
         while (off < len) {
             ssize_t w = write(fd, base + off, len - off);
-            if (w < 0)
+            if (w < 0) {
+                if (errno == EINTR || errno == EAGAIN)
+                    continue;
                 return total ? total : -1;
+            }
             off += (size_t)w;
             total += w;
-            if ((size_t)w < len - off)
-                break;
         }
     }
     return total;
@@ -265,12 +266,13 @@ ssize_t pwritev(int fd, const struct iovec *iov, int iovcnt, off_t offset)
         size_t off = 0;
         while (off < len) {
             ssize_t w = pwrite(fd, base + off, len - off, offset + total);
-            if (w < 0)
+            if (w < 0) {
+                if (errno == EINTR || errno == EAGAIN)
+                    continue;
                 return total ? total : -1;
+            }
             off += (size_t)w;
             total += w;
-            if ((size_t)w < len - off)
-                break;
         }
     }
     return total;

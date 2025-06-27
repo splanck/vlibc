@@ -60,7 +60,9 @@ static int flush_buffer(FILE *stream)
                 w = stream->cookie_write(stream->cookie,
                                          (char *)stream->buf + off,
                                          stream->buflen - off);
-            if (w <= 0) {
+            if (w < 0) {
+                if (errno == EINTR || errno == EAGAIN)
+                    continue;
                 stream->error = 1;
                 return -1;
             }
@@ -74,7 +76,9 @@ static int flush_buffer(FILE *stream)
     while (off < stream->buflen) {
         ssize_t w = write(stream->fd, stream->buf + off,
                           stream->buflen - off);
-        if (w <= 0) {
+        if (w < 0) {
+            if (errno == EINTR || errno == EAGAIN)
+                continue;
             stream->error = 1;
             return -1;
         }
