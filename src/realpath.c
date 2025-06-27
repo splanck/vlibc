@@ -10,6 +10,7 @@
 #include "string.h"
 #include "memory.h"
 #include "errno.h"
+#include <limits.h>
 
 char *realpath(const char *path, char *resolved_path)
 {
@@ -18,21 +19,47 @@ char *realpath(const char *path, char *resolved_path)
         return NULL;
     }
 
-    char cwd[256];
+    char *cwd = NULL;
     char *full = NULL;
     if (path[0] != '/') {
-        if (!getcwd(cwd, sizeof(cwd)))
+        size_t cap = 256;
+#ifdef PATH_MAX
+        cap = PATH_MAX;
+#endif
+        cwd = malloc(cap);
+        if (!cwd)
             return NULL;
+        for (;;) {
+            if (getcwd(cwd, cap))
+                break;
+            if (errno != ERANGE) {
+                free(cwd);
+                return NULL;
+            }
+            size_t new_cap = cap * 2;
+            char *tmp = realloc(cwd, new_cap);
+            if (!tmp) {
+                free(cwd);
+                errno = ENOMEM;
+                return NULL;
+            }
+            cwd = tmp;
+            cap = new_cap;
+        }
+
         size_t cwd_len = strlen(cwd);
         size_t add_slash = (cwd_len > 1 && cwd[cwd_len-1] != '/') ? 1 : 0;
         size_t len = cwd_len + add_slash + strlen(path) + 1;
         full = malloc(len + 1);
-        if (!full)
+        if (!full) {
+            free(cwd);
             return NULL;
+        }
         strcpy(full, cwd);
         if (add_slash)
             strcat(full, "/");
         strcat(full, path);
+        free(cwd);
     } else {
         full = strdup(path);
         if (!full)
