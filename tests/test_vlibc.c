@@ -1250,6 +1250,46 @@ static const char *test_string_helpers(void)
     mu_assert("strtoumax max",
               strtoumax(numbuf, &end, 10) == UINTMAX_MAX && *end == '\0');
 
+    errno = 0;
+    snprintf(numbuf, sizeof(numbuf), "%ld0", (long)LONG_MAX);
+    mu_assert("strtol overflow",
+              strtol(numbuf, &end, 10) == LONG_MAX && errno == ERANGE && *end == '\0');
+    errno = 0;
+    unsigned long big = (unsigned long)LONG_MAX + 2UL;
+    snprintf(numbuf, sizeof(numbuf), "-%lu", big);
+    mu_assert("strtol underflow",
+              strtol(numbuf, &end, 10) == LONG_MIN && errno == ERANGE && *end == '\0');
+    errno = 0;
+    snprintf(numbuf, sizeof(numbuf), "%lu0", (unsigned long)ULONG_MAX);
+    mu_assert("strtoul overflow",
+              strtoul(numbuf, &end, 10) == ULONG_MAX && errno == ERANGE && *end == '\0');
+    errno = 0;
+    snprintf(numbuf, sizeof(numbuf), "%lld0", (long long)LLONG_MAX);
+    mu_assert("strtoll overflow",
+              strtoll(numbuf, &end, 10) == LLONG_MAX && errno == ERANGE && *end == '\0');
+    errno = 0;
+    unsigned long long bigll = (unsigned long long)LLONG_MAX + 2ULL;
+    snprintf(numbuf, sizeof(numbuf), "-%llu", bigll);
+    mu_assert("strtoll underflow",
+              strtoll(numbuf, &end, 10) == LLONG_MIN && errno == ERANGE && *end == '\0');
+    errno = 0;
+    snprintf(numbuf, sizeof(numbuf), "%llu0", (unsigned long long)ULLONG_MAX);
+    mu_assert("strtoull overflow",
+              strtoull(numbuf, &end, 10) == ULLONG_MAX && errno == ERANGE && *end == '\0');
+    errno = 0;
+    snprintf(numbuf, sizeof(numbuf), "%jd0", (intmax_t)INTMAX_MAX);
+    mu_assert("strtoimax overflow",
+              strtoimax(numbuf, &end, 10) == INTMAX_MAX && errno == ERANGE && *end == '\0');
+    errno = 0;
+    unsigned long long bigimax = (unsigned long long)INTMAX_MAX + 2ULL;
+    snprintf(numbuf, sizeof(numbuf), "-%llu", bigimax);
+    mu_assert("strtoimax underflow",
+              strtoimax(numbuf, &end, 10) == INTMAX_MIN && errno == ERANGE && *end == '\0');
+    errno = 0;
+    snprintf(numbuf, sizeof(numbuf), "%ju0", (uintmax_t)UINTMAX_MAX);
+    mu_assert("strtoumax overflow",
+              strtoumax(numbuf, &end, 10) == UINTMAX_MAX && errno == ERANGE && *end == '\0');
+
     wchar_t wbuf[64];
     mbstowcs(wbuf, "ff", 64);
     wchar_t *wend;
