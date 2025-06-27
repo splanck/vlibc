@@ -251,6 +251,15 @@ static const char *test_posix_memalign_overflow(void)
     return 0;
 }
 
+static const char *test_malloc_overflow(void)
+{
+    errno = 0;
+    void *p = malloc(SIZE_MAX);
+    mu_assert("overflow NULL", p == NULL);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    return 0;
+}
+
 static const char *test_reallocarray_overflow(void)
 {
     size_t big = (size_t)-1 / 2 + 1;
@@ -5074,6 +5083,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_posix_memalign),
         REGISTER_TEST("memory", test_aligned_alloc),
         REGISTER_TEST("memory", test_posix_memalign_overflow),
+        REGISTER_TEST("memory", test_malloc_overflow),
         REGISTER_TEST("memory", test_reallocarray_overflow),
         REGISTER_TEST("memory", test_reallocarray_basic),
         REGISTER_TEST("memory", test_recallocarray_grow),
