@@ -95,7 +95,7 @@ reentrant `ttyname_r(fd, buf, len)`.
 
 ```c
 int master, slave;
-openpty(&master, &slave, NULL, NULL, NULL);
+openpty(&master, &slave, NULL, 0, NULL, NULL);
 printf("%s\n", ttyname(slave));
 close(master);
 close(slave);
@@ -164,7 +164,7 @@ child.
 
 ```c
 int mfd;
-pid_t pid = forkpty(&mfd, NULL, NULL, NULL);
+pid_t pid = forkpty(&mfd, NULL, 0, NULL, NULL);
 if (pid == 0) {
     execlp("/bin/sh", "sh", NULL);
 }
