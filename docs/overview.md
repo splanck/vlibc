@@ -56,13 +56,18 @@ make install PREFIX=/usr/local
 make test
 ```
 
-You can run a subset using the `TEST_GROUP` variable or convenience targets:
+You can run a subset by setting the `TEST_GROUP` variable or by invoking one of
+the convenience targets:
 
 ```sh
-make test TEST_GROUP=memory
-make test-memory
-make test-network
+make test TEST_GROUP=memory   # run only memory tests
+make test TEST_GROUP=fdopen   # run fdopen related tests
+make test-memory              # same as TEST_GROUP=memory
+make test-network             # same as TEST_GROUP=network
 ```
 
-This builds `tests/run_tests` and executes the suite.
+Available groups are `default`, `memory`, `network`, and `fdopen`. You can also
+pass a group name directly to `tests/run_tests`.
+
+This builds `tests/run_tests` and executes the selected category.
 
