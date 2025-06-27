@@ -12,10 +12,13 @@
 
 /* pointer to current environment */
 char **environ = 0;
+/* whether environ was allocated by vlibc */
+static int environ_owned = 0;
 
 void env_init(char **envp)
 {
     environ = envp;
+    environ_owned = 0;
 }
 
 char *getenv(const char *name)
@@ -74,9 +77,22 @@ int setenv(const char *name, const char *value, int overwrite)
             count++;
     }
 
-    char **newenv = realloc(environ, sizeof(char *) * (count + 2));
-    if (!newenv) {
-        return -1;
+    char **newenv;
+    if (environ_owned) {
+        newenv = realloc(environ, sizeof(char *) * (count + 2));
+        if (!newenv) {
+            free(entry);
+            return -1;
+        }
+    } else {
+        newenv = malloc(sizeof(char *) * (count + 2));
+        if (!newenv) {
+            free(entry);
+            return -1;
+        }
+        for (int i = 0; i < count; ++i)
+            newenv[i] = environ[i];
+        environ_owned = 1;
     }
     environ = newenv;
     environ[count] = entry;
@@ -106,9 +122,19 @@ int putenv(const char *str)
             count++;
     }
 
-    char **newenv = realloc(environ, sizeof(char *) * (count + 2));
-    if (!newenv)
-        return -1;
+    char **newenv;
+    if (environ_owned) {
+        newenv = realloc(environ, sizeof(char *) * (count + 2));
+        if (!newenv)
+            return -1;
+    } else {
+        newenv = malloc(sizeof(char *) * (count + 2));
+        if (!newenv)
+            return -1;
+        for (int i = 0; i < count; ++i)
+            newenv[i] = environ[i];
+        environ_owned = 1;
+    }
     environ = newenv;
     environ[count] = (char *)str;
     environ[count + 1] = NULL;
@@ -132,12 +158,19 @@ int clearenv(void)
 {
     if (!environ)
         return 0;
-    for (char **e = environ; *e; ++e)
-        free(*e);
-    free(environ);
-    environ = malloc(sizeof(char *));
-    if (!environ)
-        return -1;
-    environ[0] = NULL;
+    if (environ_owned) {
+        for (char **e = environ; *e; ++e)
+            free(*e);
+        free(environ);
+        environ = malloc(sizeof(char *));
+        if (!environ)
+            return -1;
+        environ_owned = 1;
+        environ[0] = NULL;
+    } else {
+        for (char **e = environ; *e; ++e)
+            *e = NULL;
+        environ[0] = NULL;
+    }
     return 0;
 }

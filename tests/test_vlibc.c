@@ -2952,6 +2952,26 @@ static const char *test_clearenv_fn(void)
     return 0;
 }
 
+static const char *test_env_init_clearenv(void)
+{
+    extern char **__environ;
+    int count = 0;
+    while (__environ && __environ[count])
+        count++;
+    char **copy = malloc(sizeof(char *) * (count + 1));
+    for (int i = 0; i < count; ++i)
+        copy[i] = __environ[i];
+    copy[count] = NULL;
+
+    env_init(copy);
+    mu_assert("clearenv", clearenv() == 0);
+    mu_assert("same pointer", environ == copy);
+    mu_assert("first null", copy[0] == NULL);
+    env_init(NULL);
+    free(copy);
+    return 0;
+}
+
 static const char *test_locale_from_env(void)
 {
     env_init(NULL);
@@ -5130,6 +5150,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_tz_ctime),
         REGISTER_TEST("default", test_environment),
         REGISTER_TEST("default", test_clearenv_fn),
+        REGISTER_TEST("default", test_env_init_clearenv),
         REGISTER_TEST("default", test_locale_from_env),
         REGISTER_TEST("default", test_locale_objects),
         REGISTER_TEST("default", test_gethostname_fn),
