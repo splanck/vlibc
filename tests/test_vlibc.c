@@ -640,6 +640,51 @@ static const char *test_socketpair_basic(void)
     return 0;
 }
 
+static void *drain_socket(void *arg)
+{
+    int fd = *(int *)arg;
+    char buf[1024];
+    usleep(100000);
+    while (read(fd, buf, sizeof(buf)) > 0)
+        ;
+    return NULL;
+}
+
+static const char *test_writev_nonblocking(void)
+{
+    int sv[2];
+    mu_assert("socketpair", socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0);
+    fcntl(sv[0], F_SETFL, O_NONBLOCK);
+
+    char fill[4096];
+    memset(fill, 'x', sizeof(fill));
+    for (;;) {
+        ssize_t w = write(sv[0], fill, sizeof(fill));
+        if (w < 0) {
+            mu_assert("EAGAIN", errno == EAGAIN);
+            break;
+        }
+    }
+
+    pthread_t t;
+    pthread_create(&t, NULL, drain_socket, &sv[1]);
+
+    struct iovec iov[2];
+    const char *a = "ab";
+    const char *b = "cd";
+    iov[0].iov_base = (void *)a;
+    iov[0].iov_len = 2;
+    iov[1].iov_base = (void *)b;
+    iov[1].iov_len = 2;
+    ssize_t r = writev(sv[0], iov, 2);
+    mu_assert("writev", r == 4);
+
+    close(sv[0]);
+    pthread_join(t, NULL);
+    close(sv[1]);
+    return 0;
+}
+
 static const char *test_socket_addresses(void)
 {
     int srv = socket(AF_INET, SOCK_STREAM, 0);
@@ -5204,6 +5249,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_openpty_truncation),
         REGISTER_TEST("network", test_socket),
         REGISTER_TEST("network", test_socketpair_basic),
+        REGISTER_TEST("network", test_writev_nonblocking),
         REGISTER_TEST("network", test_socket_addresses),
         REGISTER_TEST("network", test_sendmsg_recvmsg),
         REGISTER_TEST("network", test_udp_send_recv),

@@ -178,7 +178,7 @@ int sendfile(int fd, int s, off_t offset, size_t nbytes,
         while (off < (size_t)r) {
             ssize_t w = write(s, buf + off, (size_t)r - off);
             if (w < 0) {
-                if (errno == EINTR)
+                if (errno == EINTR || errno == EAGAIN)
                     continue;
                 if (sbytes)
                     *sbytes = sent;
@@ -187,8 +187,6 @@ int sendfile(int fd, int s, off_t offset, size_t nbytes,
             off += (size_t)w;
             sent += w;
         }
-        if (off < (size_t)r)
-            break;
     }
     if (sbytes) {
         *sbytes = sent;
