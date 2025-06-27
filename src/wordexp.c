@@ -13,6 +13,7 @@
 #include "env.h"
 #include <ctype.h>
 #include <stdlib.h>
+#include <errno.h>
 
 struct part {
     char *text;
@@ -66,6 +67,7 @@ static int parse_word(const char **strp, struct part *out)
         return -1;
     int glob = 1;
     int q = 0; /* 1 single, 2 double */
+    int trailing_bs = 0;
     while (*s) {
         char c = *s;
         if (!q && isspace((unsigned char)c))
@@ -81,6 +83,7 @@ static int parse_word(const char **strp, struct part *out)
                 if (*s=='*' || *s=='?' || *s=='[') glob=0; /* escaped */
                 s++; continue;
             }
+            trailing_bs = 1;
             break;
         }
         if (!q && c == '\'') {
@@ -115,6 +118,11 @@ static int parse_word(const char **strp, struct part *out)
         if (len + 1 >= cap) { cap*=2; char *nb=realloc(buf, cap); if(!nb){free(buf);return -1;} buf=nb; }
         buf[len++] = c;
         s++;
+    }
+    if (q || trailing_bs) {
+        free(buf);
+        errno = EINVAL;
+        return -1;
     }
     buf[len]='\0';
     out->text = buf;
