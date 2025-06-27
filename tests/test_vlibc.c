@@ -46,6 +46,15 @@
 #include "../include/math.h"
 #include "../include/fenv.h"
 #include "../include/complex.h"
+#ifndef HUGE_VAL
+#define HUGE_VAL (1.0/0.0)
+#endif
+#ifndef HUGE_VALF
+#define HUGE_VALF ((float)HUGE_VAL)
+#endif
+#ifndef HUGE_VALL
+#define HUGE_VALL ((long double)HUGE_VAL)
+#endif
 #include "../include/locale.h"
 #include "../include/regex.h"
 #include "../include/ftw.h"
@@ -78,6 +87,7 @@
 #include "../include/mqueue.h"
 #include "../include/sched.h"
 #include <limits.h>
+#include <float.h>
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
@@ -1184,6 +1194,48 @@ static const char *test_string_helpers(void)
         ldiff = -ldiff;
     mu_assert("strtold", ldiff < 1e-9L && *end == '\0');
     mu_assert("atof", atof("-3.0") == -3.0);
+
+    char longbuf[128];
+    snprintf(longbuf, sizeof(longbuf), "%ld", (long)LONG_MAX);
+    mu_assert("strtol max", strtol(longbuf, &end, 10) == LONG_MAX && *end == '\0');
+    snprintf(longbuf, sizeof(longbuf), "%ld0", (long)LONG_MAX);
+    errno = 0;
+    mu_assert("strtol overflow", strtol(longbuf, &end, 10) == LONG_MAX && errno == ERANGE);
+    snprintf(longbuf, sizeof(longbuf), "%ld", (long)LONG_MIN);
+    mu_assert("strtol min", strtol(longbuf, &end, 10) == LONG_MIN && *end == '\0');
+    snprintf(longbuf, sizeof(longbuf), "-%ld0", (long)LONG_MAX);
+    errno = 0;
+    mu_assert("strtol underflow", strtol(longbuf, &end, 10) == LONG_MIN && errno == ERANGE);
+
+    snprintf(longbuf, sizeof(longbuf), "%lu", (unsigned long)ULONG_MAX);
+    mu_assert("strtoul max", strtoul(longbuf, &end, 10) == ULONG_MAX && *end == '\0');
+    snprintf(longbuf, sizeof(longbuf), "%lu0", (unsigned long)ULONG_MAX);
+    errno = 0;
+    mu_assert("strtoul overflow", strtoul(longbuf, &end, 10) == ULONG_MAX && errno == ERANGE);
+
+    snprintf(longbuf, sizeof(longbuf), "%lld", (long long)LLONG_MAX);
+    mu_assert("strtoll max", strtoll(longbuf, &end, 10) == LLONG_MAX && *end == '\0');
+    snprintf(longbuf, sizeof(longbuf), "%lld0", (long long)LLONG_MAX);
+    errno = 0;
+    mu_assert("strtoll overflow", strtoll(longbuf, &end, 10) == LLONG_MAX && errno == ERANGE);
+    snprintf(longbuf, sizeof(longbuf), "%lld", (long long)LLONG_MIN);
+    mu_assert("strtoll min", strtoll(longbuf, &end, 10) == LLONG_MIN && *end == '\0');
+    snprintf(longbuf, sizeof(longbuf), "-%lld0", (long long)LLONG_MAX);
+    errno = 0;
+    mu_assert("strtoll underflow", strtoll(longbuf, &end, 10) == LLONG_MIN && errno == ERANGE);
+
+    snprintf(longbuf, sizeof(longbuf), "%llu", (unsigned long long)ULLONG_MAX);
+    mu_assert("strtoull max", strtoull(longbuf, &end, 10) == ULLONG_MAX && *end == '\0');
+    snprintf(longbuf, sizeof(longbuf), "%llu0", (unsigned long long)ULLONG_MAX);
+    errno = 0;
+    mu_assert("strtoull overflow", strtoull(longbuf, &end, 10) == ULLONG_MAX && errno == ERANGE);
+
+    errno = 0;
+    double d = strtod("1e400", &end);
+    mu_assert("strtod overflow", d == HUGE_VAL && errno == ERANGE);
+    errno = 0;
+    d = strtod("1e-400", &end);
+    mu_assert("strtod underflow", d == 0.0 && errno == ERANGE);
 
     char numbuf[64];
     snprintf(numbuf, sizeof(numbuf), "%jd", (intmax_t)INTMAX_MAX);

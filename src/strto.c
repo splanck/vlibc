@@ -9,6 +9,20 @@
 #include "stdlib.h"
 #include "string.h"
 #include <stdint.h>
+#include <errno.h>
+#include <limits.h>
+#include <math.h>
+#include <float.h>
+
+#ifndef HUGE_VAL
+#define HUGE_VAL (1.0/0.0)
+#endif
+#ifndef HUGE_VALF
+#define HUGE_VALF ((float)HUGE_VAL)
+#endif
+#ifndef HUGE_VALL
+#define HUGE_VALL ((long double)HUGE_VAL)
+#endif
 
 static int digit_val(char c)
 {
@@ -54,8 +68,17 @@ long strtol(const char *nptr, char **endptr, int base)
     unsigned long val = 0;
     const char *start = s;
     int d;
+    unsigned long cutoff = neg ? (unsigned long)LONG_MAX + 1UL : (unsigned long)LONG_MAX;
+    unsigned long cutlim = cutoff % (unsigned long)base;
+    cutoff /= (unsigned long)base;
+    int overflow = 0;
     while ((d = digit_val(*s)) >= 0 && d < base) {
-        val = val * (unsigned long)base + (unsigned long)d;
+        if (!overflow) {
+            if (val > cutoff || (val == cutoff && (unsigned long)d > cutlim))
+                overflow = 1;
+            else
+                val = val * (unsigned long)base + (unsigned long)d;
+        }
         s++;
     }
 
@@ -64,6 +87,11 @@ long strtol(const char *nptr, char **endptr, int base)
 
     if (s == start)
         return 0;
+
+    if (overflow) {
+        errno = ERANGE;
+        return neg ? LONG_MIN : LONG_MAX;
+    }
 
     long result = (long)val;
     if (neg)
@@ -105,8 +133,16 @@ unsigned long strtoul(const char *nptr, char **endptr, int base)
     unsigned long val = 0;
     const char *start = s;
     int d;
+    unsigned long cutoff = ULONG_MAX / (unsigned long)base;
+    unsigned long cutlim = ULONG_MAX % (unsigned long)base;
+    int overflow = 0;
     while ((d = digit_val(*s)) >= 0 && d < base) {
-        val = val * (unsigned long)base + (unsigned long)d;
+        if (!overflow) {
+            if (val > cutoff || (val == cutoff && (unsigned long)d > cutlim))
+                overflow = 1;
+            else
+                val = val * (unsigned long)base + (unsigned long)d;
+        }
         s++;
     }
 
@@ -115,6 +151,11 @@ unsigned long strtoul(const char *nptr, char **endptr, int base)
 
     if (s == start)
         return 0;
+
+    if (overflow) {
+        errno = ERANGE;
+        return ULONG_MAX;
+    }
 
     if (neg)
         return (unsigned long)(-(long)val);
@@ -155,8 +196,17 @@ long long strtoll(const char *nptr, char **endptr, int base)
     unsigned long long val = 0;
     const char *start = s;
     int d;
+    unsigned long long cutoff = neg ? (unsigned long long)LLONG_MAX + 1ULL : (unsigned long long)LLONG_MAX;
+    unsigned long long cutlim = cutoff % (unsigned long long)base;
+    cutoff /= (unsigned long long)base;
+    int overflow = 0;
     while ((d = digit_val(*s)) >= 0 && d < base) {
-        val = val * (unsigned long long)base + (unsigned long long)d;
+        if (!overflow) {
+            if (val > cutoff || (val == cutoff && (unsigned long long)d > cutlim))
+                overflow = 1;
+            else
+                val = val * (unsigned long long)base + (unsigned long long)d;
+        }
         s++;
     }
 
@@ -165,6 +215,11 @@ long long strtoll(const char *nptr, char **endptr, int base)
 
     if (s == start)
         return 0;
+
+    if (overflow) {
+        errno = ERANGE;
+        return neg ? LLONG_MIN : LLONG_MAX;
+    }
 
     long long result = (long long)val;
     if (neg)
@@ -206,8 +261,16 @@ unsigned long long strtoull(const char *nptr, char **endptr, int base)
     unsigned long long val = 0;
     const char *start = s;
     int d;
+    unsigned long long cutoff = ULLONG_MAX / (unsigned long long)base;
+    unsigned long long cutlim = ULLONG_MAX % (unsigned long long)base;
+    int overflow = 0;
     while ((d = digit_val(*s)) >= 0 && d < base) {
-        val = val * (unsigned long long)base + (unsigned long long)d;
+        if (!overflow) {
+            if (val > cutoff || (val == cutoff && (unsigned long long)d > cutlim))
+                overflow = 1;
+            else
+                val = val * (unsigned long long)base + (unsigned long long)d;
+        }
         s++;
     }
 
@@ -216,6 +279,11 @@ unsigned long long strtoull(const char *nptr, char **endptr, int base)
 
     if (s == start)
         return 0;
+
+    if (overflow) {
+        errno = ERANGE;
+        return ULLONG_MAX;
+    }
 
     if (neg)
         return (unsigned long long)(-(long long)val);
@@ -308,6 +376,14 @@ double strtod(const char *nptr, char **endptr)
     if (exp)
         val *= pow10_int(exp);
 
+    if (!isfinite(val)) {
+        errno = ERANGE;
+        return neg ? -HUGE_VAL : HUGE_VAL;
+    }
+
+    if (val == 0.0 && seen)
+        errno = ERANGE;
+
     if (neg)
         val = -val;
 
@@ -321,7 +397,23 @@ double atof(const char *nptr)
 
 float strtof(const char *nptr, char **endptr)
 {
-    return (float)strtod(nptr, endptr);
+    double d = strtod(nptr, endptr);
+    if (!isfinite(d)) {
+        errno = ERANGE;
+        return d > 0 ? HUGE_VALF : -HUGE_VALF;
+    }
+    if (d > FLT_MAX) {
+        errno = ERANGE;
+        return HUGE_VALF;
+    }
+    if (d < -FLT_MAX) {
+        errno = ERANGE;
+        return -HUGE_VALF;
+    }
+    float f = (float)d;
+    if (f == 0.0f && d != 0.0)
+        errno = ERANGE;
+    return f;
 }
 
 static long double pow10_ld(int exp)
@@ -404,6 +496,14 @@ long double strtold(const char *nptr, char **endptr)
 
     if (exp)
         val *= pow10_ld(exp);
+
+    if (!isfinite((double)val)) { /* use double variant for isfinite */
+        errno = ERANGE;
+        return neg ? -HUGE_VALL : HUGE_VALL;
+    }
+
+    if (val == 0.0L && seen)
+        errno = ERANGE;
 
     if (neg)
         val = -val;
