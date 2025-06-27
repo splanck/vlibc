@@ -3053,6 +3053,18 @@ static const char *test_env_init_clearenv(void)
     return 0;
 }
 
+static const char *test_setenv_overwrite_loop(void)
+{
+    env_init(NULL);
+    for (int i = 0; i < 100; i++) {
+        char buf[16];
+        snprintf(buf, sizeof(buf), "v%d", i);
+        mu_assert("setenv", setenv("OVERRIDE", buf, 1) == 0);
+    }
+    clearenv();
+    return 0;
+}
+
 static const char *test_locale_from_env(void)
 {
     env_init(NULL);
@@ -5114,6 +5126,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_reallocarray_overflow),
         REGISTER_TEST("memory", test_reallocarray_basic),
         REGISTER_TEST("memory", test_recallocarray_grow),
+        REGISTER_TEST("memory", test_setenv_overwrite_loop),
         REGISTER_TEST("memory", test_memory_ops),
         REGISTER_TEST("default", test_io),
         REGISTER_TEST("default", test_lseek_dup),
