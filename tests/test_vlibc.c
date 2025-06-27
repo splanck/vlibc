@@ -78,6 +78,8 @@
 #include "../include/mqueue.h"
 #include "../include/sched.h"
 #include <limits.h>
+#include <sys/syscall.h>
+#include "../include/syscall.h"
 
 /* use host printf for test output */
 int printf(const char *fmt, ...);
@@ -97,6 +99,44 @@ static void *send_signal(void *);
 #define REGISTER_TEST(cat, fn) { #fn, cat, fn }
 
 static int exit_pipe[2];
+
+#ifdef HAVE_SBRK
+static int fail_next_sbrk = 0;
+
+static void trigger_sbrk_fail(void)
+{
+    fail_next_sbrk = 1;
+}
+
+void *sbrk(intptr_t increment)
+{
+    if (fail_next_sbrk) {
+        fail_next_sbrk = 0;
+        errno = ENOMEM;
+        return (void *)-1;
+    }
+
+    static void *cur_break = NULL;
+    if (!cur_break) {
+        long r = vlibc_syscall(SYS_brk, 0);
+        if (r < 0)
+            return (void *)-1;
+        cur_break = (void *)r;
+    }
+
+    if (increment == 0)
+        return cur_break;
+
+    void *new_break = (char *)cur_break + increment;
+    long res = vlibc_syscall(SYS_brk, (long)new_break);
+    if (res == (long)new_break) {
+        void *old = cur_break;
+        cur_break = new_break;
+        return old;
+    }
+    return (void *)-1;
+}
+#endif
 
 static void atexit_handler(void)
 {
@@ -274,6 +314,18 @@ static const char *test_malloc_overflow(void)
     mu_assert("errno ENOMEM", errno == ENOMEM);
     return 0;
 }
+
+#ifdef HAVE_SBRK
+static const char *test_sbrk_fail_errno(void)
+{
+    trigger_sbrk_fail();
+    errno = 0;
+    void *p = malloc(16);
+    mu_assert("sbrk fail NULL", p == NULL);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    return 0;
+}
+#endif
 
 static const char *test_calloc_overflow(void)
 {
@@ -5320,6 +5372,9 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_aligned_alloc_bad_alignment),
         REGISTER_TEST("memory", test_posix_memalign_overflow),
         REGISTER_TEST("memory", test_malloc_overflow),
+#ifdef HAVE_SBRK
+        REGISTER_TEST("memory", test_sbrk_fail_errno),
+#endif
         REGISTER_TEST("memory", test_calloc_overflow),
         REGISTER_TEST("memory", test_reallocarray_overflow),
         REGISTER_TEST("memory", test_reallocarray_basic),

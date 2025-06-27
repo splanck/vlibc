@@ -102,8 +102,10 @@ void *malloc(size_t size)
 
     /* allocate new block from the system */
     struct block_header *hdr = sbrk(sizeof(struct block_header) + size);
-    if (hdr == (void *)-1)
+    if (hdr == (void *)-1) {
+        errno = ENOMEM;
         return NULL;
+    }
     hdr->size = size;
     return (void *)(hdr + 1);
 }
