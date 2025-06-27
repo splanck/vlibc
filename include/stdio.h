@@ -25,6 +25,9 @@ typedef struct {
     int is_wmem;                 /* stream stores wchar_t instead of bytes */
     char **mem_bufp;             /* pointer to buffer pointer for mem streams */
     size_t *mem_sizep;           /* pointer to size for mem streams */
+    int readable;                /* stream opened for reading */
+    int writable;                /* stream opened for writing */
+    int append;                  /* writes should append */
     int is_cookie;               /* stream uses user callbacks */
     void *cookie;                /* opaque user data */
     ssize_t (*cookie_read)(void *, char *, size_t);
