@@ -4523,6 +4523,35 @@ static const char *test_fts_walk(void)
     return 0;
 }
 
+static const char *test_fts_alloc_fail(void)
+{
+    char tmpl[] = "/tmp/ftsXXXXXX";
+    char *dir = mkdtemp(tmpl);
+    mu_assert("mkdtemp", dir != NULL);
+
+    char buf[256];
+    snprintf(buf, sizeof(buf), "%s/a", dir);
+    int fd = open(buf, O_WRONLY | O_CREAT, 0600);
+    mu_assert("file a", fd >= 0);
+    close(fd);
+
+    char *const paths[] = { dir, NULL };
+    FTS *fts = fts_open(paths, FTS_PHYSICAL, NULL);
+    mu_assert("fts_open", fts != NULL);
+
+    vlibc_test_alloc_fail_after = 2;
+    errno = 0;
+    FTSENT *ent = fts_read(fts);
+    mu_assert("fts_read NULL", ent == NULL);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+
+    mu_assert("fts_close", fts_close(fts) == 0);
+
+    snprintf(buf, sizeof(buf), "%s/a", dir); unlink(buf);
+    rmdir(dir);
+    return 0;
+}
+
 static const char *test_passwd_lookup(void)
 {
     char tmpl[] = "/tmp/pwtestXXXXXX";
@@ -5477,6 +5506,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_dirent),
         REGISTER_TEST("default", test_ftw_walk),
         REGISTER_TEST("default", test_fts_walk),
+        REGISTER_TEST("default", test_fts_alloc_fail),
         REGISTER_TEST("default", test_qsort_int),
         REGISTER_TEST("default", test_qsort_strings),
         REGISTER_TEST("default", test_qsort_r_desc),

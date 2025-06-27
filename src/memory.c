@@ -12,6 +12,18 @@
 #include <stdint.h>
 #include <errno.h>
 
+/*
+ * When running the unit tests we want the ability to force the next
+ * allocation to fail in order to exercise error paths. Tests set this
+ * flag and the next call to malloc will return NULL with errno set to
+ * ENOMEM.
+ */
+/*
+ * Tests can set this value to N to fail the Nth allocation call. A value
+ * of -1 disables the failure mechanism.
+ */
+int vlibc_test_alloc_fail_after = -1;
+
 struct posix_align_hdr {
     uint32_t magic;
     void    *orig;
@@ -56,6 +68,11 @@ static void free_impl(void *ptr)
  */
 void *malloc(size_t size)
 {
+    if (vlibc_test_alloc_fail_after >= 0 && vlibc_test_alloc_fail_after-- == 0) {
+        errno = ENOMEM;
+        vlibc_test_alloc_fail_after = -1;
+        return NULL;
+    }
     if (size == 0)
         return NULL;
 
@@ -124,6 +141,11 @@ struct mmap_header {
  */
 void *malloc(size_t size)
 {
+    if (vlibc_test_alloc_fail_after >= 0 && vlibc_test_alloc_fail_after-- == 0) {
+        errno = ENOMEM;
+        vlibc_test_alloc_fail_after = -1;
+        return NULL;
+    }
     if (size == 0)
         return NULL;
 
