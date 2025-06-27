@@ -242,6 +242,20 @@ static const char *test_aligned_alloc(void)
     return 0;
 }
 
+static const char *test_aligned_alloc_bad_size(void)
+{
+    void *p = aligned_alloc(32, 48);
+    mu_assert("bad size NULL", p == NULL);
+    return 0;
+}
+
+static const char *test_aligned_alloc_bad_alignment(void)
+{
+    void *p = aligned_alloc(24, 48);
+    mu_assert("bad alignment NULL", p == NULL);
+    return 0;
+}
+
 static const char *test_posix_memalign_overflow(void)
 {
     void *p = (void *)1;
@@ -5092,6 +5106,8 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_posix_memalign_basic),
         REGISTER_TEST("memory", test_posix_memalign),
         REGISTER_TEST("memory", test_aligned_alloc),
+        REGISTER_TEST("memory", test_aligned_alloc_bad_size),
+        REGISTER_TEST("memory", test_aligned_alloc_bad_alignment),
         REGISTER_TEST("memory", test_posix_memalign_overflow),
         REGISTER_TEST("memory", test_malloc_overflow),
         REGISTER_TEST("memory", test_calloc_overflow),
