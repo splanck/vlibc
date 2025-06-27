@@ -13,6 +13,8 @@ static int parse_num(const char **sp, int width)
     const char *s = *sp;
     int val = 0;
     for (int i = 0; i < width; i++) {
+        if (s[i] == '\0')
+            return -1;
         if (s[i] < '0' || s[i] > '9')
             return -1;
         val = val * 10 + (s[i] - '0');

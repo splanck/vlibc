@@ -2884,6 +2884,15 @@ static const char *test_strptime_basic(void)
     return 0;
 }
 
+static const char *test_strptime_short_input(void)
+{
+    struct tm tm;
+    memset(&tm, 0, sizeof(tm));
+    char *r = strptime("20", "%Y", &tm);
+    mu_assert("strptime short", r == NULL);
+    return 0;
+}
+
 static const char *test_time_conversions(void)
 {
     time_t t = 1700000000;
@@ -5371,6 +5380,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_wcsftime_basic),
         REGISTER_TEST("default", test_wcsftime_extended),
         REGISTER_TEST("default", test_strptime_basic),
+        REGISTER_TEST("default", test_strptime_short_input),
         REGISTER_TEST("default", test_time_conversions),
         REGISTER_TEST("default", test_time_r_conversions),
         REGISTER_TEST("default", test_timegm_known_values),
