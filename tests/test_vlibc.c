@@ -3121,6 +3121,35 @@ static const char *test_setenv_overwrite_loop(void)
     return 0;
 }
 
+static const char *test_putenv_setenv_clearenv(void)
+{
+    env_init(NULL);
+    char buf[] = "VAR1=one";
+    mu_assert("putenv", putenv(buf) == 0);
+    mu_assert("getenv putenv", strcmp(getenv("VAR1"), "one") == 0);
+
+    mu_assert("setenv", setenv("VAR2", "two", 1) == 0);
+    mu_assert("getenv setenv", strcmp(getenv("VAR2"), "two") == 0);
+
+    mu_assert("clearenv", clearenv() == 0);
+    mu_assert("env empty", environ && environ[0] == NULL);
+
+    mu_assert("reuse", setenv("VAR3", "three", 1) == 0);
+    clearenv();
+    return 0;
+}
+
+static const char *test_putenv_unsetenv_stack(void)
+{
+    env_init(NULL);
+    char buf[] = "TEMP=val";
+    mu_assert("putenv", putenv(buf) == 0);
+    mu_assert("unsetenv", unsetenv("TEMP") == 0);
+    mu_assert("gone", getenv("TEMP") == NULL);
+    clearenv();
+    return 0;
+}
+
 static const char *test_locale_from_env(void)
 {
     env_init(NULL);
@@ -5354,6 +5383,8 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_environment),
         REGISTER_TEST("default", test_clearenv_fn),
         REGISTER_TEST("default", test_env_init_clearenv),
+        REGISTER_TEST("default", test_putenv_setenv_clearenv),
+        REGISTER_TEST("default", test_putenv_unsetenv_stack),
         REGISTER_TEST("default", test_locale_from_env),
         REGISTER_TEST("default", test_locale_objects),
         REGISTER_TEST("default", test_gethostname_fn),
