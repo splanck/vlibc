@@ -285,8 +285,10 @@ static const char *test_aligned_alloc(void)
 
 static const char *test_aligned_alloc_bad_size(void)
 {
+    errno = 0;
     void *p = aligned_alloc(32, 48);
     mu_assert("bad size NULL", p == NULL);
+    mu_assert("errno EINVAL", errno == EINVAL);
     return 0;
 }
 

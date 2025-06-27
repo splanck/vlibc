@@ -297,8 +297,10 @@ int posix_memalign(void **memptr, size_t alignment, size_t size)
  */
 void *aligned_alloc(size_t alignment, size_t size)
 {
-    if (size % alignment != 0)
+    if (size % alignment != 0) {
+        errno = EINVAL;
         return NULL;
+    }
 
     void *ptr = NULL;
     if (posix_memalign(&ptr, alignment, size) != 0)
