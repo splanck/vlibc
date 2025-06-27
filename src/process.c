@@ -175,8 +175,10 @@ static int vlibc_build_argv(const char *arg, va_list ap, char ***out)
     va_end(ap_copy);
 
     char **argv = malloc(sizeof(char *) * (count + 1));
-    if (!argv)
+    if (!argv) {
+        errno = ENOMEM;
         return -1;
+    }
 
     argv[0] = (char *)arg;
     for (size_t i = 1; i <= count; i++) {
@@ -250,6 +252,7 @@ int execle(const char *path, const char *arg, ...)
 
     char **argv = malloc(sizeof(char *) * (count + 1));
     if (!argv) {
+        errno = ENOMEM;
         va_end(ap);
         return -1;
     }
