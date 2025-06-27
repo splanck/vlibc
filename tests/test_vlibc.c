@@ -3696,6 +3696,25 @@ static const char *test_posix_spawn_pgroup(void)
     return 0;
 }
 
+static const char *test_posix_spawn_actions_alloc_fail(void)
+{
+    posix_spawn_file_actions_t fa;
+    posix_spawn_file_actions_init(&fa);
+
+    vlibc_test_alloc_fail_after = 1;
+    int r = posix_spawn_file_actions_addopen(&fa, 0, "/dev/null", O_RDONLY, 0);
+    mu_assert("alloc fail", r == ENOMEM);
+    mu_assert("count zero", fa.count == 0 && fa.actions == NULL);
+
+    vlibc_test_alloc_fail_after = -1;
+    r = posix_spawn_file_actions_addopen(&fa, 1, "/dev/null", O_RDONLY, 0);
+    mu_assert("alloc success", r == 0);
+    mu_assert("count one", fa.count == 1);
+
+    posix_spawn_file_actions_destroy(&fa);
+    return 0;
+}
+
 static const char *test_popen_fn(void)
 {
     FILE *f = popen("echo popen", "r");
@@ -5454,6 +5473,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_posix_spawn_actions),
         REGISTER_TEST("default", test_posix_spawn_sigmask),
         REGISTER_TEST("default", test_posix_spawn_pgroup),
+        REGISTER_TEST("default", test_posix_spawn_actions_alloc_fail),
         REGISTER_TEST("default", test_popen_fn),
         REGISTER_TEST("default", test_rand_fn),
         REGISTER_TEST("default", test_rand48_fn),
