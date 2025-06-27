@@ -26,8 +26,14 @@ char *getpass(const char *prompt)
         out_fd = fd;
     }
 
-    if (prompt)
-        (void)write(out_fd, prompt, strlen(prompt));
+    if (prompt) {
+        ssize_t w = write(out_fd, prompt, strlen(prompt));
+        if (w < 0) {
+            if (need_close)
+                close(fd);
+            return NULL;
+        }
+    }
 
     struct termios old;
     int restore = 0;
@@ -52,7 +58,12 @@ char *getpass(const char *prompt)
 
     if (restore)
         tcsetattr(fd, TCSAFLUSH, &old);
-    (void)write(out_fd, "\n", 1);
+    ssize_t w = write(out_fd, "\n", 1);
+    if (w < 0) {
+        if (need_close)
+            close(fd);
+        return NULL;
+    }
 
     if (need_close)
         close(fd);

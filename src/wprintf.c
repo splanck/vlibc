@@ -194,8 +194,11 @@ static int vfdwprintf(int fd, const wchar_t *format, va_list ap)
     if (len > 0 && fd >= 0) {
         char buf[4096];
         size_t out = wcstombs(buf, wbuf, sizeof(buf));
-        if (out != (size_t)-1)
-            write(fd, buf, out);
+        if (out != (size_t)-1) {
+            ssize_t w = write(fd, buf, out);
+            if (w < 0)
+                return -1;
+        }
     }
     return len;
 }
