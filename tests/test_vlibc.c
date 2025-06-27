@@ -99,7 +99,9 @@ static int exit_pipe[2];
 
 static void atexit_handler(void)
 {
-    write(exit_pipe[1], "x", 1);
+    ssize_t r = write(exit_pipe[1], "x", 1);
+    if (r < 0)
+        perror("write");
 }
 
 static const char *test_byte_order(void)
