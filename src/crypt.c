@@ -886,7 +886,7 @@ crypt_sha256(const char *key, const char *salt, char *buffer)
         memcpy(cp, temp_result, cnt);
 
         EVP_DigestInit_ex(alt_ctx, EVP_sha256(), NULL);
-        for (cnt = 0; cnt < 16 + alt_result[0]; ++cnt)
+        for (cnt = 0; cnt < (size_t)(16 + alt_result[0]); ++cnt)
                 EVP_DigestUpdate(alt_ctx, salt, salt_len);
         EVP_DigestFinal_ex(alt_ctx, temp_result, NULL);
 
@@ -1015,7 +1015,7 @@ crypt_sha512(const char *key, const char *salt, char *buffer)
         memcpy(cp, temp_result, cnt);
 
         EVP_DigestInit_ex(alt_ctx, EVP_sha512(), NULL);
-        for (cnt = 0; cnt < 16 + alt_result[0]; ++cnt)
+        for (cnt = 0; cnt < (size_t)(16 + alt_result[0]); ++cnt)
                 EVP_DigestUpdate(alt_ctx, salt, salt_len);
         EVP_DigestFinal_ex(alt_ctx, temp_result, NULL);
 
