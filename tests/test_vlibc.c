@@ -2792,6 +2792,39 @@ static const char *test_time_r_conversions(void)
     return 0;
 }
 
+static const char *test_timegm_known_values(void)
+{
+    struct tm tm;
+    memset(&tm, 0, sizeof(tm));
+    tm.tm_year = 100; /* 2000 */
+    tm.tm_mon = 0;
+    tm.tm_mday = 1;
+    time_t r = timegm(&tm);
+    mu_assert("timegm 2000", r == 946684800);
+
+    memset(&tm, 0, sizeof(tm));
+    tm.tm_year = 124; /* 2024 */
+    tm.tm_mon = 1;    /* Feb */
+    tm.tm_mday = 29;
+    tm.tm_hour = 12;
+    tm.tm_min = 34;
+    tm.tm_sec = 56;
+    r = timegm(&tm);
+    mu_assert("timegm leap", r == 1709210096);
+
+    memset(&tm, 0, sizeof(tm));
+    tm.tm_year = 138; /* 2038 */
+    tm.tm_mon = 0;
+    tm.tm_mday = 19;
+    tm.tm_hour = 3;
+    tm.tm_min = 14;
+    tm.tm_sec = 7;
+    r = timegm(&tm);
+    mu_assert("timegm 2038", r == 2147483647);
+
+    return 0;
+}
+
 static const char *test_difftime_basic(void)
 {
     time_t a = 10;
@@ -5024,6 +5057,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_strptime_basic),
         REGISTER_TEST("default", test_time_conversions),
         REGISTER_TEST("default", test_time_r_conversions),
+        REGISTER_TEST("default", test_timegm_known_values),
         REGISTER_TEST("default", test_asctime_r_threadsafe),
         REGISTER_TEST("default", test_difftime_basic),
         REGISTER_TEST("default", test_tz_positive),

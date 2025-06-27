@@ -77,7 +77,25 @@ time_t mktime(struct tm *tm)
 /* Non-standard conversion from broken-down UTC to time_t. */
 time_t timegm(struct tm *tm)
 {
-    return mktime(tm);
+    if (!tm)
+        return (time_t)-1;
+
+    int year = tm->tm_year + 1900;
+    time_t days = 0;
+    for (int y = 1970; y < year; y++)
+        days += is_leap(y) ? 366 : 365;
+
+    const int *ml = days_per_month[is_leap(year)];
+    for (int m = 0; m < tm->tm_mon; m++)
+        days += ml[m];
+    days += tm->tm_mday - 1;
+
+    tm->tm_yday = (int)days;
+    tm->tm_wday = (int)((days + 4) % 7);
+    tm->tm_isdst = 0;
+
+    time_t t = days * 86400 + tm->tm_hour * 3600 + tm->tm_min * 60 + tm->tm_sec;
+    return t;
 }
 
 /*
