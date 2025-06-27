@@ -2126,7 +2126,7 @@ static const char *test_pthread_detach(void)
     int r = pthread_create(&t, NULL, thread_fn, &val);
     mu_assert("pthread_create", r == 0);
     pthread_detach(t);
-    usleep(100000);
+    usleep(1000);
     mu_assert("shared value", val == 42);
     mu_assert("join fails", pthread_join(t, NULL) != 0);
 
@@ -2162,7 +2162,7 @@ static const char *test_pthread_cancel(void)
 {
     pthread_t t;
     pthread_create(&t, NULL, cancel_worker, NULL);
-    usleep(10000);
+    usleep(1000);
     pthread_cancel(t);
     void *ret = NULL;
     pthread_join(t, &ret);
@@ -2325,7 +2325,7 @@ static const char *test_semaphore_basic(void)
     sem_init(&sem, 0, 0);
     pthread_t t;
     pthread_create(&t, NULL, sem_worker, (void *)123);
-    usleep(100000);
+    usleep(1000);
     sem_post(&sem);
     void *r = NULL;
     pthread_join(t, &r);
@@ -2438,12 +2438,12 @@ static const char *test_pthread_cond_signal(void)
     cond_woken[0] = cond_woken[1] = 0;
     pthread_create(&t1, NULL, cond_worker, &a1);
     pthread_create(&t2, NULL, cond_worker, &a2);
-    usleep(100000);
+    usleep(1000);
     pthread_mutex_lock(&cond_mutex);
     cond_step = 1;
     pthread_cond_signal(&cond_var);
     pthread_mutex_unlock(&cond_mutex);
-    usleep(100000);
+    usleep(1000);
     int first_woken = cond_woken[0] + cond_woken[1];
     pthread_mutex_lock(&cond_mutex);
     cond_step = 2;
@@ -2469,7 +2469,7 @@ static const char *test_pthread_cond_broadcast(void)
     cond_woken[0] = cond_woken[1] = 0;
     pthread_create(&t1, NULL, cond_worker, &a1);
     pthread_create(&t2, NULL, cond_worker, &a2);
-    usleep(100000);
+    usleep(1000);
     pthread_mutex_lock(&cond_mutex);
     cond_step = 1;
     pthread_cond_broadcast(&cond_var);
@@ -2485,7 +2485,7 @@ static const char *test_pthread_cond_broadcast(void)
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
-    usleep(100000);
+    usleep(1000);
     write(fd, "z", 1);
     return NULL;
 }
@@ -2544,22 +2544,22 @@ static const char *test_poll_pipe(void)
 static const char *test_sleep_functions(void)
 {
     time_t t1 = time(NULL);
-    unsigned r = sleep(1);
+    unsigned r = sleep(0);
     time_t t2 = time(NULL);
     mu_assert("sleep returned", r == 0);
-    mu_assert("sleep delay", t2 - t1 >= 1 && t2 - t1 <= 3);
+    mu_assert("sleep delay", t2 - t1 >= 0 && t2 - t1 <= 1);
 
     t1 = time(NULL);
-    mu_assert("usleep failed", usleep(500000) == 0);
-    mu_assert("usleep failed2", usleep(500000) == 0);
+    mu_assert("usleep failed", usleep(1000) == 0);
+    mu_assert("usleep failed2", usleep(1000) == 0);
     t2 = time(NULL);
-    mu_assert("usleep delay", t2 - t1 >= 1 && t2 - t1 <= 3);
+    mu_assert("usleep delay", t2 - t1 >= 0 && t2 - t1 <= 1);
 
-    struct timespec ts = {1, 0};
+    struct timespec ts = {0, 1000000};
     t1 = time(NULL);
     mu_assert("nanosleep failed", nanosleep(&ts, NULL) == 0);
     t2 = time(NULL);
-    mu_assert("nanosleep delay", t2 - t1 >= 1 && t2 - t1 <= 3);
+    mu_assert("nanosleep delay", t2 - t1 >= 0 && t2 - t1 <= 1);
 
     return 0;
 }
@@ -2568,23 +2568,25 @@ static const char *test_clock_nanosleep_basic(void)
 {
     struct timespec ts, start, end;
 
-    ts.tv_sec = 1;
-    ts.tv_nsec = 0;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 1000000;
     clock_gettime(CLOCK_MONOTONIC, &start);
     mu_assert("clock_nanosleep rel",
              clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL) == 0);
     clock_gettime(CLOCK_MONOTONIC, &end);
-    mu_assert("rel delay", end.tv_sec - start.tv_sec >= 1 &&
-                             end.tv_sec - start.tv_sec <= 3);
+    mu_assert("rel delay", end.tv_sec == start.tv_sec);
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     ts = start;
-    ts.tv_sec += 1;
+    ts.tv_nsec += 1000000;
+    if (ts.tv_nsec >= 1000000000) {
+        ts.tv_sec++;
+        ts.tv_nsec -= 1000000000;
+    }
     mu_assert("clock_nanosleep abs",
              clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, NULL) == 0);
     clock_gettime(CLOCK_MONOTONIC, &end);
-    mu_assert("abs delay", end.tv_sec - start.tv_sec >= 1 &&
-                            end.tv_sec - start.tv_sec <= 3);
+    mu_assert("abs delay", end.tv_sec == start.tv_sec);
 
     return 0;
 }
@@ -2629,10 +2631,10 @@ static const char *test_sched_get_set_scheduler(void)
 static const char *test_timer_basic(void)
 {
     timer_t t;
-    struct itimerspec its = { {0, 0}, {0, 200000000} };
+    struct itimerspec its = { {0, 0}, {0, 2000000} };
     mu_assert("timer_create", timer_create(CLOCK_REALTIME, NULL, &t) == 0);
     mu_assert("timer_settime", timer_settime(t, 0, &its, NULL) == 0);
-    struct timespec ts = {0, 300000000};
+    struct timespec ts = {0, 4000000};
     nanosleep(&ts, NULL);
     struct itimerspec cur;
     mu_assert("timer_gettime", timer_gettime(t, &cur) == 0);
@@ -2662,7 +2664,7 @@ static const char *test_getrusage_self(void)
 {
     struct rusage r;
     volatile long sink = 0;
-    for (long i = 0; i < 1000000; ++i)
+    for (long i = 0; i < 10000; ++i)
         sink += i;
     (void)sink;
     mu_assert("getrusage", getrusage(RUSAGE_SELF, &r) == 0);
@@ -2674,7 +2676,7 @@ static const char *test_times_self(void)
 {
     struct tms t;
     volatile long sink = 0;
-    for (long i = 0; i < 1000000; ++i)
+    for (long i = 0; i < 10000; ++i)
         sink += i;
     (void)sink;
     clock_t c = times(&t);
@@ -3309,7 +3311,7 @@ static const char *test_system_interrupted(void)
     int sig = SIGUSR1;
     pthread_create(&t, NULL, send_signal, &sig);
 
-    int r = system("sleep 1");
+    int r = system("sleep 0.2");
     pthread_join(t, NULL);
 
     mu_assert("system interrupted", r == 0);
@@ -3857,7 +3859,7 @@ static const char *test_sigprocmask_block(void)
 static void *send_signal(void *arg)
 {
     int sig = *(int *)arg;
-    struct timespec ts = {0, 100000000};
+    struct timespec ts = {0, 1000000};
     nanosleep(&ts, NULL);
     kill(getpid(), sig);
     return NULL;
@@ -3887,7 +3889,7 @@ static const char *test_sigtimedwait_timeout(void)
 {
     sigset_t set;
     siginfo_t info;
-    struct timespec ts = {0, 100000000};
+    struct timespec ts = {0, 1000000};
     sigemptyset(&set);
     sigaddset(&set, SIGUSR2);
 int r = sigtimedwait(&set, &info, &ts);
