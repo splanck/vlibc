@@ -20,11 +20,14 @@ produces the identical sequence of numbers, each in the range `0` to
 
 `arc4random()` returns a 32-bit value sourced from the operating system's
 random generator. `arc4random_buf()` fills an arbitrary buffer with secure
-random bytes. `arc4random_uniform()` converts this 32-bit output into a
-value in the range `[0, upper_bound)` using rejection sampling so each
-result occurs with equal probability. The `rand_r()` variant operates like
-`rand()` but stores its state in a user-provided variable so it can be used
-in threaded code.
+random bytes. At runtime vlibc first attempts the `getrandom(2)` system
+call or a native `arc4random` implementation when available. If those
+sources fail, `/dev/urandom` is consulted and as a final fallback the
+buffer is populated using the `rand()` PRNG which offers little entropy.
+`arc4random_uniform()` converts the 32-bit output into a value in the range
+`[0, upper_bound)` using rejection sampling so each result occurs with
+equal probability. The `rand_r()` variant operates like `rand()` but stores
+its state in a user-provided variable so it can be used in threaded code.
 
 ## rand48 API
 
