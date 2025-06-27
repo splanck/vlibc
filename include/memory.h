@@ -1,7 +1,8 @@
 /*
  * BSD 2-Clause License
  *
- * Purpose: Declarations for heap allocation functions.
+ * Purpose: Declarations for heap allocation functions. The allocator
+ * is thread-safe because access to the free list is guarded by a mutex.
  */
 #ifndef MEMORY_H
 #define MEMORY_H
