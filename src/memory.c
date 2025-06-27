@@ -36,7 +36,7 @@ struct block_header {
 };
 
 static struct block_header *free_list = NULL;
-static pthread_mutex_t free_lock = { ATOMIC_FLAG_INIT };
+static pthread_mutex_t free_lock = { ATOMIC_FLAG_INIT, PTHREAD_MUTEX_NORMAL, 0, 0 };
 
 static void free_impl(void *ptr)
 {

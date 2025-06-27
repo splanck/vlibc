@@ -2217,6 +2217,47 @@ static const char *test_pthread_mutexattr(void)
     return 0;
 }
 
+static void *trylock_worker(void *arg)
+{
+    pthread_mutex_t *m = arg;
+    int r = pthread_mutex_trylock(m);
+    if (r == 0)
+        pthread_mutex_unlock(m);
+    return (void *)(long)r;
+}
+
+static const char *test_pthread_mutex_recursive(void)
+{
+    pthread_mutex_t m;
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&m, &attr);
+    pthread_mutexattr_destroy(&attr);
+
+    mu_assert("lock1", pthread_mutex_lock(&m) == 0);
+    mu_assert("lock2", pthread_mutex_lock(&m) == 0);
+
+    pthread_t t;
+    pthread_create(&t, NULL, trylock_worker, &m);
+    void *r = NULL;
+    pthread_join(t, &r);
+    mu_assert("other busy", (long)r == EBUSY);
+
+    mu_assert("self trylock", pthread_mutex_trylock(&m) == 0);
+
+    mu_assert("unlock1", pthread_mutex_unlock(&m) == 0);
+    mu_assert("unlock2", pthread_mutex_unlock(&m) == 0);
+    mu_assert("unlock3", pthread_mutex_unlock(&m) == 0);
+
+    pthread_create(&t, NULL, trylock_worker, &m);
+    pthread_join(t, &r);
+    mu_assert("other success", (long)r == 0);
+
+    pthread_mutex_destroy(&m);
+    return 0;
+}
+
 static const char *test_pthread_attr_basic(void)
 {
     pthread_attr_t attr;
@@ -5112,6 +5153,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_pthread_cancel),
         REGISTER_TEST("default", test_pthread_tls),
         REGISTER_TEST("default", test_pthread_mutexattr),
+        REGISTER_TEST("default", test_pthread_mutex_recursive),
         REGISTER_TEST("default", test_pthread_attr_basic),
         REGISTER_TEST("default", test_pthread_rwlock),
         REGISTER_TEST("default", test_pthread_barrier),

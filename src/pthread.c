@@ -25,32 +25,67 @@ extern int host_pthread_detach(pthread_t) __asm__("pthread_detach");
 /* Initialize a mutex implemented as a simple spinlock. */
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
 {
-    (void)attr;
+    int type = PTHREAD_MUTEX_NORMAL;
+    if (attr)
+        type = ((pthread_mutexattr_t *)attr)->type;
+
     atomic_flag_clear(&mutex->locked);
+    mutex->type = type;
+    mutex->owner = 0;
+    mutex->recursion = 0;
     return 0;
 }
 
 /* Acquire the spinlock based mutex. */
 int pthread_mutex_lock(pthread_mutex_t *mutex)
 {
+    pthread_t self = pthread_self();
+    if (mutex->type == PTHREAD_MUTEX_RECURSIVE && mutex->owner == self) {
+        mutex->recursion++;
+        return 0;
+    }
+
     while (atomic_flag_test_and_set_explicit(&mutex->locked,
                                              memory_order_acquire))
         ;
+
+    mutex->owner = self;
+    mutex->recursion = 1;
     return 0;
 }
 
 /* Try to acquire the mutex without blocking. */
 int pthread_mutex_trylock(pthread_mutex_t *mutex)
 {
+    pthread_t self = pthread_self();
+    if (mutex->type == PTHREAD_MUTEX_RECURSIVE && mutex->owner == self) {
+        mutex->recursion++;
+        return 0;
+    }
+
     if (atomic_flag_test_and_set_explicit(&mutex->locked,
                                           memory_order_acquire))
         return EBUSY;
+
+    mutex->owner = self;
+    mutex->recursion = 1;
     return 0;
 }
 
 /* Release the mutex. */
 int pthread_mutex_unlock(pthread_mutex_t *mutex)
 {
+    if (mutex->type == PTHREAD_MUTEX_RECURSIVE) {
+        if (mutex->owner != pthread_self())
+            return EPERM;
+        if (--mutex->recursion > 0)
+            return 0;
+        mutex->owner = 0;
+    } else {
+        mutex->owner = 0;
+        mutex->recursion = 0;
+    }
+
     atomic_flag_clear_explicit(&mutex->locked, memory_order_release);
     return 0;
 }
