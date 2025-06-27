@@ -12,6 +12,14 @@
 #include <stdint.h>
 #include <errno.h>
 
+#ifdef VLIBC_TEST
+static int fail_next_alloc = 0;
+void vlibc_test_fail_next_alloc(void)
+{
+    fail_next_alloc = 1;
+}
+#endif
+
 struct posix_align_hdr {
     uint32_t magic;
     void    *orig;
@@ -56,6 +64,13 @@ static void free_impl(void *ptr)
  */
 void *malloc(size_t size)
 {
+#ifdef VLIBC_TEST
+    if (fail_next_alloc) {
+        fail_next_alloc = 0;
+        errno = ENOMEM;
+        return NULL;
+    }
+#endif
     if (size == 0)
         return NULL;
 
@@ -124,6 +139,13 @@ struct mmap_header {
  */
 void *malloc(size_t size)
 {
+#ifdef VLIBC_TEST
+    if (fail_next_alloc) {
+        fail_next_alloc = 0;
+        errno = ENOMEM;
+        return NULL;
+    }
+#endif
     if (size == 0)
         return NULL;
 

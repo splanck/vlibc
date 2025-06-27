@@ -18,8 +18,10 @@ FILE *open_memstream(char **bufp, size_t *sizep)
         return NULL;
     }
     FILE *f = malloc(sizeof(FILE));
-    if (!f)
+    if (!f) {
+        errno = ENOMEM;
         return NULL;
+    }
     memset(f, 0, sizeof(FILE));
     f->fd = -1;
     f->is_mem = 1;
@@ -46,8 +48,10 @@ FILE *open_wmemstream(wchar_t **bufp, size_t *sizep)
         return NULL;
     }
     FILE *f = malloc(sizeof(FILE));
-    if (!f)
+    if (!f) {
+        errno = ENOMEM;
         return NULL;
+    }
     memset(f, 0, sizeof(FILE));
     f->fd = -1;
     f->is_mem = 1;
@@ -75,8 +79,10 @@ FILE *fmemopen(void *buf, size_t size, const char *mode)
         return NULL;
     }
     FILE *f = malloc(sizeof(FILE));
-    if (!f)
+    if (!f) {
+        errno = ENOMEM;
         return NULL;
+    }
     memset(f, 0, sizeof(FILE));
     f->fd = -1;
     f->is_mem = 1;

@@ -4,6 +4,7 @@ PREFIX ?= /usr/local
 CC ?= cc
 CFLAGS ?= -O2 -Wall -Wextra -fno-stack-protector -fno-builtin -Iinclude
 CFLAGS += -std=c11
+CFLAGS += -DVLIBC_TEST
 AR ?= ar
 ARCH ?= $(shell uname -m)
 

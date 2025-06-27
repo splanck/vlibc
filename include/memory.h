@@ -28,4 +28,8 @@ int posix_memalign(void **memptr, size_t alignment, size_t size);
 /* Allocate memory with a given alignment. Returns NULL on failure. */
 void *aligned_alloc(size_t alignment, size_t size);
 
+#ifdef VLIBC_TEST
+void vlibc_test_fail_next_alloc(void);
+#endif
+
 #endif /* MEMORY_H */

@@ -1541,6 +1541,41 @@ static const char *test_wmemstream_basic(void)
     return 0;
 }
 
+static const char *test_open_memstream_nomem(void)
+{
+    char *out = NULL;
+    size_t len = 0;
+    errno = 0;
+    vlibc_test_fail_next_alloc();
+    FILE *f = open_memstream(&out, &len);
+    mu_assert("open_memstream nomem", f == NULL);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    return 0;
+}
+
+static const char *test_open_wmemstream_nomem(void)
+{
+    wchar_t *out = NULL;
+    size_t len = 0;
+    errno = 0;
+    vlibc_test_fail_next_alloc();
+    FILE *f = open_wmemstream(&out, &len);
+    mu_assert("open_wmemstream nomem", f == NULL);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    return 0;
+}
+
+static const char *test_fmemopen_nomem(void)
+{
+    char buf[8];
+    errno = 0;
+    vlibc_test_fail_next_alloc();
+    FILE *f = fmemopen(buf, sizeof(buf), "r");
+    mu_assert("fmemopen nomem", f == NULL);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    return 0;
+}
+
 struct cookie_buf {
     char buf[64];
     size_t pos;
@@ -5330,6 +5365,9 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_wmem_ops),
         REGISTER_TEST("default", test_wchar_search),
         REGISTER_TEST("default", test_wmemstream_basic),
+        REGISTER_TEST("memory", test_open_memstream_nomem),
+        REGISTER_TEST("memory", test_open_wmemstream_nomem),
+        REGISTER_TEST("memory", test_fmemopen_nomem),
         REGISTER_TEST("default", test_fopencookie_basic),
         REGISTER_TEST("default", test_iconv_ascii_roundtrip),
         REGISTER_TEST("default", test_iconv_invalid_byte),
