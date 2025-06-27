@@ -56,9 +56,14 @@ static int compile_single(struct regex_alt *alt, const char *pattern,
     size_t len = strlen(pattern);
     size_t patcap = len * 8 + 1;
     alt->pat = malloc(patcap * sizeof(struct token));
-    alt->ccl = malloc(len * 2 + 1);
-    if (!alt->pat || !alt->ccl)
+    if (!alt->pat)
         return -1;
+    alt->ccl = malloc(len * 2 + 1);
+    if (!alt->ccl) {
+        free(alt->pat);
+        alt->pat = NULL;
+        return -1;
+    }
     size_t ccl_idx = 1; /* first byte reserved */
     size_t i = 0, j = 0;
     int stack[10];
