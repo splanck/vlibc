@@ -10,17 +10,26 @@
 
 int abs(int j)
 {
-    return j < 0 ? -j : j;
+    unsigned int u = (unsigned int)j;
+    if (j < 0)
+        u = 0u - u;
+    return (int)u;
 }
 
 long labs(long j)
 {
-    return j < 0 ? -j : j;
+    unsigned long u = (unsigned long)j;
+    if (j < 0)
+        u = 0ul - u;
+    return (long)u;
 }
 
 long long llabs(long long j)
 {
-    return j < 0 ? -j : j;
+    unsigned long long u = (unsigned long long)j;
+    if (j < 0)
+        u = 0ull - u;
+    return (long long)u;
 }
 
 div_t div(int numer, int denom)
