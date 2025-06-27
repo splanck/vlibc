@@ -3587,6 +3587,18 @@ static const char *test_execle_fn(void)
     return 0;
 }
 
+static const char *test_execl_alloc_fail(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    vlibc_test_alloc_fail_after = 0;
+    errno = 0;
+    int r = execl("/bin/echo", "af", NULL);
+    mu_assert("execl fail", r == -1);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    return 0;
+}
+
 static const char *test_execvp_fn(void)
 {
     extern char **__environ;
@@ -5525,6 +5537,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_execl_fn),
         REGISTER_TEST("default", test_execlp_fn),
         REGISTER_TEST("default", test_execle_fn),
+        REGISTER_TEST("default", test_execl_alloc_fail),
         REGISTER_TEST("default", test_execvp_fn),
         REGISTER_TEST("default", test_fexecve_fn),
         REGISTER_TEST("default", test_posix_spawn_fn),
