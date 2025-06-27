@@ -4269,6 +4269,40 @@ static const char *test_realpath_basic(void)
     return 0;
 }
 
+static const char *test_getcwd_deep(void)
+{
+    char orig[256];
+    mu_assert("orig cwd", getcwd(orig, sizeof(orig)) != NULL);
+
+    char tmpl[] = "/tmp/deepXXXXXX";
+    char *base = mkdtemp(tmpl);
+    mu_assert("mkdtemp", base != NULL);
+
+    enum { DEPTH = 150 };
+    char path[4096];
+    strcpy(path, base);
+    for (int i = 0; i < DEPTH; i++) {
+        strcat(path, "/d");
+        mu_assert("mkdir", mkdir(path, 0700) == 0);
+    }
+
+    mu_assert("chdir", chdir(path) == 0);
+    char *cwd = getcwd(NULL, 0);
+    mu_assert("getcwd deep", cwd != NULL);
+    mu_assert("deep path", strcmp(cwd, path) == 0);
+    free(cwd);
+    mu_assert("restore", chdir(orig) == 0);
+
+    for (int i = DEPTH; i > 0; i--) {
+        mu_assert("rmdir", rmdir(path) == 0);
+        char *slash = strrchr(path, '/');
+        if (slash)
+            *slash = '\0';
+    }
+    mu_assert("rmdir base", rmdir(path) == 0);
+    return 0;
+}
+
 static const char *test_pathconf_basic(void)
 {
     long n = pathconf("/", _PC_NAME_MAX);
@@ -5320,6 +5354,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_getcwd_chdir),
         REGISTER_TEST("default", test_fchdir_basic),
         REGISTER_TEST("default", test_realpath_basic),
+        REGISTER_TEST("default", test_getcwd_deep),
         REGISTER_TEST("default", test_pathconf_basic),
         REGISTER_TEST("default", test_passwd_lookup),
         REGISTER_TEST("default", test_group_lookup),
