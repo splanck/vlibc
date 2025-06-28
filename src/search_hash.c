@@ -39,7 +39,10 @@ static unsigned char *used;
 static size_t table_size;
 static size_t items;
 
-/* Compute a simple hash value for strings. */
+/*
+ * hash_str() - compute a simple hash for a string using the
+ * djb2 algorithm. Used internally by the hash table helpers.
+ */
 static unsigned long hash_str(const char *s)
 {
     unsigned long h = 5381;
@@ -49,7 +52,11 @@ static unsigned long hash_str(const char *s)
     return h;
 }
 
-/* Create a new hash table able to store at least nel entries. */
+/*
+ * hcreate() - allocate a hash table capable of storing at least
+ * `nel` entries. Returns 1 on success and 0 on failure or if a
+ * table already exists.
+ */
 int hcreate(size_t nel)
 {
     if (table)
@@ -68,7 +75,11 @@ int hcreate(size_t nel)
     return 1;
 }
 
-/* Destroy the hash table created by hcreate. */
+/*
+ * hdestroy() - free all memory associated with the table created
+ * by hcreate(). After calling this routine the hash table is
+ * reset to the empty state.
+ */
 void hdestroy(void)
 {
     free(table);
@@ -79,7 +90,11 @@ void hdestroy(void)
     items = 0;
 }
 
-/* Search for an item in the table or insert it when action is ENTER. */
+/*
+ * hsearch() - look up an entry in the hash table or insert a new one
+ * when `action` is ENTER. Returns a pointer to the entry on success
+ * or NULL if no slot is available or the table was not created.
+ */
 ENTRY *hsearch(ENTRY item, ACTION action)
 {
     if (!table || !item.key)

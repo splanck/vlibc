@@ -22,6 +22,10 @@ static int log_facility = LOG_USER;
 static int log_option = 0;
 static char log_ident[32] = "";
 
+/*
+ * openlog() - configure the connection to the system logger. The
+ * ident string is copied for later use when formatting messages.
+ */
 void openlog(const char *ident, int option, int facility)
 {
     if (ident)
@@ -48,6 +52,10 @@ void openlog(const char *ident, int option, int facility)
     connect(log_fd, (struct sockaddr *)&addr, sizeof(addr));
 }
 
+/*
+ * closelog() - close the connection to the system log daemon if it
+ * has been opened via openlog().
+ */
 void closelog(void)
 {
     if (log_fd != -1) {
@@ -56,6 +64,10 @@ void closelog(void)
     }
 }
 
+/*
+ * vsyslog() - format a message using a va_list and send it to the
+ * system logger with the given priority.
+ */
 void vsyslog(int priority, const char *format, va_list ap)
 {
     if (log_fd == -1)
@@ -88,6 +100,10 @@ void vsyslog(int priority, const char *format, va_list ap)
         send(log_fd, buf, n, 0);
 }
 
+/*
+ * syslog() - convenience wrapper around vsyslog() that accepts a
+ * variable argument list.
+ */
 void syslog(int priority, const char *format, ...)
 {
     va_list ap;
