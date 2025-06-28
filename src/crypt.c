@@ -1,4 +1,15 @@
 /*
+ * BSD 2-Clause License: Redistribution and use in source and binary forms, with
+ * or without modification, are permitted provided that the copyright notice and
+ * this permission notice appear in all copies. This software is provided "as is"
+ * without warranty.
+ *
+ * Purpose: DES crypt implementation for vlibc.
+ *
+ * Copyright (c) 2025
+ */
+
+/*
  * FreeSec: libcrypt for NetBSD
  *
  * Copyright (c) 1994 David Burren
