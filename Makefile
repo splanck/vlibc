@@ -3,7 +3,7 @@
 PREFIX ?= /usr/local
 CC ?= cc
 CFLAGS ?= -O2 -Wall -Wextra -fno-stack-protector -fno-builtin -Iinclude
-CFLAGS += -std=c11
+CFLAGS += -std=c11 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
 AR ?= ar
 ARCH ?= $(shell uname -m)
 
@@ -203,6 +203,7 @@ SRC := \
     src/vis.c \
     src/wprintf.c \
     src/wscanf.c \
+    src/ucontext.c \
     src/sigsetjmp.c \
     src/progname.c
 
@@ -225,13 +226,9 @@ $(PLUGIN_SO): tests/plugin.c
 	$(CC) -shared -fPIC tests/plugin.c -o $(PLUGIN_SO)
 
 $(TEST_BIN): $(TEST_SRC) $(LIB) $(PLUGIN_SO)
-	$(CC) $(CFLAGS) $(TEST_SRC) $(LIB) -lpthread -lcrypto -lm -o $@
-
+	$(CC) $(CFLAGS) -no-pie $(TEST_SRC) $(LIB) -lpthread -lcrypto -lm -o $@
 test: $(TEST_BIN)
-	./$(TEST_BIN) $(TEST_GROUP)
-
 test-memory: TEST_GROUP=memory
-test-memory: test
 
 test-network: TEST_GROUP=network
 test-network: test

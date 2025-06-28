@@ -440,6 +440,44 @@ int main(void)
 }
 ```
 
+## User Contexts
+
+vlibc includes a small subset of the `<ucontext.h>` API to build simple
+coroutines. `getcontext` captures the current register state in a
+`ucontext_t`. `setcontext` restores a saved context while `swapcontext`
+saves the current one before activating another. `makecontext` prepares a
+context to execute a function on a dedicated stack. When that function
+returns the context specified by `uc_link` is resumed or the process exits
+if `uc_link` is `NULL`.
+
+```c
+#include "ucontext.h"
+#include <stdio.h>
+
+static ucontext_t main_ctx, coro_ctx;
+
+static void coro(void)
+{
+    puts("inside");
+    swapcontext(&coro_ctx, &main_ctx);
+}
+
+int main(void)
+{
+    char stack[8192];
+    getcontext(&coro_ctx);
+    coro_ctx.uc_stack.ss_sp = stack;
+    coro_ctx.uc_stack.ss_size = sizeof(stack);
+    coro_ctx.uc_link = &main_ctx;
+    makecontext(&coro_ctx, coro, 0);
+
+    puts("start");
+    swapcontext(&main_ctx, &coro_ctx);
+    puts("back");
+    return 0;
+}
+```
+
 ## Dynamic Loading
 
 The `dlfcn` module implements a minimal ELF loader. On 64-bit x86
