@@ -96,3 +96,9 @@ returns `-1` and updates `*ngroups` with the required size.
 `initgroups` calls `setgroups()` to apply the list retrieved by
 `getgrouplist`.  It typically requires appropriate privileges.
 
+## Environment
+
+`env.h` provides helpers for manipulating the process environment. The
+`setenv` and `putenv` functions add variables. When the provided name is
+`NULL` or contains `=`, they fail with `-1` and set `errno` to `EINVAL`.
+
