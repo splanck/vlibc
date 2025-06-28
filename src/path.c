@@ -10,6 +10,10 @@
 #include "string.h"
 #include "memory.h"
 
+/*
+ * basename() - return the last path component of the provided string.  A
+ * newly allocated string is returned and must be freed by the caller.
+ */
 char *basename(const char *path)
 {
     if (!path || !*path)
@@ -35,6 +39,10 @@ char *basename(const char *path)
     return out;
 }
 
+/*
+ * dirname() - return the directory portion of a path.  The result is
+ * allocated with malloc and should be freed by the caller.
+ */
 char *dirname(const char *path)
 {
     if (!path || !*path)
