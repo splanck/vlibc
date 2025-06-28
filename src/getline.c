@@ -10,6 +10,11 @@
 #include "memory.h"
 #include "errno.h"
 
+/*
+ * getdelim() - read from a stream until the delimiter or EOF is encountered.
+ * The buffer pointed to by lineptr is resized as needed.  Returns the number
+ * of bytes read or -1 on error.
+ */
 ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream)
 {
     if (!lineptr || !n || !stream) {
@@ -47,6 +52,10 @@ ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream)
     return (ssize_t)pos;
 }
 
+/*
+ * getline() - convenience wrapper around getdelim() that uses a newline as
+ * the delimiter.
+ */
 ssize_t getline(char **lineptr, size_t *n, FILE *stream)
 {
     return getdelim(lineptr, n, '\n', stream);
