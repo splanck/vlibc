@@ -4126,6 +4126,48 @@ static const char *test_execvp_fn(void)
     return 0;
 }
 
+static const char *test_execvp_empty_path(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+
+    char tmpl[] = "/tmp/execvpXXXXXX";
+    char *dir = mkdtemp(tmpl);
+    mu_assert("mkdtemp", dir != NULL);
+
+    char script[256];
+    snprintf(script, sizeof(script), "%s/prog", dir);
+    int fd = open(script, O_WRONLY | O_CREAT | O_TRUNC, 0700);
+    mu_assert("open", fd >= 0);
+    const char *data = "#!/bin/sh\nexit 5\n";
+    ssize_t nw = write(fd, data, strlen(data));
+    close(fd);
+    mu_assert("write", nw == (ssize_t)strlen(data));
+
+    char cwd[PATH_MAX];
+    mu_assert("cwd", getcwd(cwd, sizeof(cwd)) != NULL);
+    mu_assert("chdir", chdir(dir) == 0);
+
+    setenv("PATH", ":", 1);
+
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0) {
+        char *argv[] = {"prog", NULL};
+        execvp("prog", argv);
+        _exit(127);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+
+    mu_assert("execvp curdir", WIFEXITED(status) && WEXITSTATUS(status) == 5);
+
+    mu_assert("restore", chdir(cwd) == 0);
+    unlink(script);
+    rmdir(dir);
+    return 0;
+}
+
 static const char *test_fexecve_fn(void)
 {
     extern char **__environ;
@@ -6431,6 +6473,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_execle_fn),
         REGISTER_TEST("default", test_execl_alloc_fail),
         REGISTER_TEST("default", test_execvp_fn),
+        REGISTER_TEST("path", test_execvp_empty_path),
         REGISTER_TEST("default", test_fexecve_fn),
         REGISTER_TEST("default", test_posix_spawn_fn),
         REGISTER_TEST("default", test_posix_spawn_actions),
