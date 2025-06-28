@@ -24,6 +24,12 @@ extern int host_mkfifo(const char *path, mode_t mode) __asm__("mkfifo");
 extern int host_mkfifoat(int dirfd, const char *path, mode_t mode) __asm__("mkfifoat");
 #endif
 
+/*
+ * mkfifo() - create a FIFO special file at PATH with permissions MODE.
+ *
+ * Returns 0 on success or -1 with errno set when the underlying
+ * system call fails.
+ */
 int mkfifo(const char *path, mode_t mode)
 {
 #ifdef SYS_mkfifo
@@ -38,6 +44,13 @@ int mkfifo(const char *path, mode_t mode)
 #endif
 }
 
+/*
+ * mkfifoat() - create a FIFO relative to DIRFD.  PATH is interpreted
+ * relative to DIRFD unless it begins with a '/'.  MODE specifies the
+ * permissions of the new FIFO.
+ *
+ * Returns 0 on success or -1 with errno set on failure.
+ */
 int mkfifoat(int dirfd, const char *path, mode_t mode)
 {
 #ifdef SYS_mkfifoat
