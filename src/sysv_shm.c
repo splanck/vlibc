@@ -1,5 +1,8 @@
 /*
- * BSD 2-Clause License
+ * BSD 2-Clause License: Redistribution and use in source and binary forms, with
+ * or without modification, are permitted provided that the copyright notice and
+ * this permission notice appear in all copies. This software is provided "as is"
+ * without warranty.
  *
  * Purpose: System V shared memory wrappers for vlibc.
  */
@@ -10,6 +13,11 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/*
+ * shmget() - obtain a shared memory segment. Uses the vlibc_syscall wrapper
+ * when available and falls back to the host implementation or returns ENOSYS
+ * when unsupported.
+ */
 int shmget(key_t key, size_t size, int shmflg)
 {
 #ifdef SYS_shmget
@@ -29,6 +37,11 @@ int shmget(key_t key, size_t size, int shmflg)
     return -1;
 #endif
 }
+/*
+ * shmat() - attach a shared memory segment to the process. It performs the
+ * direct syscall when possible and otherwise calls into the host or returns
+ * ENOSYS when no implementation is available.
+ */
 
 void *shmat(int shmid, const void *shmaddr, int shmflg)
 {
@@ -50,6 +63,10 @@ void *shmat(int shmid, const void *shmaddr, int shmflg)
 #endif
 }
 
+/*
+ * shmdt() - detach a shared memory segment. Utilises the syscall when
+ * available and falls back to the host or reports ENOSYS.
+ */
 int shmdt(const void *shmaddr)
 {
 #ifdef SYS_shmdt
@@ -70,6 +87,11 @@ int shmdt(const void *shmaddr)
 #endif
 }
 
+/*
+ * shmctl() - control operations on a shared memory segment. Calls the
+ * kernel syscall when supported and otherwise falls back to the host or
+ * signals ENOSYS.
+ */
 int shmctl(int shmid, int cmd, struct shmid_ds *buf)
 {
 #ifdef SYS_shmctl
