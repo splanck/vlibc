@@ -13,16 +13,19 @@
 #undef readdir
 #undef closedir
 
+/* Open a directory stream, returning a DIR handle. */
 DIR *vlibc_opendir(const char *name)
 {
     return opendir(name);
 }
 
+/* Read the next directory entry from the stream. */
 struct dirent *vlibc_readdir(DIR *dirp)
 {
     return readdir(dirp);
 }
 
+/* Close a directory stream opened with vlibc_opendir(). */
 int vlibc_closedir(DIR *dirp)
 {
     return closedir(dirp);

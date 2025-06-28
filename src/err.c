@@ -14,6 +14,7 @@
 #include "errno.h"
 #include "process.h"
 
+/* Print a formatted warning to stderr, optionally appending errno. */
 static void vwarn_internal(const char *fmt, va_list ap, int use_errno)
 {
     if (fmt && *fmt)
@@ -27,11 +28,13 @@ static void vwarn_internal(const char *fmt, va_list ap, int use_errno)
     fprintf(stderr, "\n");
 }
 
+/* Warn with errno using a va_list. */
 void vwarn(const char *fmt, va_list ap)
 {
     vwarn_internal(fmt, ap, 1);
 }
 
+/* Variadic wrapper around vwarn(). */
 void warn(const char *fmt, ...)
 {
     va_list ap;
@@ -40,11 +43,13 @@ void warn(const char *fmt, ...)
     va_end(ap);
 }
 
+/* Warn without errno using a va_list. */
 void vwarnx(const char *fmt, va_list ap)
 {
     vwarn_internal(fmt, ap, 0);
 }
 
+/* Variadic wrapper around vwarnx(). */
 void warnx(const char *fmt, ...)
 {
     va_list ap;
@@ -53,6 +58,10 @@ void warnx(const char *fmt, ...)
     va_end(ap);
 }
 
+/*
+ * Common helper used by err* functions. Prints the message and exits
+ * with the supplied status code.
+ */
 static void __attribute__((noreturn))
 verr_internal(int status, const char *fmt, va_list ap, int use_errno)
 {
@@ -61,11 +70,13 @@ verr_internal(int status, const char *fmt, va_list ap, int use_errno)
     __builtin_unreachable();
 }
 
+/* Print warning with errno and exit. */
 void verr(int status, const char *fmt, va_list ap)
 {
     verr_internal(status, fmt, ap, 1);
 }
 
+/* Variadic wrapper around verr(). */
 void err(int status, const char *fmt, ...)
 {
     va_list ap;
@@ -74,11 +85,13 @@ void err(int status, const char *fmt, ...)
     va_end(ap);
 }
 
+/* Print warning without errno and exit. */
 void verrx(int status, const char *fmt, va_list ap)
 {
     verr_internal(status, fmt, ap, 0);
 }
 
+/* Variadic wrapper around verrx(). */
 void errx(int status, const char *fmt, ...)
 {
     va_list ap;
