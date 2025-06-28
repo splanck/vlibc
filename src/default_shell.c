@@ -12,6 +12,11 @@
 #define VLIBC_SHELL_PATH "/bin/sh"
 #endif
 
+/*
+ * Return the path of the shell used by vlibc. If the environment
+ * variable VLIBC_SHELL is set and non-empty it is used, otherwise
+ * the compile time default is returned.
+ */
 const char *vlibc_default_shell(void)
 {
     const char *s = getenv("VLIBC_SHELL");
