@@ -27,6 +27,9 @@ struct _fts {
     int (*compar)(const FTSENT **, const FTSENT **);
 };
 
+/*
+ * queue_push - append a path node to the traversal queue.
+ */
 static int queue_push(FTS *fts, const char *path, int level)
 {
     struct node *n = malloc(sizeof(*n));
@@ -47,6 +50,9 @@ static int queue_push(FTS *fts, const char *path, int level)
     return 0;
 }
 
+/*
+ * queue_pop - remove and return the next node from the queue.
+ */
 static struct node *queue_pop(FTS *fts)
 {
     struct node *n = fts->head;
@@ -58,6 +64,10 @@ static struct node *queue_pop(FTS *fts)
     return n;
 }
 
+/*
+ * fts_open() - start a file hierarchy traversal.
+ * Paths are queued and returned incrementally by fts_read().
+ */
 FTS *fts_open(char * const *paths, int options,
               int (*compar)(const FTSENT **, const FTSENT **))
 {
@@ -78,6 +88,9 @@ FTS *fts_open(char * const *paths, int options,
     return fts;
 }
 
+/*
+ * free_entry - release memory for one traversal entry.
+ */
 static void free_entry(FTSENT *e)
 {
     if (!e)
@@ -86,6 +99,11 @@ static void free_entry(FTSENT *e)
     free(e);
 }
 
+/*
+ * fts_read() - return the next entry from the traversal queue.
+ * Directories are expanded and their children queued for later
+ * processing.
+ */
 FTSENT *fts_read(FTS *fts)
 {
     if (!fts)
@@ -169,6 +187,9 @@ FTSENT *fts_read(FTS *fts)
     return ent;
 }
 
+/*
+ * fts_close() - free all resources used by an FTS handle.
+ */
 int fts_close(FTS *fts)
 {
     if (!fts)

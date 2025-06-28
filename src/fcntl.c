@@ -13,6 +13,11 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/*
+ * fcntl() - wrapper around the fcntl system call.
+ * Handles optional third argument and propagates errno
+ * on failure.
+ */
 int fcntl(int fd, int cmd, ...)
 {
     long arg = 0;
