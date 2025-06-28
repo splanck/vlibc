@@ -13,6 +13,7 @@
 #include "env.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
@@ -26,12 +27,22 @@ static const char *passwd_path(void)
 }
 
 static struct passwd pw;
-static char linebuf[256];
+static char *linebuf;
+static size_t linecap;
 
-static struct passwd *parse_line(const char *line)
+static struct passwd *parse_line(char *line)
 {
-    strncpy(linebuf, line, sizeof(linebuf) - 1);
-    linebuf[sizeof(linebuf) - 1] = '\0';
+    size_t len = strlen(line);
+    if (len && line[len - 1] == '\n')
+        line[len - 1] = '\0';
+    if (len + 1 > linecap) {
+        char *tmp = realloc(linebuf, len + 1);
+        if (!tmp)
+            return NULL;
+        linebuf = tmp;
+        linecap = len + 1;
+    }
+    memcpy(linebuf, line, len + 1);
 
     char *save;
     pw.pw_name = strtok_r(linebuf, ":", &save);
@@ -51,31 +62,32 @@ static struct passwd *parse_line(const char *line)
 
 static struct passwd *lookup(const char *name, uid_t uid, int by_name)
 {
-    int fd = open(passwd_path(), O_RDONLY, 0);
-    if (fd < 0)
+    FILE *f = fopen(passwd_path(), "r");
+    if (!f)
         return NULL;
-    char buf[4096];
-    ssize_t n = read(fd, buf, sizeof(buf) - 1);
-    close(fd);
-    if (n <= 0)
-        return NULL;
-    buf[n] = '\0';
 
-    char *save_line;
-    for (char *line = strtok_r(buf, "\n", &save_line); line;
-         line = strtok_r(NULL, "\n", &save_line)) {
+    struct passwd *ret = NULL;
+    char *line = NULL;
+    size_t cap = 0;
+    while (getline(&line, &cap, f) != -1) {
         struct passwd *p = parse_line(line);
         if (!p)
             continue;
         if (by_name) {
-            if (strcmp(p->pw_name, name) == 0)
-                return p;
+            if (strcmp(p->pw_name, name) == 0) {
+                ret = p;
+                break;
+            }
         } else {
-            if (p->pw_uid == uid)
-                return p;
+            if (p->pw_uid == uid) {
+                ret = p;
+                break;
+            }
         }
     }
-    return NULL;
+    free(line);
+    fclose(f);
+    return ret;
 }
 
 struct passwd *getpwuid(uid_t uid)
@@ -131,14 +143,23 @@ static const char *passwd_path(void)
 }
 
 static struct passwd pw;
-static char linebuf[256];
-static char filebuf[4096];
-static char *next_line;
+static char *linebuf;
+static size_t linecap;
+static FILE *pw_file;
 
-static struct passwd *parse_line(const char *line)
+static struct passwd *parse_line(char *line)
 {
-    strncpy(linebuf, line, sizeof(linebuf) - 1);
-    linebuf[sizeof(linebuf) - 1] = '\0';
+    size_t len = strlen(line);
+    if (len && line[len - 1] == '\n')
+        line[len - 1] = '\0';
+    if (len + 1 > linecap) {
+        char *tmp = realloc(linebuf, len + 1);
+        if (!tmp)
+            return NULL;
+        linebuf = tmp;
+        linecap = len + 1;
+    }
+    memcpy(linebuf, line, len + 1);
 
     char *save;
     pw.pw_name = strtok_r(linebuf, ":", &save);
@@ -158,36 +179,33 @@ static struct passwd *parse_line(const char *line)
 
 void setpwent(void)
 {
-    int fd = open(passwd_path(), O_RDONLY, 0);
-    if (fd < 0) {
-        next_line = NULL;
+    if (pw_file) {
+        rewind(pw_file);
         return;
     }
-    ssize_t n = read(fd, filebuf, sizeof(filebuf) - 1);
-    close(fd);
-    if (n <= 0) {
-        next_line = NULL;
-        return;
-    }
-    filebuf[n] = '\0';
-    next_line = filebuf;
+
+    pw_file = fopen(passwd_path(), "r");
 }
 
 struct passwd *getpwent(void)
 {
-    if (!next_line)
+    if (!pw_file)
         setpwent();
-    if (!next_line)
+    if (!pw_file)
         return NULL;
-    char *line = strtok_r(next_line, "\n", &next_line);
-    if (!line)
+
+    ssize_t len = getline(&linebuf, &linecap, pw_file);
+    if (len == -1)
         return NULL;
-    return parse_line(line);
+    return parse_line(linebuf);
 }
 
 void endpwent(void)
 {
-    next_line = NULL;
+    if (pw_file) {
+        fclose(pw_file);
+        pw_file = NULL;
+    }
 }
 
 #endif
