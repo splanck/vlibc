@@ -134,3 +134,5 @@ mq_close(mq);
 mq_unlink("/example");
 ```
 
+See [mqueue.md](mqueue.md) for attribute queries and timed send/receive.
+
