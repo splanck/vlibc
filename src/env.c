@@ -9,6 +9,7 @@
 #include "env.h"
 #include "memory.h"
 #include "string.h"
+#include <errno.h>
 
 /* pointer to current environment */
 char **environ = 0;
@@ -66,8 +67,10 @@ static int find_env_index(const char *name, size_t len)
  */
 int setenv(const char *name, const char *value, int overwrite)
 {
-    if (!name || strchr(name, '='))
+    if (!name || strchr(name, '=')) {
+        errno = EINVAL;
         return -1;
+    }
     if (!value)
         value = "";
     size_t nlen = strlen(name);
@@ -160,11 +163,15 @@ int setenv(const char *name, const char *value, int overwrite)
  */
 int putenv(const char *str)
 {
-    if (!str)
+    if (!str) {
+        errno = EINVAL;
         return -1;
+    }
     const char *eq = strchr(str, '=');
-    if (!eq)
+    if (!eq || eq == str) {
+        errno = EINVAL;
         return -1;
+    }
 
     size_t nlen = (size_t)(eq - str);
 
