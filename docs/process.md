@@ -163,6 +163,12 @@ prior to terminating the process immediately. After running the handlers
 `quick_exit` invokes `_exit` without flushing stdio buffers or calling regular
 `atexit` handlers.
 
+`atexit(fn)` stores `fn` to be executed by `exit()` and returns `-1` once 32
+handlers have been registered. `at_quick_exit(func)` does the same for
+`quick_exit`. The helper `__run_atexit()` iterates the registered handlers in
+reverse order. `quick_exit(status)` runs quick-exit handlers then terminates via
+`_exit(status)` without touching stdio buffers.
+
 ## Error Reporting
 
 vlibc provides minimal helpers to report errors:
