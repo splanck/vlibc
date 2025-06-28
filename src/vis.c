@@ -25,6 +25,12 @@ static int need_octal(int c, int flag)
     return 0;
 }
 
+/*
+ * nvis() - encode a character using visual escapes.
+ * Writes the representation of 'c' into 'dst' respecting
+ * the destination length and returns the number of bytes
+ * written or -1 on overflow.
+ */
 int nvis(char *dst, size_t dlen, int c, int flag, int nextc)
 {
     (void)nextc; /* unused */
@@ -64,6 +70,10 @@ int nvis(char *dst, size_t dlen, int c, int flag, int nextc)
     return (int)len;
 }
 
+/*
+ * vis() - convenience wrapper around nvis() without a
+ * destination length limit.
+ */
 int vis(char *dst, int c, int flag, int nextc)
 {
     (void)nextc;
@@ -76,6 +86,11 @@ int vis(char *dst, int c, int flag, int nextc)
 #define S_OCT1   2
 #define S_OCT2   3
 
+/*
+ * unvis() - decode a byte stream produced by vis.
+ * Maintains state across calls and returns UNVIS_* codes
+ * describing the result of each step.
+ */
 int unvis(char *cp, int c, int *state, int flag)
 {
     unsigned char ch = (unsigned char)c;

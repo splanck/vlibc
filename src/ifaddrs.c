@@ -24,11 +24,19 @@
 extern int host_getifaddrs(struct ifaddrs **) __asm("getifaddrs");
 extern void host_freeifaddrs(struct ifaddrs *) __asm("freeifaddrs");
 
+/*
+ * getifaddrs() - BSD forwarder that calls the host implementation
+ * to retrieve the linked list of interface addresses.
+ */
 int getifaddrs(struct ifaddrs **ifap)
 {
     return host_getifaddrs(ifap);
 }
 
+/*
+ * freeifaddrs() - release a list obtained via getifaddrs().
+ * Simply forwards to the host implementation on BSD systems.
+ */
 void freeifaddrs(struct ifaddrs *ifa)
 {
     host_freeifaddrs(ifa);
@@ -36,6 +44,10 @@ void freeifaddrs(struct ifaddrs *ifa)
 
 #else
 
+/*
+ * free_list() - helper used by the fallback implementation to
+ * deallocate the dynamically created ifaddrs list.
+ */
 static void free_list(struct ifaddrs *ifa)
 {
     while (ifa) {
@@ -49,6 +61,11 @@ static void free_list(struct ifaddrs *ifa)
     }
 }
 
+/*
+ * getifaddrs() - enumerate network interfaces using ioctl
+ * fallback. Builds a linked list describing each interface
+ * and stores it in *ifap.
+ */
 int getifaddrs(struct ifaddrs **ifap)
 {
     if (!ifap) {
@@ -118,6 +135,9 @@ int getifaddrs(struct ifaddrs **ifap)
     return 0;
 }
 
+/*
+ * freeifaddrs() - free the list allocated by getifaddrs().
+ */
 void freeifaddrs(struct ifaddrs *ifa)
 {
     free_list(ifa);

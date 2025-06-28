@@ -66,6 +66,11 @@ static ssize_t try_getrandom(void *buf, size_t len)
 #endif
 }
 
+/*
+ * fill_prng() - fallback PRNG using rand().
+ * Used when no kernel entropy source is available to
+ * populate the buffer with pseudo-random bytes.
+ */
 static void fill_prng(void *buf, size_t len)
 {
     unsigned char *p = buf;
@@ -73,6 +78,11 @@ static void fill_prng(void *buf, size_t len)
         p[i] = (unsigned char)(rand() & 0xff);
 }
 
+/*
+ * arc4random_buf() - fill buf with len bytes of random data.
+ * Attempts getrandom() or /dev/urandom before falling back
+ * to the internal PRNG implemented by fill_prng().
+ */
 void arc4random_buf(void *buf, size_t len)
 {
     if (len == 0)
@@ -100,6 +110,10 @@ void arc4random_buf(void *buf, size_t len)
     fill_prng(buf, len);
 }
 
+/*
+ * arc4random() - return a random 32-bit value.
+ * Thin wrapper around arc4random_buf().
+ */
 unsigned int arc4random(void)
 {
     unsigned int v = 0;
@@ -107,6 +121,11 @@ unsigned int arc4random(void)
     return v;
 }
 
+/*
+ * arc4random_uniform() - unbiased bounded random number.
+ * Generates a value in the range [0, upper_bound) without
+ * modulo bias by discarding out of range results.
+ */
 unsigned int arc4random_uniform(unsigned int upper_bound)
 {
     unsigned int r, min;
