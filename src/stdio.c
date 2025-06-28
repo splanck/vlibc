@@ -45,8 +45,12 @@ static int flush_buffer(FILE *stream)
             memset(stream->buf + stream->buflen, 0, sizeof(wchar_t));
         else
             stream->buf[stream->buflen] = '\0';
-        if (stream->mem_bufp)
-            *stream->mem_bufp = (char *)stream->buf;
+        if (stream->mem_bufp) {
+            if (stream->is_wmem)
+                *(wchar_t **)stream->mem_bufp = (wchar_t *)stream->buf;
+            else
+                *(char **)stream->mem_bufp = (char *)stream->buf;
+        }
         if (stream->mem_sizep)
             *stream->mem_sizep = stream->is_wmem ?
                 stream->buflen / sizeof(wchar_t) : stream->buflen;

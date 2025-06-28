@@ -30,7 +30,7 @@ FILE *open_memstream(char **bufp, size_t *sizep)
     f->fd = -1;
     f->is_mem = 1;
     f->writable = 1;
-    f->mem_bufp = bufp;
+    f->mem_bufp = (void **)bufp;
     f->mem_sizep = sizep;
     f->bufsize = 128;
     f->buf = malloc(f->bufsize);
@@ -65,7 +65,7 @@ FILE *open_wmemstream(wchar_t **bufp, size_t *sizep)
     f->is_mem = 1;
     f->is_wmem = 1;
     f->writable = 1;
-    f->mem_bufp = (char **)bufp;
+    f->mem_bufp = (void **)bufp;
     f->mem_sizep = sizep;
     f->bufsize = 128 * sizeof(wchar_t);
     f->buf = malloc(f->bufsize);
