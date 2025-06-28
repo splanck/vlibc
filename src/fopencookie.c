@@ -36,6 +36,7 @@ struct fun_bridge {
     int (*closefn)(void *);
 };
 
+/* read wrapper passed to fopencookie */
 static ssize_t fun_read(void *c, char *buf, size_t n)
 {
     struct fun_bridge *b = c;
@@ -45,6 +46,7 @@ static ssize_t fun_read(void *c, char *buf, size_t n)
     return r < 0 ? -1 : r;
 }
 
+/* write wrapper passed to fopencookie */
 static ssize_t fun_write(void *c, const char *buf, size_t n)
 {
     struct fun_bridge *b = c;
@@ -54,6 +56,7 @@ static ssize_t fun_write(void *c, const char *buf, size_t n)
     return r < 0 ? -1 : r;
 }
 
+/* seek wrapper passed to fopencookie */
 static int fun_seek(void *c, off_t *off, int whence)
 {
     struct fun_bridge *b = c;
@@ -66,6 +69,7 @@ static int fun_seek(void *c, off_t *off, int whence)
     return 0;
 }
 
+/* close wrapper passed to fopencookie */
 static int fun_close(void *c)
 {
     struct fun_bridge *b = c;
@@ -76,6 +80,7 @@ static int fun_close(void *c)
     return r;
 }
 
+/* BSD funopen implementation using cookie_io_functions_t */
 FILE *funopen(const void *cookie,
               int (*readfn)(void *, char *, int),
               int (*writefn)(void *, const char *, int),

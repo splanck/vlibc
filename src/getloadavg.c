@@ -19,6 +19,8 @@
 #include <sys/types.h>
 #include <sys/sysctl.h>
 
+/* BSD variant reading VM_LOADAVG via sysctl */
+
 int getloadavg(double loadavg[], int nelem)
 {
     if (!loadavg || nelem <= 0)
@@ -36,6 +38,8 @@ int getloadavg(double loadavg[], int nelem)
 
 #else /* Linux and others */
 #include "stdio.h"
+
+/* Linux variant parsing /proc/loadavg */
 
 int getloadavg(double loadavg[], int nelem)
 {
