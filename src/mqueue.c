@@ -20,7 +20,8 @@
 #include "fcntl.h"
 #include "syscall.h"
 
-static int mq_wait(mqd_t mqdes, short events, const struct timespec *abstime)
+static __attribute__((unused))
+int mq_wait(mqd_t mqdes, short events, const struct timespec *abstime)
 {
     struct timespec now;
     while (1) {
