@@ -13,6 +13,11 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/*
+ * nanosleep() - suspend execution for the time specified in 'req'.  If
+ * interrupted, the remaining time is written to 'rem' when non-NULL.
+ * Returns 0 on success or -1 on failure with errno set.
+ */
 int nanosleep(const struct timespec *req, struct timespec *rem)
 {
     long ret = vlibc_syscall(SYS_nanosleep, (long)req, (long)rem, 0, 0, 0, 0);
@@ -23,6 +28,10 @@ int nanosleep(const struct timespec *req, struct timespec *rem)
     return 0;
 }
 
+/*
+ * usleep() - sleep for the specified number of microseconds.  Internally
+ * converts the value to a timespec and calls nanosleep().
+ */
 int usleep(useconds_t usec)
 {
     struct timespec ts;
@@ -31,6 +40,11 @@ int usleep(useconds_t usec)
     return nanosleep(&ts, NULL);
 }
 
+/*
+ * sleep() - suspend execution for the given number of seconds.  If the
+ * call is interrupted by a signal, the number of seconds remaining is
+ * returned; otherwise zero is returned.
+ */
 unsigned sleep(unsigned seconds)
 {
     struct timespec ts = {seconds, 0};
