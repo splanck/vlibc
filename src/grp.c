@@ -52,9 +52,9 @@ static const char *group_path(void)
     return "/etc/group";
 }
 
-static struct group gr;
-static char *members[64];
-static char linebuf[256];
+static __thread struct group gr;
+static __thread char *members[64];
+static __thread char linebuf[256];
 
 /* parse_line() - parse an entry from the group file */
 static struct group *parse_line(const char *line)
@@ -171,11 +171,11 @@ static const char *group_path(void)
     return "/etc/group";
 }
 
-static struct group gr;
-static char *members[64];
-static char linebuf[256];
-static char filebuf[4096];
-static char *next_line;
+static __thread struct group gr;
+static __thread char *members[64];
+static __thread char linebuf[256];
+static __thread char filebuf[4096];
+static __thread char *next_line;
 
 /* parse_line() - parse an entry from the group file */
 static struct group *parse_line(const char *line)

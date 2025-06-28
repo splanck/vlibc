@@ -232,6 +232,23 @@ static void *hostent_r_worker(void *arg)
     return NULL;
 }
 
+struct grp_thread_arg {
+    const char *name;
+    gid_t gid;
+};
+
+static void *grp_lookup_worker(void *arg)
+{
+    struct grp_thread_arg *g = arg;
+    struct group *by_name = getgrnam(g->name);
+    struct group *by_gid = getgrgid(g->gid);
+    if (!by_name || !by_gid)
+        return (void *)1;
+    if (strcmp(by_name->gr_name, g->name) != 0 || by_gid->gr_gid != g->gid)
+        return (void *)2;
+    return NULL;
+}
+
 static const char *test_malloc(void)
 {
     void *p = malloc(16);
@@ -5439,6 +5456,37 @@ static const char *test_group_enum(void)
     return 0;
 }
 
+static const char *test_group_threadsafe(void)
+{
+    char tmpl[] = "/tmp/grpthrXXXXXX";
+    int fd = mkstemp(tmpl);
+    mu_assert("mkstemp", fd >= 0);
+    const char data[] =
+        "root:x:0:\n"
+        "staff:x:50:alice,bob\n";
+    mu_assert("write", write(fd, data, sizeof(data) - 1) == (ssize_t)(sizeof(data) - 1));
+    close(fd);
+
+    setenv("VLIBC_GROUP", tmpl, 1);
+
+    struct grp_thread_arg a1 = { "root", 0 };
+    struct grp_thread_arg a2 = { "staff", 50 };
+    pthread_t t1, t2;
+    pthread_create(&t1, NULL, grp_lookup_worker, &a1);
+    pthread_create(&t2, NULL, grp_lookup_worker, &a2);
+    void *r1 = (void *)1;
+    void *r2 = (void *)1;
+    pthread_join(t1, &r1);
+    pthread_join(t2, &r2);
+
+    unsetenv("VLIBC_GROUP");
+    unlink(tmpl);
+
+    mu_assert("grp thread1", r1 == NULL);
+    mu_assert("grp thread2", r2 == NULL);
+    return 0;
+}
+
 static const char *test_getgrouplist_basic(void)
 {
     char tmpl[] = "/tmp/glstXXXXXX";
@@ -6389,6 +6437,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_passwd_enum),
         REGISTER_TEST("default", test_passwd_long_entries),
         REGISTER_TEST("default", test_group_enum),
+        REGISTER_TEST("default", test_group_threadsafe),
         REGISTER_TEST("default", test_getgrouplist_basic),
         REGISTER_TEST("default", test_getgrouplist_overflow),
         REGISTER_TEST("default", test_getlogin_fn),
