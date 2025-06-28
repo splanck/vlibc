@@ -36,7 +36,12 @@
 #include "fnmatch.h"
 #include <errno.h>
 
-/* join_path() - join base path and name */
+/*
+ * join_path() - allocate a new string combining BASE and NAME.
+ *
+ * A '/' separator is inserted when needed.  The caller must free the
+ * returned string or NULL will be returned on allocation failure.
+ */
 static char *join_path(const char *base, const char *name)
 {
     size_t blen = base ? strlen(base) : 0;
@@ -56,7 +61,12 @@ static char *join_path(const char *base, const char *name)
     return res;
 }
 
-/* add_match() - append a path to glob results */
+/*
+ * add_match() - append PATH to the result list in G.
+ *
+ * The glob_t array is expanded and the string duplicated.  Returns 0
+ * on success or -1 when memory allocation fails.
+ */
 static int add_match(glob_t *g, const char *path)
 {
     char **tmp = realloc(g->gl_pathv, sizeof(char*) * (g->gl_pathc + 2));
@@ -118,7 +128,14 @@ static int handle_dir(const char *dir, const char *pattern, const char *rest,
     return ret;
 }
 
-/* expand() - recursively expand pattern */
+/*
+ * expand() - recursively expand PATTERN relative to BASE.
+ *
+ * Each path segment is processed in turn and directories are scanned
+ * to find matching entries.  Matches are accumulated into the glob_t
+ * structure via add_match().  Returns 0 on success or a GLOB_* error
+ * code.
+ */
 static int expand(const char *base, const char *pattern, glob_t *g, int flags,
                   int (*errfunc)(const char *, int))
 {
@@ -137,7 +154,14 @@ static int expand(const char *base, const char *pattern, glob_t *g, int flags,
     return handle_dir(base, part, rest, g, flags, errfunc);
 }
 
-/* glob() - perform pathname expansion */
+/*
+ * glob() - perform pathname expansion on PATTERN.
+ *
+ * The interface matches the POSIX glob() function.  Results are stored
+ * in PGLOB with behaviour controlled by FLAGS and ERRFUNC.  The helper
+ * expand() does the recursive directory traversal.  On success the
+ * function returns 0.  Otherwise a GLOB_* error code is returned.
+ */
 int glob(const char *pattern, int flags,
          int (*errfunc)(const char *epath, int eerrno), glob_t *pglob)
 {
