@@ -153,3 +153,14 @@ void collect(const void *node, VISIT v, int l)
 }
 twalk(root, collect);   // sum == 18
 ```
+
+## Message Formatting
+
+`fmtmsg` prints a formatted diagnostic to standard error when `MM_PRINT` is
+specified. The function accepts a classification mask, message label,
+severity level, text, action hint and tag string.
+
+```c
+fmtmsg(MM_PRINT, "util:sub", MM_ERROR,
+       "bad input", "retry with valid file", "UTIL:001");
+```
