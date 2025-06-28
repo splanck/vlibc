@@ -47,6 +47,7 @@ long fpathconf(int fd, int name);
 int fchdir(int fd);
 
 char *getlogin(void);
+int getlogin_r(char *buf, size_t len);
 char *getpass(const char *prompt);
 char *crypt(const char *key, const char *salt);
 char *ttyname(int fd);
