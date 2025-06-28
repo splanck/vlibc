@@ -22,6 +22,10 @@
 #define O_NONBLOCK 0
 #endif
 
+/*
+ * lseek() - reposition the offset of the open file descriptor FD.
+ * Returns the resulting offset or (off_t)-1 on error with errno set.
+ */
 off_t lseek(int fd, off_t offset, int whence)
 {
     long ret = vlibc_syscall(SYS_lseek, fd, (long)offset, whence, 0, 0, 0);
@@ -32,6 +36,9 @@ off_t lseek(int fd, off_t offset, int whence)
     return (off_t)ret;
 }
 
+/*
+ * dup() - duplicate OLDFD, returning a new file descriptor.
+ */
 int dup(int oldfd)
 {
     long ret = vlibc_syscall(SYS_dup, oldfd, 0, 0, 0, 0, 0);
@@ -42,6 +49,10 @@ int dup(int oldfd)
     return (int)ret;
 }
 
+/*
+ * dup2() - duplicate OLDFD to NEWFD. When VLIBC_HAVE_DUP3 is defined
+ * we use dup3; otherwise dup2 is employed.
+ */
 int dup2(int oldfd, int newfd)
 {
 #if VLIBC_HAVE_DUP3
@@ -56,6 +67,10 @@ int dup2(int oldfd, int newfd)
     return (int)ret;
 }
 
+/*
+ * pipe() - create a unidirectional data channel returning two file
+ * descriptors in PIPEFD.
+ */
 int pipe(int pipefd[2])
 {
 #if VLIBC_HAVE_PIPE2
@@ -70,6 +85,11 @@ int pipe(int pipefd[2])
     return 0;
 }
 
+/*
+ * dup3() - duplicate OLDFD to NEWFD with the given FLAGS.  When the
+ * kernel provides dup3 this directly invokes it; otherwise behaviour
+ * is emulated.
+ */
 int dup3(int oldfd, int newfd, int flags)
 {
 #if VLIBC_HAVE_DUP3
@@ -100,6 +120,11 @@ int dup3(int oldfd, int newfd, int flags)
 #endif
 }
 
+/*
+ * pipe2() - create a pipe with FLAGS controlling non-blocking and
+ * close-on-exec behaviour.  Falls back to pipe() when pipe2 is not
+ * available.
+ */
 int pipe2(int pipefd[2], int flags)
 {
 #if VLIBC_HAVE_PIPE2
