@@ -1,3 +1,9 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Basic Internet address utilities.
+ */
+
 #ifndef ARPA_INET_H
 #define ARPA_INET_H
 
