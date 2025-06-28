@@ -64,6 +64,7 @@ FILE *popen(const char *command, const char *mode)
         return NULL;
     }
     memset(&pf->file, 0, sizeof(FILE));
+    atomic_flag_clear(&pf->file.lock);
     pf->pid = pid;
     if (read_mode) {
         pf->file.fd = pipefd[0];

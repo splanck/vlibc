@@ -2343,6 +2343,43 @@ static const char *test_ferror_flag(void)
     return 0;
 }
 
+struct write_arg {
+    FILE *f;
+    char ch;
+};
+
+static void *flock_writer(void *arg)
+{
+    struct write_arg *a = arg;
+    for (int i = 0; i < 1000; i++) {
+        flockfile(a->f);
+        fputc(a->ch, a->f);
+        funlockfile(a->f);
+    }
+    return NULL;
+}
+
+static const char *test_flockfile_threadsafe(void)
+{
+    FILE *f = fopen("tmp_lock", "w");
+    mu_assert("open", f != NULL);
+
+    struct write_arg a = { f, 'A' };
+    struct write_arg b = { f, 'B' };
+    pthread_t ta, tb;
+    pthread_create(&ta, NULL, flock_writer, &a);
+    pthread_create(&tb, NULL, flock_writer, &b);
+    pthread_join(ta, NULL);
+    pthread_join(tb, NULL);
+    fclose(f);
+
+    struct stat st;
+    stat("tmp_lock", &st);
+    mu_assert("size", st.st_size == 2000);
+    unlink("tmp_lock");
+    return 0;
+}
+
 static void *basic_worker(void *arg)
 {
     *(int *)arg = 7;
@@ -5647,6 +5684,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_fflush),
         REGISTER_TEST("default", test_feof_flag),
         REGISTER_TEST("default", test_ferror_flag),
+        REGISTER_TEST("default", test_flockfile_threadsafe),
         REGISTER_TEST("default", test_pthread_create_join),
         REGISTER_TEST("default", test_pthread),
         REGISTER_TEST("default", test_pthread_detach),

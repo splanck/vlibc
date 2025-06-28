@@ -125,6 +125,7 @@ FILE *fopen(const char *path, const char *mode)
         return NULL;
     }
     memset(f, 0, sizeof(FILE));
+    atomic_flag_clear(&f->lock);
     f->fd = fd;
     if (mode[0] == 'r')
         f->readable = 1;
@@ -631,10 +632,36 @@ FILE *fdopen(int fd, const char *mode)
         return NULL;
     }
     memset(f, 0, sizeof(FILE));
+    atomic_flag_clear(&f->lock);
     f->fd = fd;
     f->readable = want_read;
     f->writable = want_write;
     f->append = want_append;
     return f;
+}
+
+void flockfile(FILE *stream)
+{
+    if (!stream)
+        return;
+    while (atomic_flag_test_and_set_explicit(&stream->lock,
+                                             memory_order_acquire))
+        ;
+}
+
+int ftrylockfile(FILE *stream)
+{
+    if (!stream)
+        return EINVAL;
+    if (atomic_flag_test_and_set_explicit(&stream->lock,
+                                          memory_order_acquire))
+        return EBUSY;
+    return 0;
+}
+
+void funlockfile(FILE *stream)
+{
+    if (stream)
+        atomic_flag_clear_explicit(&stream->lock, memory_order_release);
 }
 

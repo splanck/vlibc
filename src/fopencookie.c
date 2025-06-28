@@ -18,6 +18,7 @@ FILE *fopencookie(void *cookie, const char *mode,
     if (!f)
         return NULL;
     memset(f, 0, sizeof(FILE));
+    atomic_flag_clear(&f->lock);
     f->fd = -1;
     f->is_cookie = 1;
     f->cookie = cookie;

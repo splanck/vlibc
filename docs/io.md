@@ -217,7 +217,9 @@ Use `open_memstream` to capture output into a dynamically growing buffer or
 
 Streams may be given a custom buffer with `setvbuf` or the simpler
 `setbuf`. When buffered, I/O operates on that memory until it is filled
-or explicitly flushed.
+or explicitly flushed. When multiple threads share a stream use
+`flockfile(stream)` and `funlockfile(stream)` to guard accesses.
+`ftrylockfile` attempts the lock without blocking.
 
 `freopen` can replace the file associated with an existing stream so the same
 `FILE` handle refers to a new path. This is handy for redirecting a standard
