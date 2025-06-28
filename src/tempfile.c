@@ -38,6 +38,18 @@ static int replace_x(char *template)
     return 0;
 }
 
+static int replace_x_at(char *p)
+{
+    static const char chars[] =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    unsigned char rnd[6];
+    if (fill_random(rnd, sizeof(rnd)) < 0)
+        return -1;
+    for (int i = 0; i < 6; i++)
+        p[i] = chars[rnd[i] % (sizeof(chars) - 1)];
+    return 0;
+}
+
 /*
  * mkstemp() - create and open a unique temporary file from 'template'.
  * The last six X characters are replaced with random data.  Returns a
@@ -53,6 +65,62 @@ int mkstemp(char *template)
         if (replace_x(template) < 0)
             return -1;
         int fd = open(template, O_RDWR | O_CREAT | O_EXCL, 0600);
+        if (fd >= 0)
+            return fd;
+        if (errno != EEXIST)
+            return -1;
+    }
+    errno = EEXIST;
+    return -1;
+}
+
+/*
+ * mkostemp() - variant of mkstemp that allows extra open(2) flags
+ * such as O_CLOEXEC. The template must end with six X characters.
+ */
+int mkostemp(char *template, int flags)
+{
+    if (!template) {
+        errno = EINVAL;
+        return -1;
+    }
+    for (int i = 0; i < 100; i++) {
+        if (replace_x(template) < 0)
+            return -1;
+        int fd = open(template, flags | O_RDWR | O_CREAT | O_EXCL, 0600);
+        if (fd >= 0)
+            return fd;
+        if (errno != EEXIST)
+            return -1;
+    }
+    errno = EEXIST;
+    return -1;
+}
+
+/*
+ * mkostemps() - like mkostemp but supports a static suffix. The XXXXXX
+ * sequence must appear before the suffix of length 'suffixlen'.
+ */
+int mkostemps(char *template, int suffixlen, int flags)
+{
+    if (!template || suffixlen < 0) {
+        errno = EINVAL;
+        return -1;
+    }
+    size_t len = strlen(template);
+    if (len < (size_t)(suffixlen + 6)) {
+        errno = EINVAL;
+        return -1;
+    }
+    char *pos = template + len - suffixlen - 6;
+    if (strncmp(pos, "XXXXXX", 6) != 0) {
+        errno = EINVAL;
+        return -1;
+    }
+    for (int i = 0; i < 100; i++) {
+        if (replace_x_at(pos) < 0)
+            return -1;
+        int fd = open(template, flags | O_RDWR | O_CREAT | O_EXCL, 0600);
         if (fd >= 0)
             return fd;
         if (errno != EEXIST)

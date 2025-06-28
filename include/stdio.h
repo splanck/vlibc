@@ -125,6 +125,8 @@ FILE *popen(const char *command, const char *mode);
 int pclose(FILE *stream);
 
 int mkstemp(char *template);
+int mkostemp(char *template, int flags);
+int mkostemps(char *template, int suffixlen, int flags);
 FILE *tmpfile(void);
 /* Buffer must hold at least L_tmpnam characters or be NULL */
 char *tmpnam(char *s);

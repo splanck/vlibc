@@ -809,6 +809,30 @@ static const char *test_pipe2_cloexec(void)
     return 0;
 }
 
+static const char *test_mkostemp_cloexec(void)
+{
+    char tmpl[] = "/tmp/vlibcXXXXXX";
+    int fd = mkostemp(tmpl, O_CLOEXEC);
+    mu_assert("mkostemp", fd >= 0);
+    int fl = fcntl(fd, F_GETFD);
+    mu_assert("cloexec", (fl & FD_CLOEXEC) != 0);
+    close(fd);
+    unlink(tmpl);
+    return 0;
+}
+
+static const char *test_mkostemps_cloexec(void)
+{
+    char tmpl[] = "/tmp/vlibcXXXXXX.log";
+    int fd = mkostemps(tmpl, 4, O_CLOEXEC);
+    mu_assert("mkostemps", fd >= 0);
+    int fl = fcntl(fd, F_GETFD);
+    mu_assert("cloexec", (fl & FD_CLOEXEC) != 0);
+    close(fd);
+    unlink(tmpl);
+    return 0;
+}
+
 static const char *test_isatty_stdin(void)
 {
     int fd = open("tmp_isatty_file", O_CREAT | O_RDWR, 0644);
@@ -5692,6 +5716,8 @@ static const char *run_tests(const char *category)
 #endif
         REGISTER_TEST("default", test_dup3_cloexec),
         REGISTER_TEST("default", test_pipe2_cloexec),
+        REGISTER_TEST("default", test_mkostemp_cloexec),
+        REGISTER_TEST("default", test_mkostemps_cloexec),
         REGISTER_TEST("default", test_byte_order),
         REGISTER_TEST("default", test_isatty_stdin),
         REGISTER_TEST("default", test_ttyname_dev_tty),
