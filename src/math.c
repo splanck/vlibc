@@ -8,13 +8,21 @@
 
 #include "math.h"
 
+/* Value of pi used by the trig approximations */
 static const double PI = 3.14159265358979323846;
 
+/*
+ * fabs_approx() - lightweight absolute value used internally.
+ */
 static double fabs_approx(double x)
 {
     return x < 0 ? -x : x;
 }
 
+/*
+ * sin() - compute sine using a Taylor series approximation.
+ * The input is reduced to the range [-pi, pi] for better accuracy.
+ */
 double sin(double x)
 {
     while (x > PI)
@@ -31,6 +39,10 @@ double sin(double x)
     return sum;
 }
 
+/*
+ * cos() - compute cosine using a Taylor series approximation.
+ * The angle is reduced similarly to sin().
+ */
 double cos(double x)
 {
     while (x > PI)
@@ -47,6 +59,10 @@ double cos(double x)
     return sum;
 }
 
+/*
+ * tan() - compute tangent as sin(x)/cos(x).
+ * Returns 0 when cosine is zero to avoid division by zero.
+ */
 double tan(double x)
 {
     double s = sin(x);
@@ -54,6 +70,10 @@ double tan(double x)
     return c == 0.0 ? 0.0 : s / c;
 }
 
+/*
+ * sqrt() - compute square root using Newton's method.
+ * Returns 0 for non-positive inputs.
+ */
 double sqrt(double x)
 {
     if (x <= 0.0)
@@ -65,6 +85,10 @@ double sqrt(double x)
     return guess;
 }
 
+/*
+ * log_approx() - natural logarithm approximation using
+ * an arithmetic series expansion.
+ */
 static double log_approx(double x)
 {
     if (x <= 0.0)
@@ -80,6 +104,10 @@ static double log_approx(double x)
     return 2.0 * sum;
 }
 
+/*
+ * exp_approx() - approximate exponential function using
+ * a truncated power series.
+ */
 static double exp_approx(double x)
 {
     double term = 1.0;
@@ -91,6 +119,11 @@ static double exp_approx(double x)
     return sum;
 }
 
+/*
+ * pow() - raise a base to an exponent using repeated
+ * multiplication or the exp/log identities for fractional
+ * exponents.
+ */
 double pow(double base, double exp)
 {
     if (exp == 0.0)
@@ -109,16 +142,19 @@ double pow(double base, double exp)
     return exp_approx(exp * log_approx(base));
 }
 
+/* Return the natural logarithm using log_approx. */
 double log(double x)
 {
     return log_approx(x);
 }
 
+/* Return e raised to the given power using exp_approx. */
 double exp(double x)
 {
     return exp_approx(x);
 }
 
+/* Round toward negative infinity. */
 double floor(double x)
 {
     long i = (long)x;
@@ -127,6 +163,7 @@ double floor(double x)
     return (double)i;
 }
 
+/* Round toward positive infinity. */
 double ceil(double x)
 {
     long i = (long)x;
@@ -135,6 +172,7 @@ double ceil(double x)
     return (double)i;
 }
 
+/* Standard absolute value wrapper. */
 double fabs(double x)
 {
     return x < 0.0 ? -x : x;
