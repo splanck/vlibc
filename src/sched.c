@@ -1,5 +1,29 @@
 /*
- * BSD 2-Clause License
+ * BSD 2-Clause "Simplified" License
+ *
+ * Copyright (c) 2025
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
  * Purpose: Implements simple scheduling helpers for vlibc.
  */
@@ -10,6 +34,7 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/* Yield the processor to another runnable task. */
 int sched_yield(void)
 {
 #ifdef SYS_sched_yield
@@ -85,6 +110,7 @@ int nice(int incr)
     return cur + incr;
 }
 
+/* Return the current scheduling policy for pid. */
 int sched_getscheduler(pid_t pid)
 {
 #ifdef SYS_sched_getscheduler
@@ -105,6 +131,7 @@ int sched_getscheduler(pid_t pid)
 #endif
 }
 
+/* Set the scheduling policy and parameters for pid. */
 int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param)
 {
 #ifdef SYS_sched_setscheduler
@@ -127,6 +154,7 @@ int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param)
 #endif
 }
 
+/* Get the scheduling parameters for pid. */
 int sched_getparam(pid_t pid, struct sched_param *param)
 {
 #ifdef SYS_sched_getparam
@@ -149,6 +177,7 @@ int sched_getparam(pid_t pid, struct sched_param *param)
 #endif
 }
 
+/* Set the scheduling parameters for pid. */
 int sched_setparam(pid_t pid, const struct sched_param *param)
 {
 #ifdef SYS_sched_setparam
@@ -171,6 +200,7 @@ int sched_setparam(pid_t pid, const struct sched_param *param)
 #endif
 }
 
+/* Return the maximum scheduling priority for the given policy. */
 int sched_get_priority_max(int policy)
 {
 #ifdef SYS_sched_get_priority_max
@@ -192,6 +222,7 @@ int sched_get_priority_max(int policy)
 #endif
 }
 
+/* Return the minimum scheduling priority for the given policy. */
 int sched_get_priority_min(int policy)
 {
 #ifdef SYS_sched_get_priority_min
@@ -213,6 +244,7 @@ int sched_get_priority_min(int policy)
 #endif
 }
 
+/* Obtain the round-robin time quantum for pid. */
 int sched_rr_get_interval(pid_t pid, struct timespec *interval)
 {
 #ifdef SYS_sched_rr_get_interval_time64
