@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <stdio.h>
 
+/* Return non-zero if character requires octal escaping */
 static int need_octal(int c, int flag)
 {
     if (flag & VIS_OCTAL)

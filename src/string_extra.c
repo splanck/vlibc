@@ -9,6 +9,7 @@
 #include "string.h"
 #include "ctype.h"
 
+/* Locate first occurrence of byte c in the first n bytes of s */
 void *memchr(const void *s, int c, size_t n)
 {
     const unsigned char *p = s;
@@ -21,6 +22,7 @@ void *memchr(const void *s, int c, size_t n)
     return NULL;
 }
 
+/* Find byte c in s searching backwards */
 void *memrchr(const void *s, int c, size_t n)
 {
     const unsigned char *p = (const unsigned char *)s + n;
@@ -32,6 +34,7 @@ void *memrchr(const void *s, int c, size_t n)
     return NULL;
 }
 
+/* Search haystack for the first occurrence of needle */
 void *memmem(const void *haystack, size_t haystacklen,
              const void *needle, size_t needlelen)
 {
@@ -49,6 +52,7 @@ void *memmem(const void *haystack, size_t haystacklen,
     return NULL;
 }
 
+/* Locate last occurrence of character c in string s */
 char *strrchr(const char *s, int c)
 {
     const char *ret = NULL;
@@ -63,6 +67,7 @@ char *strrchr(const char *s, int c)
     return (char *)ret;
 }
 
+/* Locate substring needle in haystack */
 char *strstr(const char *haystack, const char *needle)
 {
     if (!*needle)
@@ -76,6 +81,7 @@ char *strstr(const char *haystack, const char *needle)
     return NULL;
 }
 
+/* Compare two strings ignoring case for up to n chars */
 int strncasecmp(const char *s1, const char *s2, size_t n)
 {
     while (n--) {
@@ -90,11 +96,13 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
     return 0;
 }
 
+/* Compare two strings ignoring case */
 int strcasecmp(const char *s1, const char *s2)
 {
     return strncasecmp(s1, s2, (size_t)-1);
 }
 
+/* Case-insensitive search of needle in haystack */
 char *strcasestr(const char *haystack, const char *needle)
 {
     if (!*needle)
@@ -110,6 +118,7 @@ char *strcasestr(const char *haystack, const char *needle)
     return NULL;
 }
 
+/* Copy src to dst ensuring null termination */
 size_t strlcpy(char *dst, const char *src, size_t size)
 {
     size_t len = vstrlen(src);
@@ -121,6 +130,7 @@ size_t strlcpy(char *dst, const char *src, size_t size)
     return len;
 }
 
+/* Append src to dst ensuring space for size bytes */
 size_t strlcat(char *dst, const char *src, size_t size)
 {
     size_t dlen = vstrlen(dst);
@@ -135,6 +145,7 @@ size_t strlcat(char *dst, const char *src, size_t size)
     return dlen + slen;
 }
 
+/* Count length of initial segment of s consisting of accept chars */
 size_t strspn(const char *s, const char *accept)
 {
     size_t count = 0;
@@ -156,6 +167,7 @@ size_t strspn(const char *s, const char *accept)
     return count;
 }
 
+/* Count length of initial segment of s containing no reject chars */
 size_t strcspn(const char *s, const char *reject)
 {
     size_t count = 0;
@@ -177,6 +189,7 @@ size_t strcspn(const char *s, const char *reject)
     return count;
 }
 
+/* Find first matching character from accept in s */
 char *strpbrk(const char *s, const char *accept)
 {
     while (*s) {
@@ -191,6 +204,7 @@ char *strpbrk(const char *s, const char *accept)
     return NULL;
 }
 
+/* Compare strings using current locale */
 int strcoll(const char *s1, const char *s2)
 {
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
@@ -204,6 +218,7 @@ int strcoll(const char *s1, const char *s2)
     return strcmp(s1, s2);
 }
 
+/* Transform src for locale collation into dest */
 size_t strxfrm(char *dest, const char *src, size_t n)
 {
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
@@ -225,6 +240,7 @@ size_t strxfrm(char *dest, const char *src, size_t n)
     return len;
 }
 
+/* Tokenize stringp using delimiters in delim */
 char *strsep(char **stringp, const char *delim)
 {
     if (!stringp || !*stringp)
@@ -247,6 +263,7 @@ char *strsep(char **stringp, const char *delim)
     return tok;
 }
 
+/* Copy src to dest returning pointer to trailing null */
 char *stpcpy(char *dest, const char *src)
 {
     char *d = dest;
@@ -255,6 +272,7 @@ char *stpcpy(char *dest, const char *src)
     return d - 1;
 }
 
+/* Copy up to n chars from src to dest returning end pointer */
 char *stpncpy(char *dest, const char *src, size_t n)
 {
     char *d = dest;
@@ -269,6 +287,7 @@ char *stpncpy(char *dest, const char *src, size_t n)
     return d;
 }
 
+/* Copy bytes until c is found or n exhausted */
 void *memccpy(void *dest, const void *src, int c, size_t n)
 {
     unsigned char *d = dest;
@@ -283,6 +302,7 @@ void *memccpy(void *dest, const void *src, int c, size_t n)
     return NULL;
 }
 
+/* Copy n bytes from src to dest returning pointer past end */
 void *mempcpy(void *dest, const void *src, size_t n)
 {
     vmemcpy(dest, src, n);
