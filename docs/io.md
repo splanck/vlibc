@@ -258,15 +258,20 @@ void parse_numbers(const char *buf, const char *fmt, ...) {
 
 `mkstemp` replaces the trailing `XXXXXX` in a template with random
 characters and opens the resulting file. `mkdtemp` performs the same
-replacement but creates a directory instead. `tmpfile` returns a stream
-backed by an anonymous temporary file that is unlinked immediately.
+replacement but creates a directory instead. `mkostemp` behaves like
+`mkstemp` but accepts additional open flags such as `O_CLOEXEC`.  The
+`mkostemps` variant allows a static suffix to remain after the replaced
+`XXXXXX` sequence. `tmpfile` returns a stream backed by an anonymous
+temporary file that is unlinked immediately.
 
 ```c
 char path[] = "/tmp/exampleXXXXXX";
-int fd = mkstemp(path);
+int fd = mkostemp(path, O_CLOEXEC);
 FILE *anon = tmpfile();
 char dir[] = "/tmp/exampledirXXXXXX";
 mkdtemp(dir);
+char log[] = "/tmp/logXXXXXX.txt";
+int fd2 = mkostemps(log, 4, O_CLOEXEC);
 mkfifo("/tmp/myfifo", 0600);
 ```
 
