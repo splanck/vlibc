@@ -83,14 +83,6 @@ int wctob(wchar_t wc)
     return (unsigned char)buf[0];
 }
 
-/* Return length in bytes of next multibyte character */
-int mblen(const char *s, size_t n)
-{
-    size_t r = mbrtowc(NULL, s, n, NULL);
-    if (r == (size_t)-1 || r == (size_t)-2)
-        return -1;
-    return (int)r;
-}
 
 /* Check if multibyte string contains non-ASCII characters. */
 static int has_non_ascii_mb(const char *s)

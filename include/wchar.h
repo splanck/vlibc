@@ -28,6 +28,7 @@ typedef struct { int __dummy; } mbstate_t;
 int mbtowc(wchar_t *pwc, const char *s, size_t n);
 /* Convert a wide character to a multibyte sequence */
 int wctomb(char *s, wchar_t wc);
+int mblen(const char *s, size_t n);
 /* Length of a wide-character string */
 size_t wcslen(const wchar_t *s);
 /* Copy a wide-character string */

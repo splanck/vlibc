@@ -34,6 +34,27 @@ int wctomb(char *s, wchar_t wc)
     return 1;
 }
 
+/* Return length in bytes of next multibyte character. */
+int mblen(const char *s, size_t n)
+{
+    if (!s)
+        return 0;
+    if (n == 0)
+        return -1;
+    unsigned char c = (unsigned char)*s;
+    if (c < 0x80)
+        return c ? 1 : 0;
+#if defined(__FreeBSD__) || defined(__NetBSD__) ||  \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    extern int host_mblen(const char *, size_t) __asm("mblen");
+    return host_mblen(s, n);
+#else
+    (void)n;
+    return -1;
+#endif
+}
+
+
 /* Return the length of wide-character string. */
 size_t wcslen(const wchar_t *s)
 {
