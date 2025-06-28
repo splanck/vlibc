@@ -106,6 +106,10 @@ int setenv(const char *name, const char *value, int overwrite)
         newflags = realloc(environ_flags, sizeof(unsigned char) * (count + 2));
         if (!newenv || !newflags) {
             free(entry);
+            if (newenv && newenv != environ)
+                free(newenv);
+            if (newflags && newflags != environ_flags)
+                free(newflags);
             return -1;
         }
         environ = newenv;
