@@ -95,6 +95,7 @@ static int start_task(struct aiocb *cb, void *(*fn)(void *))
     int r = pthread_create(&t->thr, NULL, fn, t);
     if (r != 0) {
         free(t);
+        cb->__reserved[0] = 0;
         errno = r;
         return -1;
     }
