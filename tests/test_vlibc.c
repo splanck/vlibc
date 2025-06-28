@@ -3584,7 +3584,7 @@ static const char *test_setenv_overwrite_loop(void)
     return 0;
 }
 
-static const char *test_setenv_alloc_fail(void)
+static const char *test_setenv_alloc_fail_simple(void)
 {
     env_init(NULL);
     setenv("A", "1", 1);
@@ -5808,6 +5808,16 @@ static const char *test_regex_range(void)
     return 0;
 }
 
+static const char *test_regex_alloc_fail(void)
+{
+    vlibc_test_alloc_fail_after = 5;
+    regex_t re;
+    int r = regcomp(&re, "ab", 0);
+    mu_assert("alloc fail", r == -1);
+    vlibc_test_alloc_fail_after = -1;
+    return 0;
+}
+
 static const char *test_math_functions(void)
 {
     mu_assert("fabs", fabs(-3.5) == 3.5);
@@ -6220,7 +6230,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_reallocarray_basic),
         REGISTER_TEST("memory", test_recallocarray_grow),
         REGISTER_TEST("memory", test_setenv_overwrite_loop),
-        REGISTER_TEST("memory", test_setenv_alloc_fail),
+        REGISTER_TEST("memory", test_setenv_alloc_fail_simple),
         REGISTER_TEST("memory", test_setenv_strdup_fail),
         REGISTER_TEST("memory", test_memory_ops),
         REGISTER_TEST("default", test_io),
@@ -6464,6 +6474,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_regex_posix_class),
         REGISTER_TEST("default", test_regex_alternation),
         REGISTER_TEST("default", test_regex_range),
+        REGISTER_TEST("default", test_regex_alloc_fail),
         REGISTER_TEST("default", test_math_functions),
         REGISTER_TEST("default", test_complex_cabs_cexp),
         REGISTER_TEST("default", test_abs_div_functions),

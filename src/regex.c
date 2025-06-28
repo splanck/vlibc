@@ -280,9 +280,11 @@ static char *expand_ranges(const char *pat)
     return out;
 }
 
-/* Recursively expand alternation operators. The resulting list must be
- * freed with list_free(). */
-static void expand_alts(const char *pat, struct strlist *out)
+/*
+ * Recursively expand alternation operators. Returns 0 on success or -1 on
+ * allocation failure. The resulting list must be freed with list_free().
+ */
+static int expand_alts(const char *pat, struct strlist *out)
 {
     int level = 0, cls = 0;
     size_t start = 0, len = strlen(pat);
@@ -296,29 +298,53 @@ static void expand_alts(const char *pat, struct strlist *out)
         if (c == ')' && level > 0) { level--; continue; }
         if (c == '|' && level == 0) {
             char *s = strndup(pat + start, i - start);
+            if (!s) {
+                list_free(&seg);
+                return -1;
+            }
             list_add(&seg, s);
             start = i + 1;
         }
     }
     char *s = strndup(pat + start, len - start);
+    if (!s) {
+        list_free(&seg);
+        return -1;
+    }
     list_add(&seg, s);
 
     if (seg.count > 1) {
         for (size_t i = 0; i < seg.count; i++) {
-            expand_alts(seg.items[i], out);
+            if (expand_alts(seg.items[i], out) != 0) {
+                list_free(&seg);
+                return -1;
+            }
         }
         list_free(&seg);
-        return;
+        return 0;
     }
 
     /* no top-level alternation: process groups */
     struct strlist cur = {0};
-    list_add(&cur, strdup(""));
+    char *empty = strdup("");
+    if (!empty) {
+        list_free(&seg);
+        return -1;
+    }
+    list_add(&cur, empty);
     for (size_t i = 0; i < len; ) {
         if (pat[i] == '\\' && i + 1 < len) {
             for (size_t j = 0; j < cur.count; j++) {
                 size_t l = strlen(cur.items[j]);
-                cur.items[j] = realloc(cur.items[j], l + 3);
+                char *tmp = realloc(cur.items[j], l + 3);
+                if (!tmp) {
+                    for (size_t k = 0; k < cur.count; k++)
+                        free(cur.items[k]);
+                    free(cur.items);
+                    list_free(&seg);
+                    return -1;
+                }
+                cur.items[j] = tmp;
                 cur.items[j][l] = pat[i];
                 cur.items[j][l+1] = pat[i+1];
                 cur.items[j][l+2] = '\0';
@@ -335,7 +361,15 @@ static void expand_alts(const char *pat, struct strlist *out)
             size_t ilen = j - i;
             for (size_t k = 0; k < cur.count; k++) {
                 size_t l = strlen(cur.items[k]);
-                cur.items[k] = realloc(cur.items[k], l + ilen + 1);
+                char *tmp = realloc(cur.items[k], l + ilen + 1);
+                if (!tmp) {
+                    for (size_t m = 0; m < cur.count; m++)
+                        free(cur.items[m]);
+                    free(cur.items);
+                    list_free(&seg);
+                    return -1;
+                }
+                cur.items[k] = tmp;
                 memcpy(cur.items[k] + l, pat + i, ilen);
                 cur.items[k][l+ilen] = '\0';
             }
@@ -349,8 +383,22 @@ static void expand_alts(const char *pat, struct strlist *out)
                 else j++;
             }
             char *inside = strndup(pat + i + 1, j - i - 2);
+            if (!inside) {
+                for (size_t k = 0; k < cur.count; k++)
+                    free(cur.items[k]);
+                free(cur.items);
+                list_free(&seg);
+                return -1;
+            }
             struct strlist sub = {0};
-            expand_alts(inside, &sub);
+            if (expand_alts(inside, &sub) != 0) {
+                free(inside);
+                for (size_t k = 0; k < cur.count; k++)
+                    free(cur.items[k]);
+                free(cur.items);
+                list_free(&seg);
+                return -1;
+            }
             free(inside);
             struct strlist newl = {0};
             for (size_t k = 0; k < cur.count; k++) {
@@ -374,7 +422,15 @@ static void expand_alts(const char *pat, struct strlist *out)
         } else {
             for (size_t k = 0; k < cur.count; k++) {
                 size_t l = strlen(cur.items[k]);
-                cur.items[k] = realloc(cur.items[k], l + 2);
+                char *tmp = realloc(cur.items[k], l + 2);
+                if (!tmp) {
+                    for (size_t m = 0; m < cur.count; m++)
+                        free(cur.items[m]);
+                    free(cur.items);
+                    list_free(&seg);
+                    return -1;
+                }
+                cur.items[k] = tmp;
                 cur.items[k][l] = pat[i];
                 cur.items[k][l+1] = '\0';
             }
@@ -385,6 +441,7 @@ static void expand_alts(const char *pat, struct strlist *out)
         list_add(out, cur.items[i]);
     free(cur.items);
     list_free(&seg);
+    return 0;
 }
 
 /* Basic character category checks used by the matcher. */
@@ -574,7 +631,11 @@ int regcomp(regex_t *preg, const char *pattern, int cflags)
     (void)cflags;
     char *expanded = expand_ranges(pattern);
     struct strlist alts = {0};
-    expand_alts(expanded, &alts);
+    if (expand_alts(expanded, &alts) != 0) {
+        free(expanded);
+        list_free(&alts);
+        return -1;
+    }
     free(expanded);
     if (alts.count == 0)
         return -1;
