@@ -78,6 +78,9 @@
 #include "../include/mqueue.h"
 #include "../include/sched.h"
 #include <limits.h>
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 #include <sys/syscall.h>
 #include "../include/syscall.h"
 
@@ -4609,6 +4612,28 @@ static const char *test_ftw_walk(void)
     return 0;
 }
 
+static int ftw_ignore(const char *path, const struct stat *sb, int flag,
+                      struct FTW *info)
+{
+    (void)path; (void)sb; (void)flag; (void)info;
+    walk_count++;
+    return 0;
+}
+
+static const char *test_ftw_long_path_fail(void)
+{
+    char path[PATH_MAX + 10];
+    memset(path, 'x', sizeof(path) - 1);
+    path[sizeof(path) - 1] = '\0';
+    errno = 0;
+    walk_count = 0;
+    int r = nftw(path, ftw_ignore, 8, FTW_PHYS);
+    mu_assert("errno", errno == ENAMETOOLONG);
+    mu_assert("nftw", r == 0);
+    mu_assert("callback", walk_count == 1);
+    return 0;
+}
+
 static const char *test_fts_walk(void)
 {
     char tmpl[] = "/tmp/ftsXXXXXX";
@@ -5658,6 +5683,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_wordexp_malformed),
         REGISTER_TEST("default", test_dirent),
         REGISTER_TEST("default", test_ftw_walk),
+        REGISTER_TEST("ftw", test_ftw_long_path_fail),
         REGISTER_TEST("default", test_fts_walk),
         REGISTER_TEST("default", test_fts_alloc_fail),
         REGISTER_TEST("default", test_qsort_int),

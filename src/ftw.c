@@ -67,7 +67,13 @@ static int do_nftw(const char *path,
                 continue;
             size_t len = strlen(path);
             size_t add = len && path[len-1] != '/' ? 1 : 0;
-            char *child = malloc(len + add + strlen(e->d_name) + 1);
+            size_t name_len = strlen(e->d_name);
+            if (len > SIZE_MAX - add - name_len - 1) {
+                closedir(d);
+                errno = ENAMETOOLONG;
+                return -1;
+            }
+            char *child = malloc(len + add + name_len + 1);
             if (!child) {
                 closedir(d);
                 errno = ENOMEM;
