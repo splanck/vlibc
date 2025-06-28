@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include "stdio.h"
+#include "stdlib.h"
 #include "syscall.h"
 
 int shm_open(const char *name, int oflag, mode_t mode)
@@ -31,9 +32,16 @@ int shm_open(const char *name, int oflag, mode_t mode)
         errno = EINVAL;
         return -1;
     }
-    char path[256];
-    snprintf(path, sizeof(path), "/dev/shm%s", name);
-    return open(path, oflag, mode);
+    size_t len = strlen(name) + sizeof("/dev/shm") + 1;
+    char *path = malloc(len);
+    if (!path) {
+        errno = ENOMEM;
+        return -1;
+    }
+    snprintf(path, len, "/dev/shm%s", name);
+    int ret = open(path, oflag, mode);
+    free(path);
+    return ret;
 #endif
 }
 
@@ -55,8 +63,15 @@ int shm_unlink(const char *name)
         errno = EINVAL;
         return -1;
     }
-    char path[256];
-    snprintf(path, sizeof(path), "/dev/shm%s", name);
-    return unlink(path);
+    size_t len = strlen(name) + sizeof("/dev/shm") + 1;
+    char *path = malloc(len);
+    if (!path) {
+        errno = ENOMEM;
+        return -1;
+    }
+    snprintf(path, len, "/dev/shm%s", name);
+    int ret = unlink(path);
+    free(path);
+    return ret;
 #endif
 }
