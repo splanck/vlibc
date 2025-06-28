@@ -10,6 +10,10 @@
 #include_next <errno.h>
 #include "syscall.h"
 
+/*
+ * vlibc_syscall() - Windows stub that reports unsupported calls.
+ * Always sets errno to ENOSYS and returns -1.
+ */
 long vlibc_syscall(long number, ...)
 {
     (void)number;

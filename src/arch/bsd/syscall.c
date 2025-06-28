@@ -11,6 +11,11 @@
 #include <sys/syscall.h>
 #include_next <errno.h>
 
+/*
+ * vlibc_syscall() - generic syscall wrapper used on BSD systems.
+ * Invokes the host syscall() function with up to six arguments and
+ * returns the result or -errno on failure.
+ */
 long vlibc_syscall(long number, ...)
 {
     va_list ap;

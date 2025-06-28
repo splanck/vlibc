@@ -8,6 +8,12 @@
 
 #include "setjmp.h"
 
+/*
+ * setjmp() - save callee-saved registers and stack state.
+ * Stores the program counter along with rbp, rbx and r12-r15
+ * into the provided jmp_buf. Returns 0 when saving the state
+ * and the value supplied to longjmp() when restoring.
+ */
 int setjmp(jmp_buf env)
 {
     int r;
@@ -30,6 +36,11 @@ int setjmp(jmp_buf env)
     return r;
 }
 
+/*
+ * longjmp() - resume execution from a saved setjmp context.
+ * Restores registers and jumps to the stored program counter.
+ * A zero value is translated to one before returning.
+ */
 void longjmp(jmp_buf env, int val)
 {
     if (val == 0)
