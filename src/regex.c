@@ -193,6 +193,8 @@ static char *expand_ranges(const char *pat)
     size_t len = strlen(pat);
     size_t cap = len * 4 + 1; /* grow heuristic */
     char *out = malloc(cap);
+    if (!out)
+        return NULL;
     size_t o = 0;
     for (size_t i = 0; i < len; ) {
         size_t item_start = i;
@@ -258,7 +260,12 @@ static char *expand_ranges(const char *pat)
             need = item_len * (size_t)n + (n - m); /* for '?' */
         if (o + need + 1 >= cap) {
             cap = (cap + need + 1) * 2;
-            out = realloc(out, cap);
+            char *tmp = realloc(out, cap);
+            if (!tmp) {
+                free(out);
+                return NULL;
+            }
+            out = tmp;
         }
 
         if (m >= 0 && n >= m) {
@@ -573,6 +580,8 @@ int regcomp(regex_t *preg, const char *pattern, int cflags)
 {
     (void)cflags;
     char *expanded = expand_ranges(pattern);
+    if (!expanded)
+        return -1;
     struct strlist alts = {0};
     expand_alts(expanded, &alts);
     free(expanded);
