@@ -204,6 +204,30 @@ static void *asctime_r_worker(void *arg)
     return (void *)(strcmp(buf, a->expect) != 0);
 }
 
+struct host_r_arg {
+    const char *name;
+    struct in_addr addr;
+};
+
+static void *hostent_r_worker(void *arg)
+{
+    struct host_r_arg *h = arg;
+    struct hostent he, *res;
+    char buf[128];
+    if (gethostbyname_r(h->name, &he, buf, sizeof(buf), &res) != 0 || !res)
+        return (void *)1;
+    if (memcmp(he.h_addr_list[0], &h->addr, sizeof(struct in_addr)) != 0)
+        return (void *)2;
+    struct hostent he2, *res2;
+    char buf2[128];
+    if (gethostbyaddr_r(&h->addr, sizeof(h->addr), AF_INET,
+                        &he2, buf2, sizeof(buf2), &res2) != 0 || !res2)
+        return (void *)3;
+    if (strcmp(he2.h_name, h->name) != 0)
+        return (void *)4;
+    return NULL;
+}
+
 static const char *test_malloc(void)
 {
     void *p = malloc(16);
@@ -1023,6 +1047,60 @@ static const char *test_hosts_long_file(void)
 
     mu_assert("lookup", ok_lookup && ip == inet_addr("1.2.3.4"));
     mu_assert("reverse", ok_reverse);
+    return 0;
+}
+
+static const char *test_hostent_r_threadsafe(void)
+{
+    FILE *f = fopen("/etc/hosts", "r");
+    if (!f)
+        return "open hosts";
+    fseek(f, 0, SEEK_END);
+    long orig_len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char *orig = malloc(orig_len + 1);
+    if (!orig) {
+        fclose(f);
+        return "alloc";
+    }
+    if (fread(orig, 1, orig_len, f) != (size_t)orig_len) {
+        fclose(f);
+        free(orig);
+        return "read";
+    }
+    fclose(f);
+
+    f = fopen("/etc/hosts", "w");
+    if (!f) {
+        free(orig);
+        return "write open";
+    }
+    fprintf(f, "10.0.0.11 hosta\n");
+    fprintf(f, "10.0.0.12 hostb\n");
+    fclose(f);
+
+    struct in_addr a1, a2;
+    inet_aton("10.0.0.11", &a1);
+    inet_aton("10.0.0.12", &a2);
+    struct host_r_arg h1 = { "hosta", a1 };
+    struct host_r_arg h2 = { "hostb", a2 };
+    pthread_t t1, t2;
+    pthread_create(&t1, NULL, hostent_r_worker, &h1);
+    pthread_create(&t2, NULL, hostent_r_worker, &h2);
+    void *r1 = (void *)1;
+    void *r2 = (void *)1;
+    pthread_join(t1, &r1);
+    pthread_join(t2, &r2);
+
+    f = fopen("/etc/hosts", "w");
+    if (f) {
+        fwrite(orig, 1, orig_len, f);
+        fclose(f);
+    }
+    free(orig);
+
+    mu_assert("hostent_r thread1", r1 == NULL);
+    mu_assert("hostent_r thread2", r2 == NULL);
     return 0;
 }
 
@@ -5743,6 +5821,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("network", test_inet_pton_ntop),
         REGISTER_TEST("network", test_inet_aton_ntoa),
         REGISTER_TEST("network", test_hosts_long_file),
+        REGISTER_TEST("network", test_hostent_r_threadsafe),
         REGISTER_TEST("default", test_errno_open),
         REGISTER_TEST("default", test_errno_stat),
         REGISTER_TEST("default", test_stat_wrappers),

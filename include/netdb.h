@@ -47,6 +47,11 @@ struct hostent {
 
 struct hostent *gethostbyname(const char *name);
 struct hostent *gethostbyaddr(const void *addr, socklen_t len, int type);
+int gethostbyname_r(const char *name, struct hostent *ret,
+                    char *buf, size_t buflen, struct hostent **result);
+int gethostbyaddr_r(const void *addr, socklen_t len, int type,
+                    struct hostent *ret, char *buf, size_t buflen,
+                    struct hostent **result);
 
 /* getaddrinfo error codes */
 #ifndef EAI_BADFLAGS

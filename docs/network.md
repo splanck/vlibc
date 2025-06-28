@@ -57,6 +57,21 @@ struct hostent {
 
 struct hostent *gethostbyname(const char *name);
 struct hostent *gethostbyaddr(const void *addr, socklen_t len, int type);
+int gethostbyname_r(const char *name, struct hostent *ret,
+                    char *buf, size_t buflen, struct hostent **result);
+int gethostbyaddr_r(const void *addr, socklen_t len, int type,
+                    struct hostent *ret, char *buf, size_t buflen,
+                    struct hostent **result);
+```
+
+The `_r` variants fill caller provided buffers so they are safe for
+concurrent use:
+
+```c
+struct hostent he, *res;
+char buf[256];
+if (gethostbyname_r("localhost", &he, buf, sizeof(buf), &res) == 0 && res)
+    printf("%s\n", he.h_name);
 ```
 
 Create a pair of connected sockets with `socketpair`:
