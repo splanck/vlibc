@@ -77,6 +77,10 @@ int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *acts, int fd,
 int posix_spawn_file_actions_adddup2(posix_spawn_file_actions_t *acts, int fd,
                                      int newfd);
 int posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *acts, int fd);
+int posix_spawn_file_actions_addchdir(posix_spawn_file_actions_t *acts,
+                                      const char *path);
+int posix_spawn_file_actions_addfchdir(posix_spawn_file_actions_t *acts,
+                                       int fd);
 int posix_spawn(pid_t *pid, const char *path,
                 const posix_spawn_file_actions_t *file_actions,
                 const posix_spawnattr_t *attrp,

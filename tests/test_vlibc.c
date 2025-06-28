@@ -3861,6 +3861,76 @@ static const char *test_posix_spawn_pgroup(void)
     return 0;
 }
 
+static const char *test_posix_spawn_chdir(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    char tmpl[] = "/tmp/pspawn_cdXXXXXX";
+    char *dir = mkdtemp(tmpl);
+    mu_assert("mkdtemp", dir != NULL);
+    const char *out = "/tmp/pspawn_pwd.txt";
+
+    posix_spawn_file_actions_t fa;
+    posix_spawn_file_actions_init(&fa);
+    posix_spawn_file_actions_addchdir(&fa, dir);
+    posix_spawn_file_actions_addopen(&fa, 1, out,
+                                    O_WRONLY | O_CREAT | O_TRUNC, 0600);
+
+    char *argv[] = {"/bin/pwd", NULL};
+    pid_t pid;
+    int r = posix_spawn(&pid, "/bin/pwd", &fa, NULL, argv, __environ);
+    posix_spawn_file_actions_destroy(&fa);
+    mu_assert("spawn chdir", r == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("pwd status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    int fd = open(out, O_RDONLY);
+    char buf[PATH_MAX] = {0};
+    ssize_t n = read(fd, buf, sizeof(buf) - 1);
+    close(fd);
+    unlink(out);
+    rmdir(dir);
+    mu_assert("pwd output", n > 0 && strncmp(buf, dir, strlen(dir)) == 0);
+    return 0;
+}
+
+static const char *test_posix_spawn_fchdir(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    char tmpl[] = "/tmp/pspawn_fcdXXXXXX";
+    char *dir = mkdtemp(tmpl);
+    mu_assert("mkdtemp", dir != NULL);
+    int dfd = open(dir, O_RDONLY);
+    mu_assert("open dir", dfd >= 0);
+    const char *out = "/tmp/pspawn_pwd2.txt";
+
+    posix_spawn_file_actions_t fa;
+    posix_spawn_file_actions_init(&fa);
+    posix_spawn_file_actions_addfchdir(&fa, dfd);
+    posix_spawn_file_actions_addclose(&fa, dfd);
+    posix_spawn_file_actions_addopen(&fa, 1, out,
+                                    O_WRONLY | O_CREAT | O_TRUNC, 0600);
+
+    char *argv[] = {"/bin/pwd", NULL};
+    pid_t pid;
+    int r = posix_spawn(&pid, "/bin/pwd", &fa, NULL, argv, __environ);
+    posix_spawn_file_actions_destroy(&fa);
+    close(dfd);
+    mu_assert("spawn fchdir", r == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("pwd status", WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    int fd = open(out, O_RDONLY);
+    char buf[PATH_MAX] = {0};
+    ssize_t n = read(fd, buf, sizeof(buf) - 1);
+    close(fd);
+    unlink(out);
+    rmdir(dir);
+    mu_assert("pwd output", n > 0 && strncmp(buf, dir, strlen(dir)) == 0);
+    return 0;
+}
+
 static const char *test_posix_spawn_actions_alloc_fail(void)
 {
     posix_spawn_file_actions_t fa;
@@ -5721,6 +5791,8 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_posix_spawn_actions),
         REGISTER_TEST("default", test_posix_spawn_sigmask),
         REGISTER_TEST("default", test_posix_spawn_pgroup),
+        REGISTER_TEST("default", test_posix_spawn_chdir),
+        REGISTER_TEST("default", test_posix_spawn_fchdir),
         REGISTER_TEST("default", test_posix_spawn_actions_alloc_fail),
         REGISTER_TEST("default", test_popen_fn),
         REGISTER_TEST("default", test_rand_fn),
