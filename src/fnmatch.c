@@ -9,6 +9,11 @@
 #include "fnmatch.h"
 #include "string.h"
 
+/*
+ * match_range() - parse and evaluate a character range starting at `p`.
+ * Sets `ep` to the position after the closing bracket and returns
+ * whether character `c` matches the range considering `flags`.
+ */
 static int match_range(const char *p, char c, int flags, const char **ep)
 {
     int neg = 0;
@@ -47,6 +52,11 @@ static int match_range(const char *p, char c, int flags, const char **ep)
     return neg ? !ok : ok;
 }
 
+/*
+ * do_match() - internal recursive matcher implementing the core
+ * fnmatch algorithm. Returns non-zero if string `s` matches pattern
+ * `p` according to `flags`.
+ */
 static int do_match(const char *p, const char *s, int flags)
 {
     while (*p) {
@@ -88,6 +98,11 @@ static int do_match(const char *p, const char *s, int flags)
     return *s == '\0';
 }
 
+/*
+ * fnmatch() - compare `string` to the glob pattern `pattern`.
+ * Returns 0 on match or FNM_NOMATCH when the pattern does not
+ * match, honoring the provided `flags`.
+ */
 int fnmatch(const char *pattern, const char *string, int flags)
 {
     return do_match(pattern, string, flags) ? 0 : FNM_NOMATCH;

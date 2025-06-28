@@ -12,7 +12,12 @@
 #include <unistd.h>
 #include "syscall.h"
 
-/* Send a message along with ancillary data */
+/*
+ * sendmsg() - send a message along with optional ancillary data.
+ * Uses SYS_sendmsg when available and falls back to a host
+ * implementation when necessary. Returns bytes sent or -1
+ * on error with errno set.
+ */
 ssize_t sendmsg(int sockfd, const struct msghdr *msg, int flags)
 {
 #ifdef SYS_sendmsg
@@ -35,7 +40,12 @@ ssize_t sendmsg(int sockfd, const struct msghdr *msg, int flags)
 #endif
 }
 
-/* Receive a message and any ancillary data */
+/*
+ * recvmsg() - receive a message and any ancillary data from a socket.
+ * Uses SYS_recvmsg when available and falls back to a host
+ * implementation when necessary. Returns bytes received or -1
+ * on error with errno set.
+ */
 ssize_t recvmsg(int sockfd, struct msghdr *msg, int flags)
 {
 #ifdef SYS_recvmsg
