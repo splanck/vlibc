@@ -9,6 +9,9 @@
 #include "stdlib.h"
 #include "process.h"
 
+/*
+ * abort() - send SIGABRT to the current process and then exit.
+ */
 void abort(void)
 {
     kill(getpid(), SIGABRT);
