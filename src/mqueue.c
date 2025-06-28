@@ -19,6 +19,7 @@
 #include "poll.h"
 #include "fcntl.h"
 #include "syscall.h"
+#include <limits.h>
 
 #if defined(SYS_mq_timedsend_time64) || defined(SYS_mq_timedsend) || \
     defined(SYS_mq_timedreceive_time64) || defined(SYS_mq_timedreceive) || \
@@ -54,6 +55,9 @@ int mq_wait(mqd_t mqdes, short events, const struct timespec *abstime)
                        (abstime->tv_nsec - now.tv_nsec) / 1000000;
             if (ms < 0)
                 ms = 0;
+            /* Clamp to INT_MAX to avoid overflow when casting */
+            if (ms > INT_MAX)
+                ms = INT_MAX;
             timeout = (int)ms;
         }
         struct pollfd pfd = { mqdes, events, 0 };
