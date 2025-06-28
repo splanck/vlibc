@@ -220,6 +220,11 @@ static const u_char	ascii64[] =
 /*	  0000000000111111111122222222223333333333444444444455555555556666 */
 /*	  0123456789012345678901234567890123456789012345678901234567890123 */
 
+/*
+ * Encode the low-order bits of v into n characters of the supplied
+ * buffer using the custom base-64 alphabet.  The buffer is not
+ * null-terminated by this routine.
+ */
 static void
 _crypt_to64(char *s, u_long v, int n)
 {
@@ -229,6 +234,10 @@ _crypt_to64(char *s, u_long v, int n)
         }
 }
 
+/*
+ * Convert three bytes into base-64 text.  'n' specifies how many output
+ * characters to generate and *cp is advanced past the written data.
+ */
 static void
 b64_from_24bit(unsigned int b2, unsigned int b1, unsigned int b0, int n,
     char **cp)
@@ -241,6 +250,10 @@ b64_from_24bit(unsigned int b2, unsigned int b1, unsigned int b0, int n,
         }
 }
 
+/*
+ * Translate a character from the custom base-64 alphabet back into the
+ * corresponding 6-bit value.  Invalid characters return zero.
+ */
 static INLINE int
 ascii_to_bin(char ch)
 {
@@ -259,6 +272,10 @@ ascii_to_bin(char ch)
 	return(0);
 }
 
+/*
+ * Prepare DES lookup tables and masks.  This must be called before any
+ * DES operations are performed and only needs to run once per thread.
+ */
 static void
 des_init(void)
 {
@@ -388,6 +405,11 @@ des_init(void)
 	des_initialised = 1;
 }
 
+/*
+ * Precompute bit patterns used for salting the DES rounds.  The salt
+ * value should contain up to 24 useful bits.  Subsequent operations use
+ * the global saltbits prepared here.
+ */
 static void
 setup_salt(u_int32_t salt)
 {
@@ -409,6 +431,10 @@ setup_salt(u_int32_t salt)
 	}
 }
 
+/*
+ * Expand the supplied 64-bit key and compute the DES key schedule.
+ * Returns 0 on success.  Reuses cached results when the key is unchanged.
+ */
 static int
 des_setkey(const char *key)
 {
@@ -489,6 +515,11 @@ des_setkey(const char *key)
 	return(0);
 }
 
+/*
+ * Core DES engine.  Encrypts or decrypts a 64-bit block depending on the
+ * sign of "count".  Results are written to l_out and r_out.  Returning 1
+ * indicates no operation when count is zero.
+ */
 static int
 do_des(	u_int32_t l_in, u_int32_t r_in, u_int32_t *l_out, u_int32_t *r_out, int count)
 {
@@ -605,6 +636,11 @@ do_des(	u_int32_t l_in, u_int32_t r_in, u_int32_t *l_out, u_int32_t *r_out, int 
 	return(0);
 }
 
+/*
+ * Public interface to the DES primitive.  Encrypts the 64-bit block at
+ * 'in' into 'out' using the current key schedule and provided salt for
+ * the specified number of rounds.
+ */
 static int
 des_cipher(const char *in, char *out, u_long salt, int count)
 {
@@ -632,6 +668,12 @@ des_cipher(const char *in, char *out, u_long salt, int count)
 	return(retval);
 }
 
+/*
+ * Classic DES password hashing routine.  'key' is the user's password,
+ * 'setting' contains the salt and iteration count, and the resulting
+ * hash is written as a NUL terminated string to 'buffer'.
+ * Returns 0 on success or -1 on failure.
+ */
 int
 crypt_des(const char *key, const char *setting, char *buffer)
 {
@@ -734,6 +776,11 @@ crypt_des(const char *key, const char *setting, char *buffer)
        return (0);
 }
 
+/*
+ * MD5-based password hash used by many systems.  The key 'pw' and the
+ * salt string are processed using the algorithm described in RFC 1321.
+ * The resulting hash text is written to 'buffer'.
+ */
 static int
 crypt_md5(const char *pw, const char *salt, char *buffer)
 {
@@ -820,6 +867,11 @@ crypt_md5(const char *pw, const char *salt, char *buffer)
         return (0);
 }
 
+/*
+ * SHA-256 password hashing as used by modern Unix systems.  It supports an
+ * optional rounds specification in the salt.  The final encoded hash is
+ * written to 'buffer'.
+ */
 static int
 crypt_sha256(const char *key, const char *salt, char *buffer)
 {
@@ -949,6 +1001,11 @@ crypt_sha256(const char *key, const char *salt, char *buffer)
         return (0);
 }
 
+/*
+ * Implementation of the SHA-512 based password hash.  The salt may
+ * include a custom rounds specification.  The resulting string is
+ * stored in 'buffer'.
+ */
 static int
 crypt_sha512(const char *key, const char *salt, char *buffer)
 {
@@ -1097,6 +1154,11 @@ crypt_sha512(const char *key, const char *salt, char *buffer)
 extern char *host_crypt(const char *, const char *) __asm("crypt");
 
 char *
+/*
+ * Dispatch wrapper that selects the appropriate hashing algorithm
+ * based on the prefix of 'salt'.  Returns a pointer to a thread-local
+ * buffer containing the hashed password.
+ */
 crypt(const char *key, const char *salt)
 {
     static __thread char buf[128];
