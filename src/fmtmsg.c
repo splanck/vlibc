@@ -75,6 +75,7 @@ static char *
 printfmt(char *msgverb, long class, const char *label, int sev,
         const char *text, const char *act, const char *tag)
 {
+    (void)class;
     size_t size;
     char *comp, *output;
     const char *sevname;
