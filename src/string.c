@@ -9,7 +9,11 @@
 #include "string.h"
 #include "memory.h"
 
-/* Return the length of a NUL terminated string. */
+/*
+ * Return the length of a NUL terminated string. This helper
+ * is used internally so that we do not rely on the host
+ * implementation of strlen.
+ */
 size_t vstrlen(const char *s)
 {
     const char *p = s;
@@ -18,7 +22,10 @@ size_t vstrlen(const char *s)
     return (size_t)(p - s);
 }
 
-/* Like strlen but stops after maxlen characters. */
+/*
+ * Like strlen but stops scanning after maxlen characters.
+ * The return value will not exceed maxlen.
+ */
 size_t strnlen(const char *s, size_t maxlen)
 {
     const char *p = s;
@@ -27,7 +34,10 @@ size_t strnlen(const char *s, size_t maxlen)
     return (size_t)(p - s);
 }
 
-/* Copy src string to dest, returning dest. */
+/*
+ * Copy the NUL terminated string src to dest and return dest.
+ * The destination buffer must be large enough to hold src.
+ */
 char *vstrcpy(char *dest, const char *src)
 {
     char *d = dest;
@@ -38,7 +48,10 @@ char *vstrcpy(char *dest, const char *src)
     return dest;
 }
 
-/* Compare two strings up to n characters. */
+/*
+ * Compare two strings up to n characters and return the
+ * difference of the first mismatching bytes.
+ */
 int vstrncmp(const char *s1, const char *s2, size_t n)
 {
     while (n--) {
@@ -52,13 +65,19 @@ int vstrncmp(const char *s1, const char *s2, size_t n)
     return 0;
 }
 
-/* Wrapper around vstrncmp for complete comparison. */
+/*
+ * Wrapper around vstrncmp for convenience when comparing
+ * entire strings.
+ */
 int strcmp(const char *s1, const char *s2)
 {
     return vstrncmp(s1, s2, (size_t)-1);
 }
 
-/* Find the first occurrence of c in s. */
+/*
+ * Find the first occurrence of the character c in the
+ * string s.  A pointer to the character or NULL is returned.
+ */
 char *strchr(const char *s, int c)
 {
     unsigned char ch = (unsigned char)c;
@@ -72,7 +91,10 @@ char *strchr(const char *s, int c)
     return NULL;
 }
 
-/* Allocate a duplicate of s using malloc. */
+/*
+ * Allocate a duplicate of the string s using malloc.
+ * Returns NULL if memory allocation fails.
+ */
 char *strdup(const char *s)
 {
     size_t len = vstrlen(s);
@@ -83,7 +105,10 @@ char *strdup(const char *s)
     return dup;
 }
 
-/* Bounded string copy that NUL pads the result. */
+/*
+ * Bounded string copy that writes at most n characters from
+ * src into dest and NUL pads the remainder of the buffer.
+ */
 char *strncpy(char *dest, const char *src, size_t n)
 {
     char *d = dest;
@@ -97,7 +122,9 @@ char *strncpy(char *dest, const char *src, size_t n)
     return dest;
 }
 
-/* Append src to dest. */
+/*
+ * Append the NUL terminated src string to the end of dest.
+ */
 char *strcat(char *dest, const char *src)
 {
     char *d = dest;
@@ -109,7 +136,10 @@ char *strcat(char *dest, const char *src)
     return dest;
 }
 
-/* Append at most n characters from src to dest. */
+/*
+ * Append at most n characters from src to the end of dest
+ * and always terminate dest with a NUL byte.
+ */
 char *strncat(char *dest, const char *src, size_t n)
 {
     char *d = dest;
@@ -124,7 +154,11 @@ char *strncat(char *dest, const char *src, size_t n)
 /* Fallback storage for strtok when strtok_r is not used. */
 static char *strtok_static;
 
-/* Reentrant tokenizer splitting a string using delimiters. */
+/*
+ * Reentrant string tokenizer.  Splits str into tokens using
+ * any of the delimiter characters from delim and stores the
+ * parsing state in saveptr.
+ */
 char *strtok_r(char *str, const char *delim, char **saveptr)
 {
     char *s;
@@ -163,7 +197,10 @@ char *strtok_r(char *str, const char *delim, char **saveptr)
     return token;
 }
 
-/* Non-reentrant tokenizer using a static state. */
+/*
+ * Non-reentrant wrapper around strtok_r that keeps the parser
+ * state in a static variable.
+ */
 char *strtok(char *str, const char *delim)
 {
     return strtok_r(str, delim, &strtok_static);
