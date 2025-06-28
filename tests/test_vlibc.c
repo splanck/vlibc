@@ -78,6 +78,7 @@
 #include "../include/sys/msg.h"
 #include "../include/mqueue.h"
 #include "../include/sched.h"
+#include "../include/aio.h"
 #include <limits.h>
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -1250,6 +1251,46 @@ static const char *test_fdatasync_basic(void)
     close(fd);
     unlink(fname);
     mu_assert("fdatasync", r == 0);
+    return 0;
+}
+
+static const char *test_aio_basic(void)
+{
+    const char *fname = "tmp_aio_file";
+    int fd = open(fname, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    mu_assert("open", fd >= 0);
+
+    struct aiocb wcb;
+    memset(&wcb, 0, sizeof(wcb));
+    const char *msg = "hello";
+    wcb.aio_fildes = fd;
+    wcb.aio_buf = (void *)msg;
+    wcb.aio_nbytes = 5;
+    wcb.aio_offset = 0;
+    wcb.aio_lio_opcode = LIO_WRITE;
+    mu_assert("aio_write", aio_write(&wcb) == 0);
+    const struct aiocb *wl[1] = {&wcb};
+    mu_assert("aio_suspend", aio_suspend(wl, 1, NULL) == 0);
+    mu_assert("aio_error", aio_error(&wcb) == 0);
+    mu_assert("aio_return", aio_return(&wcb) == 5);
+
+    struct aiocb rcb;
+    memset(&rcb, 0, sizeof(rcb));
+    char buf[6] = {0};
+    rcb.aio_fildes = fd;
+    rcb.aio_buf = buf;
+    rcb.aio_nbytes = 5;
+    rcb.aio_offset = 0;
+    rcb.aio_lio_opcode = LIO_READ;
+    mu_assert("aio_read", aio_read(&rcb) == 0);
+    const struct aiocb *rl[1] = {&rcb};
+    mu_assert("aio_suspend2", aio_suspend(rl, 1, NULL) == 0);
+    mu_assert("aio_error2", aio_error(&rcb) == 0);
+    mu_assert("aio_return2", aio_return(&rcb) == 5);
+    mu_assert("data", memcmp(buf, "hello", 5) == 0);
+
+    close(fd);
+    unlink(fname);
     return 0;
 }
 
@@ -5607,6 +5648,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_at_wrappers_basic),
         REGISTER_TEST("default", test_fsync_basic),
         REGISTER_TEST("default", test_fdatasync_basic),
+        REGISTER_TEST("default", test_aio_basic),
         REGISTER_TEST("default", test_sync_basic),
         REGISTER_TEST("default", test_string_helpers),
         REGISTER_TEST("default", test_string_casecmp),

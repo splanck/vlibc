@@ -63,6 +63,7 @@ SRC := \
     src/memory.c \
     src/memory_ops.c \
     src/atexit.c \
+    src/aio.c \
     src/process.c \
     src/signal.c \
     src/abort.c \
