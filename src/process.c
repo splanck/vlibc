@@ -59,6 +59,25 @@ pid_t fork(void)
 }
 
 /*
+ * vfork() - create a new process sharing the parent's address space until
+ * the child either execs or exits. When the SYS_vfork syscall exists it is
+ * invoked directly, otherwise the wrapper falls back to fork().
+ */
+pid_t vfork(void)
+{
+#ifdef SYS_vfork
+    long ret = vlibc_syscall(SYS_vfork, 0, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (pid_t)ret;
+#else
+    return fork();
+#endif
+}
+
+/*
  * execve() - execute a program via the SYS_execve system call wrapper. On
  * failure the return value from vlibc_syscall is negated and stored in errno
  * and -1 is returned.
@@ -774,16 +793,7 @@ int posix_spawnattr_getpgroup(const posix_spawnattr_t *attr, pid_t *pgroup)
  */
 static __attribute__((unused)) pid_t vlibc_vfork(void)
 {
-#ifdef SYS_vfork
-    long ret = vlibc_syscall(SYS_vfork, 0, 0, 0, 0, 0, 0);
-    if (ret < 0) {
-        errno = -ret;
-        return -1;
-    }
-    return (pid_t)ret;
-#else
-    return fork();
-#endif
+    return vfork();
 }
 
 /*

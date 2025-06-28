@@ -3782,6 +3782,18 @@ static const char *test_process_group_wrappers(void)
     return 0;
 }
 
+static const char *test_vfork_basic(void)
+{
+    pid_t pid = vfork();
+    mu_assert("vfork", pid >= 0);
+    if (pid == 0)
+        _exit(5);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("child", WIFEXITED(status) && WEXITSTATUS(status) == 5);
+    return 0;
+}
+
 static const char *test_system_fn(void)
 {
     int r = system("true");
@@ -6021,6 +6033,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_err_functions),
         REGISTER_TEST("default", test_strsignal_names),
         REGISTER_TEST("default", test_process_group_wrappers),
+        REGISTER_TEST("default", test_vfork_basic),
         REGISTER_TEST("default", test_system_fn),
         REGISTER_TEST("default", test_system_interrupted),
         REGISTER_TEST("default", test_execv_fn),
