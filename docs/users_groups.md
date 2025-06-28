@@ -71,8 +71,9 @@ void endgrent(void);
 
 As with the password file, BSD platforms parse the group database directly.
 The path can be overridden via the `VLIBC_GROUP` environment variable when
-running tests. The `*_r` variants fill caller provided buffers and are
-thread-safe.
+running tests. `getgrgid()` and `getgrnam()` return pointers into thread-local
+storage so concurrent calls from different threads are independent. The `*_r`
+variants fill caller provided buffers and are thread-safe.
 
 `setgrent()`, `getgrent()` and `endgrent()` enumerate group entries in
 order.  As with the passwd enumeration, BSD platforms use the host
