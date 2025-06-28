@@ -11,6 +11,7 @@
 #include <stdarg.h>
 #include "syscall.h"
 
+/* Obtain a semaphore set identifier, creating one if needed. */
 int semget(key_t key, int nsems, int semflg)
 {
 #ifdef SYS_semget
@@ -31,6 +32,7 @@ int semget(key_t key, int nsems, int semflg)
 #endif
 }
 
+/* Perform operations on members of a semaphore set. */
 int semop(int semid, struct sembuf *sops, size_t nsops)
 {
 #ifdef SYS_semop
@@ -51,6 +53,7 @@ int semop(int semid, struct sembuf *sops, size_t nsops)
 #endif
 }
 
+/* General control operation on a semaphore set. */
 int semctl(int semid, int semnum, int cmd, ...)
 {
     unsigned long arg = 0;

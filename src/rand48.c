@@ -15,17 +15,20 @@ static uint64_t rand48_mult  = 0x5deece66dULL;
 static uint64_t rand48_add   = 0xbULL;
 #define RAND48_MASK ((1ULL << 48) - 1)
 
+/* Advance the linear congruential generator state. */
 static uint64_t rand48_step(void)
 {
     rand48_state = (rand48_state * rand48_mult + rand48_add) & RAND48_MASK;
     return rand48_state;
 }
 
+/* Convert three 16-bit words to a 48-bit integer state. */
 static uint64_t arr_to_u64(const unsigned short x[3])
 {
     return ((uint64_t)x[2] << 32) | ((uint64_t)x[1] << 16) | (uint64_t)x[0];
 }
 
+/* Split a 48-bit state into three 16-bit words. */
 static void u64_to_arr(uint64_t v, unsigned short x[3])
 {
     x[0] = (unsigned short)(v & 0xffff);
@@ -33,11 +36,13 @@ static void u64_to_arr(uint64_t v, unsigned short x[3])
     x[2] = (unsigned short)((v >> 32) & 0xffff);
 }
 
+/* Generate a double in [0,1) using the internal state. */
 double drand48(void)
 {
     return rand48_step() / (double)(1ULL << 48);
 }
 
+/* Generate a double using the supplied state array and update it. */
 double erand48(unsigned short x[3])
 {
     uint64_t v = arr_to_u64(x);
@@ -46,11 +51,13 @@ double erand48(unsigned short x[3])
     return v / (double)(1ULL << 48);
 }
 
+/* Return a non-negative long using the internal generator. */
 long lrand48(void)
 {
     return (long)(rand48_step() >> 17);
 }
 
+/* Return a non-negative long using the provided state array. */
 long nrand48(unsigned short x[3])
 {
     uint64_t v = arr_to_u64(x);
@@ -59,6 +66,7 @@ long nrand48(unsigned short x[3])
     return (long)(v >> 17);
 }
 
+/* Seed the internal generator with the given 32-bit value. */
 void srand48(long seedval)
 {
     rand48_state = ((uint64_t)seedval << 16) | 0x330eULL;
@@ -66,6 +74,7 @@ void srand48(long seedval)
     rand48_add   = 0xbULL;
 }
 
+/* Replace the generator state and return the old state array. */
 unsigned short *seed48(unsigned short seed16v[3])
 {
     static unsigned short old[3];
@@ -74,6 +83,7 @@ unsigned short *seed48(unsigned short seed16v[3])
     return old;
 }
 
+/* Set the generator parameters and state from the provided array. */
 void lcong48(unsigned short param[7])
 {
     rand48_state = arr_to_u64(param);

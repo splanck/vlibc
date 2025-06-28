@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/* Obtain a message queue identifier, creating one if necessary. */
 int msgget(key_t key, int msgflg)
 {
 #ifdef SYS_msgget
@@ -30,6 +31,7 @@ int msgget(key_t key, int msgflg)
 #endif
 }
 
+/* Send a message to the specified queue. */
 int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg)
 {
 #ifdef SYS_msgsnd
@@ -50,6 +52,7 @@ int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg)
 #endif
 }
 
+/* Receive a message from a queue, possibly blocking. */
 ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 {
 #ifdef SYS_msgrcv
@@ -71,6 +74,7 @@ ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 #endif
 }
 
+/* Perform control operations on a message queue. */
 int msgctl(int msqid, int cmd, struct msqid_ds *buf)
 {
 #ifdef SYS_msgctl
