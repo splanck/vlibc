@@ -6,6 +6,12 @@
 
 #include "wchar.h"
 #include "stdio.h"
+/*
+ * Read the next wide character from the given stream. If the stream
+ * comes from open_wmemstream() the value is read directly. Otherwise
+ * the next multibyte sequence is converted with mbrtowc(). Returns
+ * WEOF on failure.
+ */
 
 wint_t fgetwc(FILE *stream)
 {
@@ -25,6 +31,12 @@ wint_t fgetwc(FILE *stream)
         return -1;
     return (wint_t)wc;
 }
+/*
+ * Write a wide character to the stream. Memory backed streams
+ * store the character directly while normal streams use wcrtomb()
+ * to encode it as multibyte bytes. Returns the character written or
+ * WEOF on error.
+ */
 
 wint_t fputwc(wchar_t wc, FILE *stream)
 {

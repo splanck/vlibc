@@ -33,6 +33,7 @@ static struct dl_handle *dl_list;
 
 static void set_error(const char *msg);
 
+/* Apply relocation entries to the mapped object. */
 static int apply_relocs(struct dl_handle *h, Elf64_Rela *rela, size_t relasz)
 {
 #ifdef __x86_64__
@@ -69,6 +70,7 @@ static int apply_relocs(struct dl_handle *h, Elf64_Rela *rela, size_t relasz)
 #endif
 }
 
+/* Simple pread replacement using lseek and read. */
 static ssize_t pread_fd(int fd, void *buf, size_t count, off_t offset)
 {
     if (lseek(fd, offset, SEEK_SET) < 0)
@@ -76,6 +78,7 @@ static ssize_t pread_fd(int fd, void *buf, size_t count, off_t offset)
     return read(fd, buf, count);
 }
 
+/* Store an error message for retrieval by dlerror(). */
 static void set_error(const char *msg)
 {
     size_t len = strlen(msg);
@@ -85,6 +88,7 @@ static void set_error(const char *msg)
     dl_err[len] = '\0';
 }
 
+/* Return the most recent dynamic loading error message. */
 const char *dlerror(void)
 {
     if (dl_err[0] == '\0')
@@ -92,6 +96,7 @@ const char *dlerror(void)
     return dl_err;
 }
 
+/* Map the shared object located at filename into memory and return a handle. */
 void *dlopen(const char *filename, int flag)
 {
     (void)flag;
@@ -250,6 +255,7 @@ void *dlopen(const char *filename, int flag)
     return h;
 }
 
+/* Look up the address of the named symbol in the given handle. */
 void *dlsym(void *handle, const char *symbol)
 {
     struct dl_handle *h = handle;
@@ -263,6 +269,7 @@ void *dlsym(void *handle, const char *symbol)
     return NULL;
 }
 
+/* Unload the shared object referenced by handle. */
 int dlclose(void *handle)
 {
     struct dl_handle *h = handle;
@@ -279,6 +286,7 @@ int dlclose(void *handle)
     return 0;
 }
 
+/* Query symbol and object information for an address. */
 int dladdr(void *addr, Dl_info *info)
 {
     if (!info)
