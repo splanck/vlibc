@@ -76,7 +76,7 @@ static void *writer(void *arg)
     struct aiocb *cb = t->cb;
     if (cb->aio_offset != -1)
         lseek(cb->aio_fildes, cb->aio_offset, SEEK_SET);
-    t->ret = write(cb->aio_fildes, cb->aio_buf, cb->aio_nbytes);
+    t->ret = write(cb->aio_fildes, (const void *)cb->aio_buf, cb->aio_nbytes);
     t->err = (t->ret < 0) ? errno : 0;
     complete_task(t);
     return NULL;
@@ -181,6 +181,7 @@ int aio_suspend(const struct aiocb *const list[], int n,
 
 int aio_cancel(int fd, struct aiocb *cb)
 {
+    (void)fd;
     struct aio_task *t = get_task(cb);
     if (!t)
         return AIO_ALLDONE;
