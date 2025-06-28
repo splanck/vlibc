@@ -34,7 +34,15 @@
 #include <unistd.h>
 #include "syscall.h"
 
-/* gethostname() - retrieve current host name */
+/*
+ * gethostname() - retrieve the current host name.
+ *
+ * The caller supplies NAME, a buffer of length LEN, in which the
+ * system's host name will be stored.  The function wraps the
+ * SYS_gethostname syscall when available and falls back to a host
+ * helper otherwise.  A return value of 0 indicates success while -1
+ * means an error occurred and errno is set.
+ */
 int gethostname(char *name, size_t len)
 {
 #ifdef SYS_gethostname
@@ -50,7 +58,14 @@ int gethostname(char *name, size_t len)
 #endif
 }
 
-/* sethostname() - set the system host name */
+/*
+ * sethostname() - change the system host name.
+ *
+ * NAME specifies the new host name with length LEN.  When the
+ * SYS_sethostname syscall is available it is invoked directly; on
+ * other systems a host helper may be used.  The function returns 0 on
+ * success or -1 when an error occurs, with errno indicating the cause.
+ */
 int sethostname(const char *name, size_t len)
 {
 #ifdef SYS_sethostname
