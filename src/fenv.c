@@ -72,6 +72,10 @@ extern int host_fegetexceptflag(fexcept_t *, int) __asm__("fegetexceptflag");
 extern int host_fesetexceptflag(const fexcept_t *, int) __asm__("fesetexceptflag");
 #endif
 
+/*
+ * feclearexcept clears the supported floating-point exceptions listed in
+ * 'excepts'.
+ */
 int feclearexcept(int excepts)
 {
 #ifdef USE_BUILTIN_FECLEAREXCEPT
@@ -81,6 +85,10 @@ int feclearexcept(int excepts)
 #endif
 }
 
+/*
+ * fegetexceptflag stores the current status of the exception flags
+ * specified by 'excepts' into the object pointed to by 'flagp'.
+ */
 int fegetexceptflag(fexcept_t *flagp, int excepts)
 {
 #ifdef USE_BUILTIN_FEGETEXCEPTFLAG
@@ -90,6 +98,10 @@ int fegetexceptflag(fexcept_t *flagp, int excepts)
 #endif
 }
 
+/*
+ * fesetexceptflag sets the floating-point exception flags indicated by
+ * 'excepts' to the values stored in '*flagp'.
+ */
 int fesetexceptflag(const fexcept_t *flagp, int excepts)
 {
 #ifdef USE_BUILTIN_FESETEXCEPTFLAG
@@ -99,6 +111,9 @@ int fesetexceptflag(const fexcept_t *flagp, int excepts)
 #endif
 }
 
+/*
+ * feraiseexcept raises the floating-point exceptions provided in 'excepts'.
+ */
 int feraiseexcept(int excepts)
 {
 #ifdef USE_BUILTIN_FERAISEEXCEPT
@@ -108,6 +123,10 @@ int feraiseexcept(int excepts)
 #endif
 }
 
+/*
+ * fetestexcept tests which of the exceptions listed in 'excepts' are set
+ * and returns the subset that are currently raised.
+ */
 int fetestexcept(int excepts)
 {
     fexcept_t flag;
@@ -115,6 +134,9 @@ int fetestexcept(int excepts)
     return flag & excepts;
 }
 
+/*
+ * fegetround returns the current floating-point rounding mode.
+ */
 int fegetround(void)
 {
 #ifdef USE_BUILTIN_FEGETROUND
@@ -124,6 +146,9 @@ int fegetround(void)
 #endif
 }
 
+/*
+ * fesetround sets the floating-point rounding mode to 'mode'.
+ */
 int fesetround(int mode)
 {
 #ifdef USE_BUILTIN_FESETROUND
@@ -133,6 +158,10 @@ int fesetround(int mode)
 #endif
 }
 
+/*
+ * fegetenv stores the entire floating-point environment into the object
+ * pointed to by 'envp'.
+ */
 int fegetenv(fenv_t *envp)
 {
 #ifdef USE_BUILTIN_FEGETENV
@@ -142,6 +171,10 @@ int fegetenv(fenv_t *envp)
 #endif
 }
 
+/*
+ * feholdexcept saves the current environment and clears all exception
+ * flags. The previous state is stored in '*envp'.
+ */
 int feholdexcept(fenv_t *envp)
 {
 #ifdef USE_BUILTIN_FEHOLDEXCEPT
@@ -151,6 +184,9 @@ int feholdexcept(fenv_t *envp)
 #endif
 }
 
+/*
+ * fesetenv installs the floating-point environment referenced by 'envp'.
+ */
 int fesetenv(const fenv_t *envp)
 {
 #ifdef USE_BUILTIN_FESETENV
@@ -160,6 +196,10 @@ int fesetenv(const fenv_t *envp)
 #endif
 }
 
+/*
+ * feupdateenv restores the environment pointed to by 'envp' and then
+ * raises any exceptions that were pending when the function was called.
+ */
 int feupdateenv(const fenv_t *envp)
 {
 #ifdef USE_BUILTIN_FEUPDATEENV

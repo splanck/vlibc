@@ -169,11 +169,19 @@ static int vswprintf_impl(wchar_t *str, size_t size, const wchar_t *fmt, va_list
     return (int)pos;
 }
 
+/*
+ * vswprintf formats data into a wide-character buffer using a va_list.
+ * It simply forwards to vswprintf_impl.
+ */
 int vswprintf(wchar_t *str, size_t size, const wchar_t *format, va_list ap)
 {
     return vswprintf_impl(str, size, format, ap);
 }
 
+/*
+ * swprintf is the variadic form of vswprintf. It formats the input and
+ * stores the result in the provided wide-character buffer.
+ */
 int swprintf(wchar_t *str, size_t size, const wchar_t *format, ...)
 {
     va_list ap;
@@ -203,6 +211,10 @@ static int vfdwprintf(int fd, const wchar_t *format, va_list ap)
     return len;
 }
 
+/*
+ * vfwprintf writes formatted wide-character output to a FILE stream using
+ * a va_list.
+ */
 int vfwprintf(FILE *stream, const wchar_t *format, va_list ap)
 {
     if (stream && stream->is_mem) {
@@ -245,6 +257,10 @@ int vfwprintf(FILE *stream, const wchar_t *format, va_list ap)
     return vfdwprintf(stream ? stream->fd : -1, format, ap);
 }
 
+/*
+ * vwprintf is the wide-character equivalent of vprintf and writes the
+ * formatted output to stdout.
+ */
 int vwprintf(const wchar_t *format, va_list ap)
 {
     return vfdwprintf(1, format, ap);

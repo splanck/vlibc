@@ -18,6 +18,12 @@ static const char *skip_ws(const char *s)
     return s;
 }
 
+/*
+ * vsscanf_impl is the workhorse for all sscanf variants. It parses the
+ * supplied string according to the given format string using the provided
+ * va_list and stores the results into the caller supplied pointers. The
+ * function returns the number of successfully scanned fields.
+ */
 static int vsscanf_impl(const char *str, const char *fmt, va_list ap)
 {
     const char *s = str;
@@ -114,11 +120,19 @@ static int vsscanf_impl(const char *str, const char *fmt, va_list ap)
     return count;
 }
 
+/*
+ * vsscanf is the public interface that scans formatted input from a memory
+ * buffer using a variable argument list.
+ */
 int vsscanf(const char *str, const char *format, va_list ap)
 {
     return vsscanf_impl(str, format, ap);
 }
 
+/*
+ * sscanf scans formatted input from a string. It forwards the variable
+ * arguments to vsscanf_impl and returns the number of fields obtained.
+ */
 int sscanf(const char *str, const char *format, ...)
 {
     va_list ap;
@@ -128,6 +142,11 @@ int sscanf(const char *str, const char *format, ...)
     return r;
 }
 
+/*
+ * vfscanf_impl reads a line from the given FILE stream and then parses it
+ * using vsscanf_impl. Only a small buffer is used and scanning stops at a
+ * newline or EOF.
+ */
 static int vfscanf_impl(FILE *stream, const char *format, va_list ap)
 {
     char buf[256];
@@ -142,11 +161,20 @@ static int vfscanf_impl(FILE *stream, const char *format, va_list ap)
     return vsscanf_impl(buf, format, ap);
 }
 
+/*
+ * vfscanf is the stdio variant that accepts a va_list and reads from a
+ * FILE stream.
+ */
 int vfscanf(FILE *stream, const char *format, va_list ap)
 {
     return vfscanf_impl(stream, format, ap);
 }
 
+/*
+ * fscanf reads formatted data from the given FILE stream. It is implemented
+ * on top of vfscanf_impl and returns the number of successfully scanned
+ * fields.
+ */
 int fscanf(FILE *stream, const char *format, ...)
 {
     va_list ap;
