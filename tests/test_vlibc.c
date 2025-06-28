@@ -66,6 +66,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "../include/err.h"
+#include "../include/fmtmsg.h"
 #include <errno.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -3713,6 +3714,28 @@ static const char *test_warn_functions(void)
     return 0;
 }
 
+static const char *test_fmtmsg_basic(void)
+{
+    int p[2];
+    mu_assert("pipe", pipe(p) == 0);
+    int old = dup(2);
+    mu_assert("dup", old >= 0);
+    dup2(p[1], 2);
+    close(p[1]);
+    unsetenv("MSGVERB");
+    fmtmsg(MM_PRINT, "UTIL:TEST", MM_ERROR,
+           "bad input", "try again", "UTIL:123");
+    dup2(old, 2);
+    close(old);
+    char buf[128] = {0};
+    ssize_t n = read(p[0], buf, sizeof(buf) - 1);
+    close(p[0]);
+    mu_assert("fmtmsg output",
+              n > 0 && strcmp(buf,
+              "UTIL:TEST: ERROR: bad input\nTO FIX: try again  UTIL:123\n") == 0);
+    return 0;
+}
+
 static const char *test_err_functions(void)
 {
     int p[2];
@@ -6091,6 +6114,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_progname_setget),
         REGISTER_TEST("default", test_error_reporting),
         REGISTER_TEST("default", test_warn_functions),
+        REGISTER_TEST("default", test_fmtmsg_basic),
         REGISTER_TEST("default", test_err_functions),
         REGISTER_TEST("default", test_strsignal_names),
         REGISTER_TEST("default", test_process_group_wrappers),
