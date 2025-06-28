@@ -1942,6 +1942,17 @@ static const char *test_wmemstream_basic(void)
     return 0;
 }
 
+static const char *test_fmemopen_bad_mode(void)
+{
+    errno = 0;
+    FILE *f = fmemopen(NULL, 16, "rx");
+    mu_assert("bad mode", f == NULL && errno == EINVAL);
+    errno = 0;
+    f = fmemopen(NULL, 16, "abc");
+    mu_assert("bad mode 2", f == NULL && errno == EINVAL);
+    return 0;
+}
+
 struct cookie_buf {
     char buf[64];
     size_t pos;
@@ -6332,6 +6343,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_wmem_ops),
         REGISTER_TEST("default", test_wchar_search),
         REGISTER_TEST("default", test_wmemstream_basic),
+        REGISTER_TEST("default", test_fmemopen_bad_mode),
         REGISTER_TEST("default", test_fopencookie_basic),
         REGISTER_TEST("default", test_iconv_ascii_roundtrip),
         REGISTER_TEST("default", test_iconv_invalid_byte),
