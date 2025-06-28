@@ -50,6 +50,7 @@ struct regex_impl {
 static int matchpattern(struct token *pat, const char *text, int *matchlen,
                         const char *string, regmatch_t *caps);
 
+/* Build the token list for a single pattern alternative. */
 static int compile_single(struct regex_alt *alt, const char *pattern,
                           size_t *groups_out)
 {
@@ -143,6 +144,7 @@ struct strlist {
     size_t cap;
 };
 
+/* Append a string to the growing list. */
 static void list_add(struct strlist *l, char *s)
 {
     if (l->count >= l->cap) {
@@ -156,6 +158,7 @@ static void list_add(struct strlist *l, char *s)
     l->items[l->count++] = s;
 }
 
+/* Free all strings in the list and reset it. */
 static void list_free(struct strlist *l)
 {
     for (size_t i = 0; i < l->count; i++)
@@ -165,6 +168,7 @@ static void list_free(struct strlist *l)
     l->count = l->cap = 0;
 }
 
+/* Test if character C belongs to the named POSIX class. */
 static int match_posix_class(char c, const char *name, size_t len)
 {
     if (len == 5 && strncmp(name, "alnum", 5) == 0) return isalnum((unsigned char)c);
@@ -383,16 +387,19 @@ static void expand_alts(const char *pat, struct strlist *out)
     list_free(&seg);
 }
 
+/* Basic character category checks used by the matcher. */
 static int matchdigit(char c) { return isdigit((unsigned char)c); }
 static int matchalpha(char c) { return isalnum((unsigned char)c) || c == '_'; }
 static int matchspace(char c) { return isspace((unsigned char)c); }
 
+/* Test if C falls within the range described by STR. */
 static int matchrange(char c, const char *str)
 {
     return (c != '-') && str[0] && str[1] == '-' && str[2] &&
            c >= str[0] && c <= str[2];
 }
 
+/* Match any character except newline unless configured otherwise. */
 static int matchdot(char c)
 {
 #ifdef RE_DOT_MATCHES_NEWLINE
@@ -402,11 +409,13 @@ static int matchdot(char c)
 #endif
 }
 
+/* Return non-zero if C denotes a shorthand meta escape. */
 static int ismeta(char c)
 {
     return c=='s' || c=='S' || c=='w' || c=='W' || c=='d' || c=='D';
 }
 
+/* Match character classes like \d or \w. */
 static int matchmeta(char c, const char *str)
 {
     switch (str[0]) {
@@ -420,6 +429,7 @@ static int matchmeta(char c, const char *str)
     }
 }
 
+/* Evaluate character classes, including POSIX names. */
 static int matchclass(char c, const char *str)
 {
     do {
@@ -449,6 +459,7 @@ static int matchclass(char c, const char *str)
     return 0;
 }
 
+/* Match a single token against one character. */
 static int matchone(struct token t, char c)
 {
     switch (t.type) {
@@ -465,6 +476,7 @@ static int matchone(struct token t, char c)
     }
 }
 
+/* Greedy Kleene star matcher. */
 static int matchstar(struct token p, struct token *pat, const char *text, int *ml,
                      const char *string, regmatch_t *caps)
 {
@@ -481,6 +493,7 @@ static int matchstar(struct token p, struct token *pat, const char *text, int *m
     return 0;
 }
 
+/* Greedy "one or more" matcher. */
 static int matchplus(struct token p, struct token *pat, const char *text, int *ml,
                      const char *string, regmatch_t *caps)
 {
@@ -494,6 +507,7 @@ static int matchplus(struct token p, struct token *pat, const char *text, int *m
     return 0;
 }
 
+/* Optional match of a single token. */
 static int matchquestion(struct token p, struct token *pat, const char *text, int *ml,
                          const char *string, regmatch_t *caps)
 {
@@ -508,7 +522,7 @@ static int matchquestion(struct token p, struct token *pat, const char *text, in
     return 0;
 }
 
-/* iterative matcher */
+/* Core iterative matcher that processes tokens sequentially. */
 static int matchpattern(struct token *pat, const char *text, int *matchlen,
                         const char *string, regmatch_t *caps)
 {
@@ -554,6 +568,7 @@ static int matchpattern(struct token *pat, const char *text, int *matchlen,
     return 0;
 }
 
+/* Compile PATTERN into an internal NFA representation. */
 int regcomp(regex_t *preg, const char *pattern, int cflags)
 {
     (void)cflags;
@@ -587,6 +602,7 @@ int regcomp(regex_t *preg, const char *pattern, int cflags)
     return 0;
 }
 
+/* Execute a compiled regex on STRING and report matches. */
 int regexec(const regex_t *preg, const char *string,
             size_t nmatch, regmatch_t pmatch[], int eflags)
 {
@@ -632,6 +648,7 @@ int regexec(const regex_t *preg, const char *string,
     return 0;
 }
 
+/* Release all resources associated with a compiled regex. */
 void regfree(regex_t *preg)
 {
     if (!preg || !preg->impl)

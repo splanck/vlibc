@@ -256,6 +256,7 @@ void *pthread_getspecific(pthread_key_t key)
     return key_values[key];
 }
 
+/* Create a new thread executing start_routine. */
 int pthread_create(pthread_t *thread, const void *attr,
                    void *(*start_routine)(void *), void *arg)
 {
@@ -271,11 +272,13 @@ int pthread_create(pthread_t *thread, const void *attr,
     return ret;
 }
 
+/* Wait for the given thread to terminate. */
 int pthread_join(pthread_t thread, void **retval)
 {
     return host_pthread_join(thread, retval);
 }
 
+/* Mark the thread as detached. */
 int pthread_detach(pthread_t thread)
 {
     return host_pthread_detach(thread);
@@ -309,11 +312,13 @@ int pthread_equal(pthread_t a, pthread_t b)
     return host_pthread_equal(a, b);
 }
 
+/* Terminate the calling thread. */
 void pthread_exit(void *retval)
 {
     host_pthread_exit(retval);
 }
 
+/* Request cancellation of a thread. */
 int pthread_cancel(pthread_t thread)
 {
     return host_pthread_cancel(thread);
