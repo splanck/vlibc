@@ -126,6 +126,7 @@ int setenv(const char *name, const char *value, int overwrite)
                 char *dup = strdup(environ[i]);
                 if (!dup) {
                     free(entry);
+                    errno = ENOMEM;
                     return -1;
                 }
                 environ[i] = dup;
@@ -149,6 +150,7 @@ int setenv(const char *name, const char *value, int overwrite)
                 free(newenv);
                 free(newflags);
                 free(entry);
+                errno = ENOMEM;
                 return -1;
             }
             newflags[i] = 1;
@@ -212,8 +214,10 @@ int putenv(const char *str)
         for (int i = 0; i < count; ++i) {
             if (!environ_flags[i]) {
                 char *dup = strdup(environ[i]);
-                if (!dup)
+                if (!dup) {
+                    errno = ENOMEM;
                     return -1;
+                }
                 environ[i] = dup;
                 environ_flags[i] = 1;
             }
@@ -233,6 +237,7 @@ int putenv(const char *str)
                     free(newenv[j]);
                 free(newenv);
                 free(newflags);
+                errno = ENOMEM;
                 return -1;
             }
             newflags[i] = 1;
@@ -298,6 +303,7 @@ int clearenv(void)
                     free(newenv[j]);
                 free(newenv);
                 free(newflags);
+                errno = ENOMEM;
                 return -1;
             }
             newflags[i] = 1;

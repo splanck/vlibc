@@ -3514,6 +3514,22 @@ static const char *test_setenv_alloc_fail(void)
     return 0;
 }
 
+static const char *test_setenv_strdup_fail(void)
+{
+    char *envp[] = { "BASE=1", NULL };
+    env_init(envp);
+
+    vlibc_test_alloc_fail_after = 3;
+    errno = 0;
+    int r = setenv("NEW", "val", 1);
+    mu_assert("dup fail", r == -1);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    vlibc_test_alloc_fail_after = -1;
+
+    env_init(NULL);
+    return 0;
+}
+
 static const char *test_putenv_setenv_clearenv(void)
 {
     env_init(NULL);
@@ -6090,6 +6106,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_recallocarray_grow),
         REGISTER_TEST("memory", test_setenv_overwrite_loop),
         REGISTER_TEST("memory", test_setenv_alloc_fail),
+        REGISTER_TEST("memory", test_setenv_strdup_fail),
         REGISTER_TEST("memory", test_memory_ops),
         REGISTER_TEST("default", test_io),
         REGISTER_TEST("default", test_lseek_dup),
@@ -6227,6 +6244,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_putenv_setenv_clearenv),
         REGISTER_TEST("default", test_putenv_unsetenv_stack),
         REGISTER_TEST("default", test_setenv_alloc_fail),
+        REGISTER_TEST("default", test_setenv_strdup_fail),
         REGISTER_TEST("default", test_locale_from_env),
         REGISTER_TEST("default", test_locale_objects),
         REGISTER_TEST("default", test_langinfo_codeset),
