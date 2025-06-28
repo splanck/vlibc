@@ -134,5 +134,21 @@ mq_close(mq);
 mq_unlink("/example");
 ```
 
+Timed operations wait only until a specified absolute deadline. Build a
+`timespec` with `clock_gettime` and pass it to `mq_timedsend` or
+`mq_timedreceive`:
+
+```c
+struct timespec ts;
+clock_gettime(CLOCK_REALTIME, &ts);
+ts.tv_sec += 2; /* wait up to two seconds */
+mq_timedsend(mq, "bye", 4, 0, &ts);
+ts.tv_sec += 2;
+mq_timedreceive(mq, buf, sizeof(buf), NULL, &ts);
+```
+
+If the call cannot complete before the timeout expires it fails with
+`ETIMEDOUT`.
+
 See [mqueue.md](mqueue.md) for attribute queries and timed send/receive.
 
