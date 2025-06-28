@@ -20,6 +20,12 @@
 int isatty(int fd);
 int daemon(int nochdir, int noclose);
 int chroot(const char *path);
+/*
+ * Create a child process using the SYS_vfork syscall when available.
+ * Falls back to fork() when the syscall is missing. Returns 0 in the
+ * child and the child's PID in the parent, or -1 on error with errno set.
+ */
+pid_t vfork(void);
 
 uid_t getuid(void);
 uid_t geteuid(void);

@@ -9,6 +9,7 @@ and installing signal handlers.  The companion `signal.h` header offers
 
 ```c
 pid_t fork(void);
+pid_t vfork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 int fexecve(int fd, char *const argv[], char *const envp[]);
 int execvp(const char *file, char *const argv[]);
@@ -73,6 +74,11 @@ int atexit(void (*fn)(void));
 void abort(void);
 void exit(int status);
 ```
+
+`vfork` returns 0 in the child process and the child's PID in the parent,
+matching the behaviour of `fork`. When the host provides the `SYS_vfork`
+system call it is used directly, otherwise the wrapper falls back to
+`fork`.
 
 These wrappers retrieve and manipulate process information. `getuid`,
 `geteuid`, `getgid`, and `getegid` return the real and effective user and
