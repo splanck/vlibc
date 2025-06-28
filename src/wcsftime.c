@@ -11,6 +11,10 @@
 #include "stdlib.h"
 #include "memory.h"
 
+/*
+ * wcsftime() - format time data as a wide-character string using strftime
+ * as the backing implementation.
+ */
 size_t wcsftime(wchar_t *s, size_t max, const wchar_t *format, const struct tm *tm)
 {
     if (!s || !format || !tm || max == 0)
