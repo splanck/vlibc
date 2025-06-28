@@ -17,6 +17,11 @@ int optopt = 0;
 
 static const char *next = NULL;
 
+/*
+ * Parse short options from argv according to optstring. The static
+ * pointer 'next' is used to process clusters like -abc one letter at
+ * a time and optarg is set when an option requires an argument.
+ */
 int getopt(int argc, char * const argv[], const char *optstring)
 {
 
@@ -63,6 +68,11 @@ int getopt(int argc, char * const argv[], const char *optstring)
     return c;
 }
 
+/*
+ * Handle GNU-style long options in addition to short options.
+ * Options beginning with "--" are matched against the longopts
+ * table and the index is stored in longindex when non-NULL.
+ */
 int getopt_long(int argc, char * const argv[], const char *optstring,
                 const struct option *longopts, int *longindex)
 {

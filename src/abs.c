@@ -8,6 +8,7 @@
 
 #include "stdlib.h"
 
+/* Return the absolute value of a signed int. */
 int abs(int j)
 {
     unsigned int u = (unsigned int)j;
@@ -16,6 +17,7 @@ int abs(int j)
     return (int)u;
 }
 
+/* Return the absolute value of a signed long. */
 long labs(long j)
 {
     unsigned long u = (unsigned long)j;
@@ -24,6 +26,7 @@ long labs(long j)
     return (long)u;
 }
 
+/* Return the absolute value of a signed long long. */
 long long llabs(long long j)
 {
     unsigned long long u = (unsigned long long)j;
@@ -32,6 +35,7 @@ long long llabs(long long j)
     return (long long)u;
 }
 
+/* Compute quotient and remainder of numer divided by denom. */
 div_t div(int numer, int denom)
 {
     div_t r;
@@ -40,6 +44,7 @@ div_t div(int numer, int denom)
     return r;
 }
 
+/* Long variant of div(). Returns quotient and remainder. */
 ldiv_t ldiv(long numer, long denom)
 {
     ldiv_t r;
@@ -48,6 +53,7 @@ ldiv_t ldiv(long numer, long denom)
     return r;
 }
 
+/* Long long variant of div(). Returns quotient and remainder. */
 lldiv_t lldiv(long long numer, long long denom)
 {
     lldiv_t r;
