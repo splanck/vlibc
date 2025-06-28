@@ -26,7 +26,8 @@ static void debug(const char *fmt, ...)
 ```
 
 Messages are written using a Unix datagram socket so applications can integrate
-with the host's syslog daemon.
+with the host's syslog daemon. If sending the message fails `vsyslog` reports
+the error via `perror` and the `errno` value reflects the failure.
 
 ## Raw System Calls
 

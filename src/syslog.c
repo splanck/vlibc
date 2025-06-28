@@ -96,8 +96,11 @@ void vsyslog(int priority, const char *format, va_list ap)
     memcpy(buf + n, msg, len);
     n += len;
 
-    if (log_fd != -1)
-        send(log_fd, buf, n, 0);
+    if (log_fd != -1) {
+        ssize_t r = send(log_fd, buf, n, 0);
+        if (r < 0)
+            perror("vsyslog");
+    }
 }
 
 /*
