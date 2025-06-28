@@ -532,6 +532,15 @@ static const char *test_lseek_negative_offset(void)
     return 0;
 }
 
+static const char *test_lseek_errno(void)
+{
+    errno = 0;
+    off_t off = lseek(-1, 0, SEEK_SET);
+    mu_assert("lseek fail", off == (off_t)-1);
+    mu_assert("errno EBADF", errno == EBADF);
+    return 0;
+}
+
 static const char *test_pread_pwrite(void)
 {
     const char *fname = "tmp_pread_file";
@@ -6168,6 +6177,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_io),
         REGISTER_TEST("default", test_lseek_dup),
         REGISTER_TEST("default", test_lseek_negative_offset),
+        REGISTER_TEST("default", test_lseek_errno),
         REGISTER_TEST("default", test_pread_pwrite),
         REGISTER_TEST("default", test_preadv_pwritev),
         REGISTER_TEST("default", test_readv_writev),
