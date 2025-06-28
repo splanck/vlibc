@@ -29,7 +29,7 @@
 off_t lseek(int fd, off_t offset, int whence)
 {
     long ret = vlibc_syscall(SYS_lseek, fd, (long)offset, whence, 0, 0, 0);
-    if (ret == -1) {
+    if (ret < 0) {
         errno = -ret;
         return (off_t)-1;
     }
