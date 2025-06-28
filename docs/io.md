@@ -297,3 +297,27 @@ struct cookie ck = { "hi", 0 };
 FILE *s = fopencookie(&ck, "r", io);
 ```
 
+## Asynchronous I/O
+
+`aio_read` and `aio_write` issue non-blocking operations described by a
+`struct aiocb`.  The call returns immediately and the request completes in
+the background.  `aio_suspend` waits for one of several operations to finish
+while `aio_error` and `aio_return` query the result.
+
+```c
+struct aiocb cb = {0};
+cb.aio_fildes = fd;
+cb.aio_buf = buf;
+cb.aio_nbytes = sizeof(buf);
+cb.aio_offset = 0;
+aio_read(&cb);
+const struct aiocb *list[1] = { &cb };
+aio_suspend(list, 1, NULL);
+if (aio_error(&cb) == 0)
+    ssize_t n = aio_return(&cb);
+```
+
+Multiple requests may be launched using `lio_listio`.  BSD platforms use the
+system implementations whereas other targets rely on a lightweight thread
+and kqueue based emulation.
+
