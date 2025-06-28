@@ -16,18 +16,21 @@ void vlibc_init(void)
     stdin = malloc(sizeof(FILE));
     if (stdin) {
         memset(stdin, 0, sizeof(FILE));
+        atomic_flag_clear(&stdin->lock);
         stdin->fd = 0;
     }
 
     stdout = malloc(sizeof(FILE));
     if (stdout) {
         memset(stdout, 0, sizeof(FILE));
+        atomic_flag_clear(&stdout->lock);
         stdout->fd = 1;
     }
 
     stderr = malloc(sizeof(FILE));
     if (stderr) {
         memset(stderr, 0, sizeof(FILE));
+        atomic_flag_clear(&stderr->lock);
         stderr->fd = 2;
     }
 }

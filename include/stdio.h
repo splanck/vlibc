@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <sys/types.h>
+#include <stdatomic.h>
 
 typedef struct {
     int fd;                      /* underlying file descriptor */
@@ -34,6 +35,7 @@ typedef struct {
     ssize_t (*cookie_write)(void *, const char *, size_t);
     int (*cookie_seek)(void *, off_t *, int);
     int (*cookie_close)(void *);
+    atomic_flag lock;            /* for flockfile */
 } FILE;
 
 typedef off_t fpos_t;
@@ -143,5 +145,9 @@ FILE *funopen(const void *cookie,
 
 ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream);
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+
+void flockfile(FILE *stream);
+int ftrylockfile(FILE *stream);
+void funlockfile(FILE *stream);
 
 #endif /* STDIO_H */

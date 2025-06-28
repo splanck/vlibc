@@ -104,6 +104,7 @@ FILE *tmpfile(void)
         return NULL;
     }
     memset(f, 0, sizeof(FILE));
+    atomic_flag_clear(&f->lock);
     f->fd = fd;
     return f;
 }
