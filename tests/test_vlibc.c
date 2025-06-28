@@ -3530,6 +3530,34 @@ static const char *test_putenv_unsetenv_stack(void)
     return 0;
 }
 
+static const char *test_setenv_alloc_fail(void)
+{
+    env_init(NULL);
+
+    vlibc_test_alloc_fail_after = 1;
+    errno = 0;
+    int r = setenv("OOM1", "val", 1);
+    mu_assert("alloc fail", r == -1);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    mu_assert("environ null", environ == NULL);
+
+    vlibc_test_alloc_fail_after = -1;
+    mu_assert("setenv success", setenv("OOM1", "val", 1) == 0);
+
+    vlibc_test_alloc_fail_after = 2;
+    errno = 0;
+    r = setenv("OOM2", "val2", 1);
+    mu_assert("realloc fail", r == -1);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    mu_assert("unchanged", getenv("OOM2") == NULL && strcmp(getenv("OOM1"), "val") == 0);
+
+    vlibc_test_alloc_fail_after = -1;
+    mu_assert("setenv success2", setenv("OOM2", "val2", 1) == 0);
+
+    clearenv();
+    return 0;
+}
+
 static const char *test_locale_from_env(void)
 {
     env_init(NULL);
@@ -6184,6 +6212,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_env_init_clearenv),
         REGISTER_TEST("default", test_putenv_setenv_clearenv),
         REGISTER_TEST("default", test_putenv_unsetenv_stack),
+        REGISTER_TEST("default", test_setenv_alloc_fail),
         REGISTER_TEST("default", test_locale_from_env),
         REGISTER_TEST("default", test_locale_objects),
         REGISTER_TEST("default", test_langinfo_codeset),

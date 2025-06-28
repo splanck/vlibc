@@ -105,6 +105,10 @@ int setenv(const char *name, const char *value, int overwrite)
         newenv = realloc(environ, sizeof(char *) * (count + 2));
         newflags = realloc(environ_flags, sizeof(unsigned char) * (count + 2));
         if (!newenv || !newflags) {
+            if (newenv && newenv != environ)
+                free(newenv);
+            if (newflags && newflags != environ_flags)
+                free(newflags);
             free(entry);
             return -1;
         }
@@ -185,8 +189,13 @@ int putenv(const char *str)
     if (environ_owned) {
         newenv = realloc(environ, sizeof(char *) * (count + 2));
         newflags = realloc(environ_flags, sizeof(unsigned char) * (count + 2));
-        if (!newenv || !newflags)
+        if (!newenv || !newflags) {
+            if (newenv && newenv != environ)
+                free(newenv);
+            if (newflags && newflags != environ_flags)
+                free(newflags);
             return -1;
+        }
         environ = newenv;
         environ_flags = newflags;
         for (int i = 0; i < count; ++i) {
