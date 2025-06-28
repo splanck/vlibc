@@ -18,6 +18,12 @@
 #include <termios.h>
 #endif
 
+/*
+ * isatty() - determine if a file descriptor refers to a terminal.
+ * When the SYS_isatty system call is available it is invoked directly.
+ * Otherwise tcgetattr() from <termios.h> is used if present. If neither
+ * method can be used the function sets errno to ENOTTY and returns 0.
+ */
 int isatty(int fd)
 {
 #ifdef SYS_isatty
