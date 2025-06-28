@@ -17,6 +17,11 @@ static void swap(char *a, char *b, size_t size)
     }
 }
 
+/*
+ * qsort() - sort an array using the supplied comparison function.
+ * Elements are sorted in ascending order using a simple bubble sort
+ * implementation as this file favors clarity over raw speed.
+ */
 void qsort(void *base, size_t nmemb, size_t size,
            int (*compar)(const void *, const void *))
 {
@@ -31,6 +36,10 @@ void qsort(void *base, size_t nmemb, size_t size,
     }
 }
 
+/*
+ * qsort_r() - reentrant variant of qsort().  An additional context pointer
+ * is passed to the comparison function.
+ */
 void qsort_r(void *base, size_t nmemb, size_t size,
              int (*compar)(const void *, const void *, void *), void *ctx)
 {
@@ -45,6 +54,10 @@ void qsort_r(void *base, size_t nmemb, size_t size,
     }
 }
 
+/*
+ * bsearch() - binary search an array for a matching element.  The array
+ * must already be sorted according to the comparison function.
+ */
 void *bsearch(const void *key, const void *base, size_t nmemb, size_t size,
               int (*compar)(const void *, const void *))
 {

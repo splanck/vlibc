@@ -8,6 +8,9 @@
 
 #include "string.h"
 
+/*
+ * vmemset() - simple byte-wise memory initialisation used by vlibc internals.
+ */
 void *vmemset(void *s, int c, size_t n)
 {
     unsigned char *p = s;
@@ -16,6 +19,9 @@ void *vmemset(void *s, int c, size_t n)
     return s;
 }
 
+/*
+ * vmemcpy() - copy n bytes from src to dest without optimisations.
+ */
 void *vmemcpy(void *dest, const void *src, size_t n)
 {
     unsigned char *d = dest;
@@ -25,6 +31,9 @@ void *vmemcpy(void *dest, const void *src, size_t n)
     return dest;
 }
 
+/*
+ * vmemmove() - overlapping-safe version of vmemcpy().
+ */
 void *vmemmove(void *dest, const void *src, size_t n)
 {
     unsigned char *d = dest;
@@ -43,6 +52,9 @@ void *vmemmove(void *dest, const void *src, size_t n)
     return dest;
 }
 
+/*
+ * vmemcmp() - compare two memory blocks byte by byte.
+ */
 int vmemcmp(const void *s1, const void *s2, size_t n)
 {
     const unsigned char *p1 = s1;
@@ -55,21 +67,33 @@ int vmemcmp(const void *s1, const void *s2, size_t n)
     return 0;
 }
 
+/*
+ * memset() - wrapper around vmemset().
+ */
 void *memset(void *s, int c, size_t n)
 {
     return vmemset(s, c, n);
 }
 
+/*
+ * memcpy() - wrapper around vmemcpy().
+ */
 void *memcpy(void *dest, const void *src, size_t n)
 {
     return vmemcpy(dest, src, n);
 }
 
+/*
+ * memmove() - wrapper around vmemmove().
+ */
 void *memmove(void *dest, const void *src, size_t n)
 {
     return vmemmove(dest, src, n);
 }
 
+/*
+ * memcmp() - wrapper around vmemcmp().
+ */
 int memcmp(const void *s1, const void *s2, size_t n)
 {
     return vmemcmp(s1, s2, n);
