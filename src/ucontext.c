@@ -58,7 +58,7 @@ int setcontext(const ucontext_t *ucp)
         return -1;
     }
     sigprocmask(SIG_SETMASK, &ucp->uc_sigmask, NULL);
-    longjmp(ucp->__jmpbuf, 1);
+    longjmp((struct __jmp_buf_tag *)ucp->__jmpbuf, 1);
     __builtin_unreachable();
 }
 
