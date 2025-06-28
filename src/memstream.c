@@ -11,6 +11,11 @@
 #include "string.h"
 #include "errno.h"
 
+/*
+ * open_memstream() - create a memory backed FILE stream that dynamically
+ * grows to hold all written data.  The resulting buffer address and size
+ * are returned via the provided pointers when the stream is closed.
+ */
 FILE *open_memstream(char **bufp, size_t *sizep)
 {
     if (!bufp || !sizep) {
@@ -39,6 +44,11 @@ FILE *open_memstream(char **bufp, size_t *sizep)
     return f;
 }
 
+/*
+ * open_wmemstream() - wide character variant of open_memstream().  The
+ * stream stores wchar_t elements and returns the buffer and element count
+ * on close.
+ */
 FILE *open_wmemstream(wchar_t **bufp, size_t *sizep)
 {
     if (!bufp || !sizep) {
@@ -68,6 +78,11 @@ FILE *open_wmemstream(wchar_t **bufp, size_t *sizep)
     return f;
 }
 
+/*
+ * fmemopen() - open a memory area as a FILE stream.  If buf is NULL a
+ * new buffer of the specified size is allocated.  The mode string controls
+ * readability and writability similar to fopen().
+ */
 FILE *fmemopen(void *buf, size_t size, const char *mode)
 {
     if (size == 0) {
