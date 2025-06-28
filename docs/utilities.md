@@ -144,7 +144,7 @@ int values[] = {4, 2, 7, 1, 6};
 for (int i = 0; i < 5; i++)
     tsearch(&values[i], &root, int_cmp);
 int *p = tfind(&values[2], &root, int_cmp);  // points to 7
-tdelete(&values[1], &root, int_cmp);         // remove 2
+int *parent = tdelete(&values[1], &root, int_cmp); // remove 2, parent->4
 static int sum = 0;
 void collect(const void *node, VISIT v, int l)
 {
@@ -153,6 +153,9 @@ void collect(const void *node, VISIT v, int l)
 }
 twalk(root, collect);   // sum == 18
 ```
+
+`tdelete` returns a pointer to the parent node's key (or a dangling pointer if
+the removed node was the root).
 
 ## Message Formatting
 
