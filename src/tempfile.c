@@ -38,6 +38,11 @@ static int replace_x(char *template)
     return 0;
 }
 
+/*
+ * mkstemp() - create and open a unique temporary file from 'template'.
+ * The last six X characters are replaced with random data.  Returns a
+ * file descriptor opened for read/write or -1 on error.
+ */
 int mkstemp(char *template)
 {
     if (!template) {
@@ -57,6 +62,11 @@ int mkstemp(char *template)
     return -1;
 }
 
+/*
+ * mkdtemp() - create a unique temporary directory from 'template'.  The
+ * pattern must end with six X characters which are replaced in place.
+ * Returns the resulting path on success or NULL on failure.
+ */
 char *mkdtemp(char *template)
 {
     if (!template) {
@@ -75,6 +85,11 @@ char *mkdtemp(char *template)
     return NULL;
 }
 
+/*
+ * tmpfile() - create a temporary file that is automatically removed
+ * when closed.  The file is opened in read/write mode and unlinked
+ * immediately after creation.
+ */
 FILE *tmpfile(void)
 {
     char tmpl[] = "/tmp/vlibcXXXXXX";
@@ -93,6 +108,11 @@ FILE *tmpfile(void)
     return f;
 }
 
+/*
+ * tmpnam() - generate a unique temporary filename.  If 's' is NULL a
+ * static buffer is used, otherwise the result is written to 's'.  The
+ * file is not created.
+ */
 char *tmpnam(char *s)
 {
     static char buf[L_tmpnam];
@@ -113,6 +133,12 @@ char *tmpnam(char *s)
     return out;
 }
 
+/*
+ * tempnam() - return a pathname for a temporary file.  The directory
+ * and prefix can be specified with 'dir' and 'pfx'.  The name is
+ * allocated with malloc and should be freed by the caller.  The file
+ * itself is not created.
+ */
 char *tempnam(const char *dir, const char *pfx)
 {
     const char *d = dir ? dir : "/tmp";

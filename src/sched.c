@@ -34,7 +34,12 @@
 #include <unistd.h>
 #include "syscall.h"
 
-/* Yield the processor to another runnable task. */
+/*
+ * sched_yield() - yield the processor so another runnable thread or
+ * process can execute.  When the SYS_sched_yield syscall is not
+ * available the function falls back to nanosleep with a zero timeout.
+ * Returns 0 on success or -1 with errno set.
+ */
 int sched_yield(void)
 {
 #ifdef SYS_sched_yield
@@ -51,7 +56,9 @@ int sched_yield(void)
 }
 
 /*
- * Retrieve the current scheduling priority for the given target.
+ * getpriority() - obtain the nice value for a process, process group or
+ * user specified by 'which' and 'who'.  On success the current priority
+ * is returned; on failure -1 is returned and errno is set.
  */
 int getpriority(int which, int who)
 {
@@ -74,8 +81,10 @@ int getpriority(int which, int who)
 }
 
 /*
- * Set the scheduling priority for the specified process, process
- * group or user.
+ * setpriority() - adjust the nice value for a target process, process
+ * group or user.  The 'which' and 'who' arguments select the target and
+ * 'prio' supplies the new value.  Returns 0 on success or -1 on error
+ * with errno set.
  */
 int setpriority(int which, int who, int prio)
 {
@@ -98,7 +107,10 @@ int setpriority(int which, int who, int prio)
 }
 
 /*
- * Increase the calling process' nice value by incr and return the new value.
+ * nice() - increment the calling process' nice value by 'incr'.  The
+ * current priority is read using getpriority() and then setpriority() is
+ * used to apply the adjustment.  The new priority is returned or -1 on
+ * failure.
  */
 int nice(int incr)
 {
@@ -110,7 +122,11 @@ int nice(int incr)
     return cur + incr;
 }
 
-/* Return the current scheduling policy for pid. */
+/*
+ * sched_getscheduler() - query the current scheduling policy for the
+ * process identified by 'pid'.  Returns the policy constant or -1 with
+ * errno set when not supported.
+ */
 int sched_getscheduler(pid_t pid)
 {
 #ifdef SYS_sched_getscheduler
@@ -131,7 +147,10 @@ int sched_getscheduler(pid_t pid)
 #endif
 }
 
-/* Set the scheduling policy and parameters for pid. */
+/*
+ * sched_setscheduler() - set a new scheduling policy and parameters for
+ * the process 'pid'.  Returns 0 on success or -1 on failure.
+ */
 int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param)
 {
 #ifdef SYS_sched_setscheduler
@@ -154,7 +173,11 @@ int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param)
 #endif
 }
 
-/* Get the scheduling parameters for pid. */
+/*
+ * sched_getparam() - retrieve the scheduling parameters for the
+ * process 'pid'.  The values are stored in the caller supplied
+ * 'param' structure.  Returns 0 on success or -1 on failure.
+ */
 int sched_getparam(pid_t pid, struct sched_param *param)
 {
 #ifdef SYS_sched_getparam
@@ -177,7 +200,11 @@ int sched_getparam(pid_t pid, struct sched_param *param)
 #endif
 }
 
-/* Set the scheduling parameters for pid. */
+/*
+ * sched_setparam() - set new scheduling parameters for the process
+ * identified by 'pid'.  Returns 0 on success or -1 on error with
+ * errno providing details.
+ */
 int sched_setparam(pid_t pid, const struct sched_param *param)
 {
 #ifdef SYS_sched_setparam
@@ -200,7 +227,10 @@ int sched_setparam(pid_t pid, const struct sched_param *param)
 #endif
 }
 
-/* Return the maximum scheduling priority for the given policy. */
+/*
+ * sched_get_priority_max() - return the highest priority value
+ * supported for the specified scheduling 'policy'.
+ */
 int sched_get_priority_max(int policy)
 {
 #ifdef SYS_sched_get_priority_max
@@ -222,7 +252,10 @@ int sched_get_priority_max(int policy)
 #endif
 }
 
-/* Return the minimum scheduling priority for the given policy. */
+/*
+ * sched_get_priority_min() - return the lowest priority value allowed
+ * for the specified scheduling 'policy'.
+ */
 int sched_get_priority_min(int policy)
 {
 #ifdef SYS_sched_get_priority_min
@@ -244,7 +277,11 @@ int sched_get_priority_min(int policy)
 #endif
 }
 
-/* Obtain the round-robin time quantum for pid. */
+/*
+ * sched_rr_get_interval() - query the round-robin time quantum for the
+ * process 'pid'.  The duration is stored in 'interval'.  Returns 0 on
+ * success or -1 if the operation is unsupported or fails.
+ */
 int sched_rr_get_interval(pid_t pid, struct timespec *interval)
 {
 #ifdef SYS_sched_rr_get_interval_time64
