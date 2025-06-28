@@ -53,7 +53,8 @@ programs. Key features include:
 - Query supplementary groups with `getgrouplist()` and initialize them
   with `initgroups()`
 - Secure password input with `getpass()`
-- Password hashing with `crypt()`
+- Password hashing with `crypt()` (classic DES code in `src/crypt.c` derived from
+  the historic FreeSec library)
 - Syslog-style logging
 - Simplified `err`/`warn` helpers for fatal and nonfatal messages
 - Change root directories with `chroot()` when supported

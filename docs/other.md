@@ -97,7 +97,8 @@ speeds stored in a `termios` structure are changed with `cfsetispeed()` and
   groups and numeric backreferences are supported but more advanced
   features remain unimplemented.
 - The `crypt` helper only implements the traditional DES algorithm when
-  BSD's extended `crypt` is unavailable.
+  BSD's extended `crypt` is unavailable. The DES implementation lives in
+  `src/crypt.c` and is derived from the historic FreeSec library.
 
 ## Conclusion
 
