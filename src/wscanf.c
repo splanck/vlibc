@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Advance past leading whitespace characters */
 static const wchar_t *skip_ws_w(const wchar_t *s)
 {
     while (*s && iswspace(*s))
@@ -20,6 +21,7 @@ static const wchar_t *skip_ws_w(const wchar_t *s)
     return s;
 }
 
+/* Convert wide string to long with base and optional end pointer */
 static long wstrtol_wrap(const wchar_t *s, const wchar_t **end, int base)
 {
     char buf[128];
@@ -34,6 +36,7 @@ static long wstrtol_wrap(const wchar_t *s, const wchar_t **end, int base)
     return v;
 }
 
+/* Convert wide string to unsigned long with base and optional end */
 static unsigned long wstrtoul_wrap(const wchar_t *s, const wchar_t **end, int base)
 {
     char buf[128];
@@ -48,6 +51,7 @@ static unsigned long wstrtoul_wrap(const wchar_t *s, const wchar_t **end, int ba
     return v;
 }
 
+/* Convert wide string to double and optionally set end */
 static double wstrtod_wrap(const wchar_t *s, const wchar_t **end)
 {
     char buf[128];
@@ -62,6 +66,7 @@ static double wstrtod_wrap(const wchar_t *s, const wchar_t **end)
     return v;
 }
 
+/* Internal helper for wide string scanning */
 static int vswscanf_impl(const wchar_t *str, const wchar_t *fmt, va_list ap)
 {
     const wchar_t *s = str;
@@ -158,11 +163,13 @@ static int vswscanf_impl(const wchar_t *str, const wchar_t *fmt, va_list ap)
     return count;
 }
 
+/* Parse wide string using format and argument list */
 int vswscanf(const wchar_t *str, const wchar_t *format, va_list ap)
 {
     return vswscanf_impl(str, format, ap);
 }
 
+/* Scan wide string with variable arguments */
 int swscanf(const wchar_t *str, const wchar_t *format, ...)
 {
     va_list ap;
@@ -172,6 +179,7 @@ int swscanf(const wchar_t *str, const wchar_t *format, ...)
     return r;
 }
 
+/* Core worker reading from FILE stream */
 static int vfwscanf_impl(FILE *stream, const wchar_t *format, va_list ap)
 {
     char buf[256];
@@ -188,16 +196,19 @@ static int vfwscanf_impl(FILE *stream, const wchar_t *format, va_list ap)
     return vswscanf_impl(wbuf, format, ap);
 }
 
+/* Public wrapper for vfwscanf_impl */
 int vfwscanf(FILE *stream, const wchar_t *format, va_list ap)
 {
     return vfwscanf_impl(stream, format, ap);
 }
 
+/* Read formatted input from stdin using va_list */
 int vwscanf(const wchar_t *format, va_list ap)
 {
     return vfwscanf_impl(stdin, format, ap);
 }
 
+/* Read formatted input from FILE stream */
 int fwscanf(FILE *stream, const wchar_t *format, ...)
 {
     va_list ap;
@@ -207,6 +218,7 @@ int fwscanf(FILE *stream, const wchar_t *format, ...)
     return r;
 }
 
+/* Read formatted input from stdin */
 int wscanf(const wchar_t *format, ...)
 {
     va_list ap;
