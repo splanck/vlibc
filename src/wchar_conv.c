@@ -212,6 +212,10 @@ static char *wcs_to_mb_tmp(const wchar_t *s, char *stack, size_t stack_sz, size_
     return buf;
 }
 
+/*
+ * wcstol() - convert a wide-character string to a long integer. A temporary
+ * multibyte buffer is used so strtol can perform the heavy lifting.
+ */
 long wcstol(const wchar_t *nptr, wchar_t **endptr, int base)
 {
     char stack[128];
@@ -231,6 +235,10 @@ long wcstol(const wchar_t *nptr, wchar_t **endptr, int base)
     return v;
 }
 
+/*
+ * wcstoul() - convert a wide-character string to an unsigned long.
+ * Uses a temporary multibyte buffer and strtoul.
+ */
 unsigned long wcstoul(const wchar_t *nptr, wchar_t **endptr, int base)
 {
     char stack[128];
@@ -250,6 +258,10 @@ unsigned long wcstoul(const wchar_t *nptr, wchar_t **endptr, int base)
     return v;
 }
 
+/*
+ * wcstoll() - convert a wide-character string to a long long. Utilises
+ * strtoll via a temporary multibyte buffer.
+ */
 long long wcstoll(const wchar_t *nptr, wchar_t **endptr, int base)
 {
     char stack[128];
@@ -269,6 +281,10 @@ long long wcstoll(const wchar_t *nptr, wchar_t **endptr, int base)
     return v;
 }
 
+/*
+ * wcstoull() - convert a wide-character string to an unsigned long long.
+ * Uses a temporary buffer and strtoull.
+ */
 unsigned long long wcstoull(const wchar_t *nptr, wchar_t **endptr, int base)
 {
     char stack[128];
@@ -288,6 +304,10 @@ unsigned long long wcstoull(const wchar_t *nptr, wchar_t **endptr, int base)
     return v;
 }
 
+/*
+ * wcstoimax() - convert a wide-character string to intmax_t.
+ * A helper converts to multibyte then calls strtoimax.
+ */
 intmax_t wcstoimax(const wchar_t *nptr, wchar_t **endptr, int base)
 {
     char stack[128];
@@ -307,6 +327,10 @@ intmax_t wcstoimax(const wchar_t *nptr, wchar_t **endptr, int base)
     return v;
 }
 
+/*
+ * wcstoumax() - convert a wide-character string to uintmax_t.
+ * Utilises strtoumax after converting to multibyte.
+ */
 uintmax_t wcstoumax(const wchar_t *nptr, wchar_t **endptr, int base)
 {
     char stack[128];
@@ -326,6 +350,9 @@ uintmax_t wcstoumax(const wchar_t *nptr, wchar_t **endptr, int base)
     return v;
 }
 
+/*
+ * wcstod() - convert a wide-character string to double using strtod.
+ */
 double wcstod(const wchar_t *nptr, wchar_t **endptr)
 {
     char stack[128];
@@ -345,11 +372,18 @@ double wcstod(const wchar_t *nptr, wchar_t **endptr)
     return v;
 }
 
+/*
+ * wcstof() - convert a wide-character string to float.
+ * Simply wraps wcstod for implementation.
+ */
 float wcstof(const wchar_t *nptr, wchar_t **endptr)
 {
     return (float)wcstod(nptr, endptr);
 }
 
+/*
+ * wcstold() - convert a wide-character string to long double via strtold.
+ */
 long double wcstold(const wchar_t *nptr, wchar_t **endptr)
 {
     char stack[128];
