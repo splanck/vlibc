@@ -72,6 +72,10 @@ size_t wcsrtombs(char *dst, const wchar_t **src, size_t n, mbstate_t *ps);
 size_t mbrlen(const char *s, size_t n, mbstate_t *ps);
 /* Check whether state is initial */
 int mbsinit(const mbstate_t *ps);
+/* Convert single byte to wide character */
+wint_t btowc(int c);
+/* Convert wide character to single byte */
+int wctob(wchar_t wc);
 
 /* Wide-string to number conversions */
 long wcstol(const wchar_t *nptr, wchar_t **endptr, int base);

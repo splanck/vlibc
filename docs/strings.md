@@ -121,6 +121,20 @@ int c = wcwidth(L'A');               // 1
 int w = wcswidth(L"hello", 5);      // 5
 ```
 
+### Single-Byte Conversions
+
+`mblen` returns the number of bytes forming the next multibyte
+character or `-1` when the sequence is invalid. `btowc` converts a
+single byte to a `wchar_t` using `mbrtowc` and yields `-1` on failure.
+`wctob` performs the opposite operation through `wcrtomb`, returning the
+resulting byte or `-1` when the character cannot be represented.
+
+```c
+int n = mblen("A", 1);       // 1
+wint_t wc = btowc('A');     // L'A'
+int c2 = wctob(L'A');       // 'A'
+```
+
 ### Wide-Character I/O
 
 `fgetwc` and `fputwc` mirror `fgetc` and `fputc` but operate on wide
