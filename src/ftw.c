@@ -103,6 +103,11 @@ static int do_nftw(const char *path,
 
 static ftw_func_t ftw_cb;
 
+/*
+ * ftw_wrapper() - adapter used by ftw() so that nftw() can call an
+ * ftw_func_t callback.  The FTW structure passed by nftw() is ignored
+ * and the saved callback is invoked with the original arguments.
+ */
 static int ftw_wrapper(const char *fpath, const struct stat *sb, int typeflag,
                        struct FTW *info)
 {
@@ -110,6 +115,11 @@ static int ftw_wrapper(const char *fpath, const struct stat *sb, int typeflag,
     return ftw_cb(fpath, sb, typeflag);
 }
 
+/*
+ * nftw() - walk a directory tree calling fn for each encountered file.
+ * The fdlimit argument is ignored in this implementation.  Traversal is
+ * performed by the internal do_nftw() helper which handles FTW_* flags.
+ */
 int nftw(const char *path, nftw_func_t fn, int fdlimit, int flags)
 {
     if (!path || !fn) {
@@ -120,6 +130,11 @@ int nftw(const char *path, nftw_func_t fn, int fdlimit, int flags)
     return do_nftw(path, fn, fdlimit, flags, 0);
 }
 
+/*
+ * ftw() - legacy wrapper around nftw().  The provided callback is stored
+ * in a global variable and invoked via ftw_wrapper() so the older
+ * ftw_func_t signature can be used with nftw's traversal logic.
+ */
 int ftw(const char *path, ftw_func_t fn, int fdlimit)
 {
     ftw_cb = fn;

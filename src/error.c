@@ -120,9 +120,10 @@ const struct err_entry __vlibc_err_table[] = {
 };
 
 /*
- * strerror() - return a message string for an errno value.
- * Looks up the number in the builtin table and falls back to
- * "Unknown error N" when no match is found.
+ * strerror() - translate an errno value into a human readable string.
+ * The builtin error table is scanned for the code and the associated
+ * message is returned.  If no entry exists a generic "Unknown error N"
+ * string is produced.
  */
 char *strerror(int errnum)
 {
@@ -136,7 +137,9 @@ char *strerror(int errnum)
 }
 
 /*
- * perror() - print the current errno message with an optional prefix.
+ * perror() - print the message for the current errno value.
+ * If a prefix string is supplied it is written before the message
+ * followed by a colon and space.
  */
 void perror(const char *s)
 {
