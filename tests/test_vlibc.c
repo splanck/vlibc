@@ -5743,7 +5743,8 @@ static const char *test_tsearch_basic(void)
     int *p = tfind(&vals[2], &root, int_cmp);
     mu_assert("find 7", p && *p == 7);
 
-    tdelete(&vals[1], &root, int_cmp);
+    int *parent = tdelete(&vals[1], &root, int_cmp);
+    mu_assert("delete ret", parent && *parent == 4);
     mu_assert("deleted", tfind(&vals[1], &root, int_cmp) == NULL);
 
     tree_sum = 0;

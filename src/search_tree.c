@@ -57,16 +57,26 @@ void *tfind(const void *key, void *const *rootp,
 void *tdelete(const void *key, void **rootp,
               int (*compar)(const void *, const void *))
 {
+    if (!rootp || !*rootp)
+        return NULL;
+
     struct node **p = (struct node **)rootp;
+    struct node *parent = NULL;
+
+    while (*p) {
+        int r = compar(key, (*p)->key);
+        if (r == 0)
+            break;
+        parent = *p;
+        p = (r < 0) ? &(*p)->left : &(*p)->right;
+    }
+
     if (!*p)
         return NULL;
-    int r = compar(key, (*p)->key);
-    if (r < 0)
-        return tdelete(key, (void **)&(*p)->left, compar);
-    if (r > 0)
-        return tdelete(key, (void **)&(*p)->right, compar);
 
     struct node *t = *p;
+    void *ret = parent ? (void *)&parent->key : (void *)&t->key; /* POSIX */
+
     if (!t->left) {
         *p = t->right;
         free(t);
@@ -85,7 +95,7 @@ void *tdelete(const void *key, void **rootp,
         free(min);
         *minp = child;
     }
-    return *p;
+    return ret;
 }
 
 static void walk(const struct node *n,
