@@ -115,8 +115,10 @@ FILE *fopen(const char *path, const char *mode)
         flags = O_WRONLY | O_CREAT | O_APPEND;
     else if (strcmp(mode, "a+") == 0)
         flags = O_RDWR | O_CREAT | O_APPEND;
-    else
+    else {
+        errno = EINVAL;
         return NULL;
+    }
 
     int fd = open(path, flags, 0644);
     if (fd < 0)
