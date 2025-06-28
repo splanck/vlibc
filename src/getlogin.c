@@ -10,8 +10,11 @@
 #include "pwd.h"
 #include "string.h"
 
-/* Retrieve the login name by calling getpwuid(getuid()) and cache
- * it in a thread-local buffer for reuse. */
+/*
+ * Obtain the login name for the current user by calling
+ * getpwuid(getuid()). The resulting pw_name field is copied into a
+ * thread-local buffer so repeated calls avoid further lookups.
+ */
 char *getlogin(void)
 {
     static __thread char name[64];
