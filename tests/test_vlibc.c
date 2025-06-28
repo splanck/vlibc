@@ -1400,6 +1400,53 @@ static const char *test_aio_basic(void)
     return 0;
 }
 
+static const char *test_aio_cancel(void)
+{
+    int pfd[2];
+    mu_assert("pipe", pipe(pfd) == 0);
+
+    struct aiocb cb;
+    memset(&cb, 0, sizeof(cb));
+    char buf[1];
+    cb.aio_fildes = pfd[0];
+    cb.aio_buf = buf;
+    cb.aio_nbytes = 1;
+    cb.aio_offset = 0;
+    cb.aio_lio_opcode = LIO_READ;
+    mu_assert("aio_read", aio_read(&cb) == 0);
+
+    /* descriptor mismatch should not cancel */
+    mu_assert("aio_cancel mismatch", aio_cancel(pfd[1], &cb) == AIO_ALLDONE);
+
+    close(pfd[1]);
+    const struct aiocb *list[1] = {&cb};
+    mu_assert("aio_suspend", aio_suspend(list, 1, NULL) == 0);
+    mu_assert("aio_error", aio_error(&cb) == 0);
+    mu_assert("aio_return", aio_return(&cb) == 0);
+
+    mu_assert("aio_cancel null", aio_cancel(pfd[0], NULL) == AIO_ALLDONE);
+    close(pfd[0]);
+
+    int p2[2];
+    mu_assert("pipe2", pipe(p2) == 0);
+    struct aiocb cb2;
+    memset(&cb2, 0, sizeof(cb2));
+    char buf2[1];
+    cb2.aio_fildes = p2[0];
+    cb2.aio_buf = buf2;
+    cb2.aio_nbytes = 1;
+    cb2.aio_offset = 0;
+    cb2.aio_lio_opcode = LIO_READ;
+    mu_assert("aio_read2", aio_read(&cb2) == 0);
+    usleep(1000);
+    mu_assert("aio_cancel match", aio_cancel(p2[0], &cb2) == AIO_CANCELED);
+    mu_assert("aio_return cancel", aio_return(&cb2) == -1);
+    close(p2[0]);
+    close(p2[1]);
+
+    return 0;
+}
+
 static const char *test_sync_basic(void)
 {
     sync();
@@ -6133,6 +6180,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_fsync_basic),
         REGISTER_TEST("default", test_fdatasync_basic),
         REGISTER_TEST("default", test_aio_basic),
+        REGISTER_TEST("default", test_aio_cancel),
         REGISTER_TEST("default", test_sync_basic),
         REGISTER_TEST("default", test_string_helpers),
         REGISTER_TEST("default", test_string_casecmp),

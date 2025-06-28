@@ -182,7 +182,9 @@ int aio_suspend(const struct aiocb *const list[], int n,
 
 int aio_cancel(int fd, struct aiocb *cb)
 {
-    (void)fd;
+    if (!cb || cb->aio_fildes != fd)
+        return AIO_ALLDONE;
+
     struct aio_task *t = get_task(cb);
     if (!t)
         return AIO_ALLDONE;
