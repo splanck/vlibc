@@ -204,6 +204,7 @@ int putenv(const char *str)
                 free(newenv);
             if (newflags && newflags != environ_flags)
                 free(newflags);
+            errno = ENOMEM;
             return -1;
         }
         environ = newenv;
@@ -225,6 +226,7 @@ int putenv(const char *str)
         if (!newenv || !newflags) {
             free(newenv);
             free(newflags);
+            errno = ENOMEM;
             return -1;
         }
         for (int i = 0; i < count; ++i) {
