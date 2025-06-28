@@ -20,6 +20,7 @@ struct part {
     int do_glob;
 };
 
+/* Append a single word to the result array, reallocating as needed. */
 static int add_word(wordexp_t *we, const char *str)
 {
     char **tmp = realloc(we->we_wordv, sizeof(char*) * (we->we_wordc + 2));
@@ -34,6 +35,7 @@ static int add_word(wordexp_t *we, const char *str)
     return 0;
 }
 
+/* Expand the part using glob() when wildcard characters are present. */
 static int do_glob_expand(wordexp_t *we, struct part *p)
 {
     if (!p->do_glob) {
@@ -57,6 +59,7 @@ static int do_glob_expand(wordexp_t *we, struct part *p)
     return -1;
 }
 
+/* Parse one shell-style word from *strp into out, handling quotes and escapes. */
 static int parse_word(const char **strp, struct part *out)
 {
     const char *s = *strp;
@@ -131,6 +134,7 @@ static int parse_word(const char **strp, struct part *out)
     return 0;
 }
 
+/* Expand a shell words string into a list of words with globbing. */
 int wordexp(const char *words, wordexp_t *pwordexp)
 {
     if (!words || !pwordexp)
@@ -150,6 +154,7 @@ int wordexp(const char *words, wordexp_t *pwordexp)
     return 0;
 }
 
+/* Free storage allocated by wordexp(). */
 void wordfree(wordexp_t *pwordexp)
 {
     if (!pwordexp) return;
