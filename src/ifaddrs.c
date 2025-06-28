@@ -110,6 +110,7 @@ int getifaddrs(struct ifaddrs **ifap)
         struct ifreq req;
         memset(&req, 0, sizeof(req));
         strncpy(req.ifr_name, r->ifr_name, IFNAMSIZ - 1);
+        cur->ifa_flags = 0;
         if (ioctl(fd, SIOCGIFFLAGS, &req) == 0)
             cur->ifa_flags = (unsigned int)req.ifr_flags;
         if (ioctl(fd, SIOCGIFNETMASK, &req) == 0) {
