@@ -4430,6 +4430,55 @@ static const char *test_mqueue_basic(void)
     return 0;
 }
 
+static const char *test_mqueue_timed(void)
+{
+    const char *name = "/vlibc_test_mq_timed";
+    struct mq_attr attr = {0};
+    attr.mq_maxmsg = 1;
+    attr.mq_msgsize = 8;
+    mqd_t mq = mq_open(name, O_CREAT | O_RDWR, 0600, &attr);
+    mu_assert("mq_open", mq >= 0);
+
+    mu_assert("send", mq_send(mq, "one", 4, 0) == 0);
+
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_sec += 1;
+    int r = mq_timedsend(mq, "two", 4, 0, &ts);
+    mu_assert("timedout", r == -1 && errno == ETIMEDOUT);
+
+    ts.tv_sec += 1;
+    char buf[8];
+    ssize_t n = mq_timedreceive(mq, buf, sizeof(buf), NULL, &ts);
+    mu_assert("recv", n > 0 && strcmp(buf, "one") == 0);
+
+    mq_close(mq);
+    mq_unlink(name);
+    return 0;
+}
+
+static const char *test_mqueue_attr(void)
+{
+    const char *name = "/vlibc_test_mq_attr";
+    struct mq_attr attr = {0};
+    attr.mq_maxmsg = 4;
+    attr.mq_msgsize = 16;
+    mqd_t mq = mq_open(name, O_CREAT | O_RDWR, 0600, &attr);
+    mu_assert("mq_open", mq >= 0);
+
+    struct mq_attr cur;
+    mu_assert("getattr", mq_getattr(mq, &cur) == 0);
+    mu_assert("attrvals", cur.mq_maxmsg == 4 && cur.mq_msgsize == 16);
+
+    struct mq_attr newa = { .mq_flags = O_NONBLOCK };
+    struct mq_attr olda;
+    mu_assert("setattr", mq_setattr(mq, &newa, &olda) == 0 && olda.mq_flags == 0);
+
+    mq_close(mq);
+    mq_unlink(name);
+    return 0;
+}
+
 static const char *test_named_semaphore_create(void)
 {
     const char *name = "/vlibc_test_sem";
@@ -5791,6 +5840,8 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_shm_basic),
         REGISTER_TEST("memory", test_sysv_shm_segment),
         REGISTER_TEST("default", test_mqueue_basic),
+        REGISTER_TEST("default", test_mqueue_timed),
+        REGISTER_TEST("default", test_mqueue_attr),
         REGISTER_TEST("default", test_named_semaphore_create),
         REGISTER_TEST("default", test_sysv_sem_basic),
         REGISTER_TEST("default", test_ftok_unique),
