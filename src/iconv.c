@@ -41,16 +41,23 @@ typedef struct iconv_cd {
 #endif
 } iconv_cd;
 
+/* Determine whether a character set name refers to ASCII. */
 static int is_ascii_cs(const char *name)
 {
     return name && (!strcasecmp(name, "ASCII") || !strcasecmp(name, "US-ASCII"));
 }
 
+/* Determine whether a character set name refers to UTF-8. */
 static int is_utf8_cs(const char *name)
 {
     return name && (!strcasecmp(name, "UTF-8") || !strcasecmp(name, "UTF8"));
 }
 
+/*
+ * iconv_open() - acquire a conversion descriptor. On BSD systems the
+ * host iconv implementation is used when available; otherwise simple
+ * ASCII and UTF-8 conversions are provided.
+ */
 iconv_t iconv_open(const char *tocode, const char *fromcode)
 {
     if (!tocode || !fromcode) {
@@ -97,6 +104,11 @@ iconv_t iconv_open(const char *tocode, const char *fromcode)
     return (iconv_t)cd;
 }
 
+/*
+ * iconv() - convert a sequence of characters according to the
+ * conversion descriptor. Supports basic ASCII and UTF-8 handling
+ * and forwards to the host iconv implementation when present.
+ */
 size_t iconv(iconv_t cd_, char **inbuf, size_t *inbytesleft,
              char **outbuf, size_t *outbytesleft)
 {
@@ -159,6 +171,11 @@ size_t iconv(iconv_t cd_, char **inbuf, size_t *inbytesleft,
     return converted;
 }
 
+/*
+ * iconv_close() - release a conversion descriptor obtained from
+ * iconv_open(). Forwards to the host implementation on BSD when
+ * necessary.
+ */
 int iconv_close(iconv_t cd_)
 {
     iconv_cd *cd = (iconv_cd *)cd_;
