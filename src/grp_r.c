@@ -17,6 +17,11 @@
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
 
+/*
+ * group_path() - return the pathname of the group database.
+ * Uses the VLIBC_GROUP environment variable when set,
+ * otherwise falls back to the system default.
+ */
 static const char *group_path(void)
 {
     const char *p = getenv("VLIBC_GROUP");
@@ -25,6 +30,11 @@ static const char *group_path(void)
     return "/etc/group";
 }
 
+/*
+ * parse_line_r() - populate *gr from a single line of the group file.
+ * Splits the line and copies fields into the caller-provided buffer.
+ * Returns 0 on success or -1 on failure (e.g. buffer too small).
+ */
 static int parse_line_r(const char *line, struct group *gr,
                         char *buf, size_t buflen)
 {
@@ -86,6 +96,11 @@ static int parse_line_r(const char *line, struct group *gr,
     return 0;
 }
 
+/*
+ * lookup_r() - helper to search the group database.
+ * When by_name is non-zero the search is by group name, otherwise by gid.
+ * The parsed entry is placed into *grp using the caller provided buffer.
+ */
 static int lookup_r(const char *name, gid_t gid, int by_name,
                     struct group *grp, char *buf, size_t buflen,
                     struct group **result)
@@ -124,12 +139,20 @@ static int lookup_r(const char *name, gid_t gid, int by_name,
     return -1;
 }
 
+/*
+ * getgrgid_r() - thread-safe lookup of a group by gid.
+ * Uses lookup_r() to parse the entry into the caller supplied structures.
+ */
 int getgrgid_r(gid_t gid, struct group *grp, char *buf, size_t buflen,
                struct group **result)
 {
     return lookup_r(NULL, gid, 0, grp, buf, buflen, result);
 }
 
+/*
+ * getgrnam_r() - thread-safe lookup of a group by name.
+ * Wraps lookup_r() with by_name enabled.
+ */
 int getgrnam_r(const char *name, struct group *grp, char *buf, size_t buflen,
                struct group **result)
 {
@@ -143,12 +166,18 @@ extern int host_getgrgid_r(gid_t, struct group *, char *, size_t,
 extern int host_getgrnam_r(const char *, struct group *, char *, size_t,
                            struct group **) __asm("getgrnam_r");
 
+/*
+ * getgrgid_r() - forward to the host implementation when available.
+ */
 int getgrgid_r(gid_t gid, struct group *grp, char *buf, size_t buflen,
                struct group **result)
 {
     return host_getgrgid_r(gid, grp, buf, buflen, result);
 }
 
+/*
+ * getgrnam_r() - forward to the host implementation when available.
+ */
 int getgrnam_r(const char *name, struct group *grp, char *buf, size_t buflen,
                struct group **result)
 {

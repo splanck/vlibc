@@ -12,6 +12,11 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/*
+ * getrusage() - retrieve resource usage statistics for the given target.
+ * Performs a direct syscall when possible or falls back to the host libc
+ * implementation.  Returns 0 on success and -1 on error with errno set.
+ */
 int getrusage(int who, struct rusage *usage)
 {
 #if defined(SYS_getrusage)

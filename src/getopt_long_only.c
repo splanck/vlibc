@@ -11,9 +11,9 @@
 #include "string.h"
 
 /*
- * Parse command line options allowing long options with a single dash.
- * If a matching long option is not found, fall back to getopt() for
- * short option processing.
+ * getopt_long_only() - variant of getopt_long() that accepts long options
+ * prefixed with a single '-'.  If no long option matches, processing
+ * falls back to getopt() so traditional short options still work.
  */
 int getopt_long_only(int argc, char * const argv[], const char *optstring,
                      const struct option *longopts, int *longindex)
