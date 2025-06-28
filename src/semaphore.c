@@ -9,7 +9,11 @@
 #include "semaphore.h"
 #include <errno.h>
 
-/* Initialize a semaphore with the given initial count. */
+/*
+ * Initialize a semaphore with the provided initial count.
+ * The pshared argument is ignored as all semaphores are
+ * process-local in this implementation.
+ */
 int sem_init(sem_t *sem, int pshared, unsigned value)
 {
     (void)pshared;
@@ -19,14 +23,22 @@ int sem_init(sem_t *sem, int pshared, unsigned value)
     return 0;
 }
 
-/* Destroy a semaphore object (no-op). */
+/*
+ * Destroy a semaphore object.  Nothing needs to be done for
+ * this simple atomic counter based implementation so it is a
+ * no-op.
+ */
 int sem_destroy(sem_t *sem)
 {
     (void)sem;
     return 0;
 }
 
-/* Decrement the semaphore count, blocking if it is zero. */
+/*
+ * Decrement the semaphore count, waiting in a loop if the
+ * count is zero.  The wait is implemented by repeatedly
+ * polling with a short sleep.
+ */
 int sem_wait(sem_t *sem)
 {
     if (!sem)
@@ -43,7 +55,10 @@ int sem_wait(sem_t *sem)
     }
 }
 
-/* Try to decrement the semaphore without blocking. */
+/*
+ * Try to decrement the semaphore without blocking.  If the
+ * count is already zero the call fails with EAGAIN.
+ */
 int sem_trywait(sem_t *sem)
 {
     if (!sem)
@@ -58,7 +73,9 @@ int sem_trywait(sem_t *sem)
     return EAGAIN;
 }
 
-/* Increment the semaphore count and wake waiters. */
+/*
+ * Increment the semaphore count and wake any waiting thread.
+ */
 int sem_post(sem_t *sem)
 {
     if (!sem)
