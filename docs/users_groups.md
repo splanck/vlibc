@@ -22,6 +22,7 @@ int getpwuid_r(uid_t uid, struct passwd *pwd, char *buf, size_t buflen,
 int getpwnam_r(const char *name, struct passwd *pwd, char *buf, size_t buflen,
                struct passwd **result);
 char *getlogin(void);
+int getlogin_r(char *buf, size_t buflen);
 void setpwent(void);
 struct passwd *getpwent(void);
 void endpwent(void);
@@ -36,6 +37,10 @@ results in caller supplied memory so they are safe for concurrent use.
 `getlogin()` obtains the user name for the current UID using
 `getpwuid(getuid())`.  The resulting string is cached in thread-local
 storage so repeated calls are inexpensive.
+
+`getlogin_r()` provides a thread-safe variant that writes the login name
+into a user supplied buffer.  It returns `0` on success or an error code
+when the name cannot be obtained or the buffer is too small.
 
 `setpwent()`, `getpwent()` and `endpwent()` iterate sequentially
 through all passwd entries.  On BSD these wrappers call the host

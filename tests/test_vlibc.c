@@ -5360,6 +5360,17 @@ static const char *test_getlogin_fn(void)
     return 0;
 }
 
+static const char *test_getlogin_r_fn(void)
+{
+    char buf[64];
+    int r = getlogin_r(buf, sizeof(buf));
+    char *name = getlogin();
+    mu_assert("getlogin_r", r == 0 && buf[0] != '\0');
+    if (name)
+        mu_assert("match", strcmp(name, buf) == 0);
+    return 0;
+}
+
 static const char *test_crypt_des(void)
 {
     const char *h = crypt("password", "ab");
@@ -6234,6 +6245,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_getgrouplist_basic),
         REGISTER_TEST("default", test_getgrouplist_overflow),
         REGISTER_TEST("default", test_getlogin_fn),
+        REGISTER_TEST("default", test_getlogin_r_fn),
         REGISTER_TEST("default", test_crypt_des),
         REGISTER_TEST("default", test_crypt_md5),
         REGISTER_TEST("default", test_crypt_sha256),
