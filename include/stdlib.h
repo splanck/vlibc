@@ -45,6 +45,8 @@ float strtof(const char *nptr, char **endptr);
 double strtod(const char *nptr, char **endptr);
 long double strtold(const char *nptr, char **endptr);
 double atof(const char *nptr);
+/* Length of next multibyte character */
+int mblen(const char *s, size_t n);
 
 int abs(int j);
 long labs(long j);

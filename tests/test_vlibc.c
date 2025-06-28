@@ -1661,6 +1661,18 @@ static const char *test_widechar_width(void)
     return 0;
 }
 
+static const char *test_single_byte_conv(void)
+{
+    char bad[] = { (char)0xC0, 0 };
+    mu_assert("mblen ascii", mblen("A", 1) == 1);
+    mu_assert("btowc ascii", btowc('A') == L'A');
+    mu_assert("wctob ascii", wctob(L'A') == 'A');
+    mu_assert("btowc eof", btowc(-1) == -1);
+    mu_assert("wctob wide", wctob((wchar_t)0x100) == -1);
+    mu_assert("mblen invalid", mblen(bad, 1) == -1);
+    return 0;
+}
+
 static const char *test_wctype_checks(void)
 {
     mu_assert("iswalpha", iswalpha(L'A'));
@@ -5733,6 +5745,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_widechar_basic),
         REGISTER_TEST("default", test_widechar_conv),
         REGISTER_TEST("default", test_widechar_width),
+        REGISTER_TEST("default", test_single_byte_conv),
         REGISTER_TEST("default", test_wctype_checks),
         REGISTER_TEST("default", test_wmem_ops),
         REGISTER_TEST("default", test_wchar_search),
