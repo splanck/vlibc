@@ -113,10 +113,6 @@ int setenv(const char *name, const char *value, int overwrite)
             if (newflags && newflags != environ_flags)
                 free(newflags);
             free(entry);
-            if (newenv && newenv != environ)
-                free(newenv);
-            if (newflags && newflags != environ_flags)
-                free(newflags);
             return -1;
         }
         environ = newenv;

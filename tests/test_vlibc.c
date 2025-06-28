@@ -3501,7 +3501,7 @@ static const char *test_setenv_overwrite_loop(void)
     return 0;
 }
 
-static const char *test_setenv_alloc_fail(void)
+static const char *test_setenv_alloc_fail_simple(void)
 {
     env_init(NULL);
     setenv("A", "1", 1);
@@ -3509,6 +3509,34 @@ static const char *test_setenv_alloc_fail(void)
     errno = 0;
     int r = setenv("B", "2", 1);
     mu_assert("alloc fail", r == -1 && errno == ENOMEM);
+    vlibc_test_alloc_fail_after = -1;
+    clearenv();
+    return 0;
+}
+
+static const char *test_setenv_realloc_no_leak(void)
+{
+    env_init(NULL);
+    setenv("BASE", "1", 1);
+
+    vlibc_test_alloc_fail_after = 2;
+    errno = 0;
+    int r = setenv("LEAK", "2", 1);
+    mu_assert("initial fail", r == -1 && errno == ENOMEM);
+#ifdef HAVE_SBRK
+    void *brk = sbrk(0);
+#endif
+
+    for (int i = 0; i < 5; i++) {
+        vlibc_test_alloc_fail_after = 2;
+        errno = 0;
+        r = setenv("LEAK", "2", 1);
+        mu_assert("loop fail", r == -1 && errno == ENOMEM);
+    }
+
+#ifdef HAVE_SBRK
+    mu_assert("no leak", sbrk(0) == brk);
+#endif
     vlibc_test_alloc_fail_after = -1;
     clearenv();
     return 0;
@@ -6090,6 +6118,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_recallocarray_grow),
         REGISTER_TEST("memory", test_setenv_overwrite_loop),
         REGISTER_TEST("memory", test_setenv_alloc_fail),
+        REGISTER_TEST("memory", test_setenv_realloc_no_leak),
         REGISTER_TEST("memory", test_memory_ops),
         REGISTER_TEST("default", test_io),
         REGISTER_TEST("default", test_lseek_dup),
@@ -6227,6 +6256,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_putenv_setenv_clearenv),
         REGISTER_TEST("default", test_putenv_unsetenv_stack),
         REGISTER_TEST("default", test_setenv_alloc_fail),
+        REGISTER_TEST("default", test_setenv_realloc_no_leak),
         REGISTER_TEST("default", test_locale_from_env),
         REGISTER_TEST("default", test_locale_objects),
         REGISTER_TEST("default", test_langinfo_codeset),
