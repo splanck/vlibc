@@ -3679,6 +3679,39 @@ static const char *test_putenv_unsetenv_stack(void)
     return 0;
 }
 
+static const char *test_putenv_alloc_fail_basic(void)
+{
+    env_init(NULL);
+    vlibc_test_alloc_fail_after = 0;
+    errno = 0;
+    char buf[] = "OOM=1";
+    int r = putenv(buf);
+    mu_assert("alloc fail", r == -1);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    vlibc_test_alloc_fail_after = -1;
+    env_init(NULL);
+    return 0;
+}
+
+static const char *test_putenv_realloc_fail_errno(void)
+{
+    env_init(NULL);
+    char base[] = "BASE=1";
+    mu_assert("putenv", putenv(base) == 0);
+
+    vlibc_test_alloc_fail_after = 1;
+    errno = 0;
+    char add[] = "NEW=2";
+    int r = putenv(add);
+    mu_assert("realloc fail", r == -1);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    vlibc_test_alloc_fail_after = -1;
+
+    mu_assert("unchanged", getenv("NEW") == NULL && strcmp(getenv("BASE"), "1") == 0);
+    clearenv();
+    return 0;
+}
+
 static const char *test_setenv_alloc_fail(void)
 {
     env_init(NULL);
@@ -6287,6 +6320,8 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_setenv_alloc_fail_basic),
         REGISTER_TEST("memory", test_setenv_realloc_fail_errno),
         REGISTER_TEST("memory", test_setenv_strdup_fail),
+        REGISTER_TEST("memory", test_putenv_alloc_fail_basic),
+        REGISTER_TEST("memory", test_putenv_realloc_fail_errno),
         REGISTER_TEST("memory", test_memory_ops),
         REGISTER_TEST("default", test_io),
         REGISTER_TEST("default", test_lseek_dup),
@@ -6428,6 +6463,8 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_env_init_clearenv),
         REGISTER_TEST("default", test_putenv_setenv_clearenv),
         REGISTER_TEST("default", test_putenv_unsetenv_stack),
+        REGISTER_TEST("default", test_putenv_alloc_fail_basic),
+        REGISTER_TEST("default", test_putenv_realloc_fail_errno),
         REGISTER_TEST("default", test_setenv_alloc_fail_basic),
         REGISTER_TEST("default", test_setenv_realloc_fail_errno),
         REGISTER_TEST("default", test_setenv_strdup_fail),
