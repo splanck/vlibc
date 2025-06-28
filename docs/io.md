@@ -261,8 +261,9 @@ characters and opens the resulting file. `mkdtemp` performs the same
 replacement but creates a directory instead. `mkostemp` behaves like
 `mkstemp` but accepts additional open flags such as `O_CLOEXEC`.  The
 `mkostemps` variant allows a static suffix to remain after the replaced
-`XXXXXX` sequence. `tmpfile` returns a stream backed by an anonymous
-temporary file that is unlinked immediately.
+`XXXXXX` sequence. The suffix length must be non-negative and less than
+the length of `template` minus six. `tmpfile` returns a stream backed by
+an anonymous temporary file that is unlinked immediately.
 
 ```c
 char path[] = "/tmp/exampleXXXXXX";
