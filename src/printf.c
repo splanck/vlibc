@@ -208,9 +208,16 @@ static int vfdprintf(int fd, const char *format, va_list ap)
     char buf[1024];
     int len = vsnprintf(buf, sizeof(buf), format, ap);
     if (len > 0 && fd >= 0) {
-        ssize_t w = write(fd, buf, (size_t)len);
-        if (w < 0)
-            return -1;
+        size_t off = 0;
+        while (off < (size_t)len) {
+            ssize_t w = write(fd, buf + off, (size_t)len - off);
+            if (w < 0) {
+                if (errno == EINTR || errno == EAGAIN)
+                    continue;
+                return -1;
+            }
+            off += (size_t)w;
+        }
     }
     return len;
 }
