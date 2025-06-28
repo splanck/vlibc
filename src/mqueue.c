@@ -20,6 +20,22 @@
 #include "fcntl.h"
 #include "syscall.h"
 
+#if defined(SYS_mq_timedsend_time64) || defined(SYS_mq_timedsend) || \
+    defined(SYS_mq_timedreceive_time64) || defined(SYS_mq_timedreceive) || \
+    defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+
+static inline __attribute__((unused))
+int mq_wait(mqd_t mqdes, short events, const struct timespec *abstime)
+{
+    (void)mqdes;
+    (void)events;
+    (void)abstime;
+    return 0;
+}
+
+#else
+
 static __attribute__((unused))
 int mq_wait(mqd_t mqdes, short events, const struct timespec *abstime)
 {
@@ -54,6 +70,8 @@ int mq_wait(mqd_t mqdes, short events, const struct timespec *abstime)
         return 0;
     }
 }
+
+#endif
 
 /* Open or create a POSIX message queue. */
 mqd_t mq_open(const char *name, int oflag, ...)
