@@ -14,6 +14,7 @@ err.h        - err/warn convenience helpers
 getopt.h     - option parsing
 io.h         - unbuffered I/O primitives
 locale.h     - locale helpers
+monetary.h   - currency formatting helper
 math.h       - basic math routines
 complex.h   - basic complex math routines
 memory.h     - heap allocation

@@ -213,3 +213,15 @@ two accept an array of `struct option` describing long names. The
 prefixed with a single dash. Both long parsing functions return the
 option's value field or set a flag when supplied in the table.
 
+
+## Monetary Formatting
+
+`strfmon` converts floating point values to formatted currency strings.
+Only the `"C"` locale is supported, so the dollar sign is used as the
+currency symbol. Width and precision specifiers are honored but
+advanced flags are ignored.
+
+```c
+char out[32];
+strfmon(out, sizeof(out), "%8.2n", 12.3); // "   $12.30"
+```

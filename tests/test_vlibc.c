@@ -49,6 +49,7 @@
 #include "../include/complex.h"
 #include "../include/locale.h"
 #include "../include/langinfo.h"
+#include "../include/monetary.h"
 #include "../include/regex.h"
 #include "../include/ftw.h"
 #include "../include/fts.h"
@@ -3230,6 +3231,15 @@ static const char *test_wcsftime_extended(void)
     return 0;
 }
 
+static const char *test_strfmon_basic(void)
+{
+    char buf[32];
+    ssize_t n = strfmon(buf, sizeof(buf), "%n", 42.5);
+    mu_assert("strfmon len", n == (ssize_t)strlen("$42.50"));
+    mu_assert("strfmon out", strcmp(buf, "$42.50") == 0);
+    return 0;
+}
+
 static const char *test_strptime_basic(void)
 {
     struct tm tm;
@@ -6157,6 +6167,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_strftime_extended),
         REGISTER_TEST("default", test_wcsftime_basic),
         REGISTER_TEST("default", test_wcsftime_extended),
+        REGISTER_TEST("default", test_strfmon_basic),
         REGISTER_TEST("default", test_strptime_basic),
         REGISTER_TEST("default", test_strptime_short_input),
         REGISTER_TEST("default", test_time_conversions),

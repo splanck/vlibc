@@ -141,6 +141,7 @@ SRC := \
     src/strftime.c \
     src/wcsftime.c \
     src/strptime.c \
+    src/strfmon.c \
     src/stat.c \
     src/statvfs.c \
     src/utime.c \
