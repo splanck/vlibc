@@ -12,11 +12,20 @@
 
 static const char *progname = "";
 
+/*
+ * getprogname() - retrieve the stored program name.  If no name has been
+ * set then an empty string is returned.
+ */
 const char *getprogname(void)
 {
     return progname;
 }
 
+/*
+ * setprogname() - store the basename of the provided executable path so it
+ * can be returned by getprogname().  Passing NULL resets the name to an
+ * empty string.
+ */
 void setprogname(const char *name)
 {
     if (!name) {

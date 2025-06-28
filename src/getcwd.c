@@ -11,6 +11,11 @@
 
 extern char *host_getcwd(char *buf, size_t size) __asm__("getcwd");
 
+/*
+ * getcwd() - return the absolute path of the current working directory.
+ * When buf is NULL a buffer is allocated that must later be freed by the
+ * caller.  Returns NULL on failure with errno set.
+ */
 char *getcwd(char *buf, size_t size)
 {
     if (buf) {
