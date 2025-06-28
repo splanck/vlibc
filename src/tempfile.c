@@ -103,20 +103,14 @@ int mkostemp(char *template, int flags)
  */
 int mkostemps(char *template, int suffixlen, int flags)
 {
-    if (!template || suffixlen < 0) {
-        errno = EINVAL;
-        return -1;
-    }
+    if (!template)
+        goto invalid;
     size_t len = strlen(template);
-    if (len < (size_t)(suffixlen + 6)) {
-        errno = EINVAL;
-        return -1;
-    }
+    if (len < 6 || suffixlen < 0 || (size_t)suffixlen >= len - 6)
+        goto invalid;
     char *pos = template + len - suffixlen - 6;
-    if (strncmp(pos, "XXXXXX", 6) != 0) {
-        errno = EINVAL;
-        return -1;
-    }
+    if (strncmp(pos, "XXXXXX", 6) != 0)
+        goto invalid;
     for (int i = 0; i < 100; i++) {
         if (replace_x_at(pos) < 0)
             return -1;
@@ -127,6 +121,9 @@ int mkostemps(char *template, int suffixlen, int flags)
             return -1;
     }
     errno = EEXIST;
+    return -1;
+invalid:
+    errno = EINVAL;
     return -1;
 }
 
