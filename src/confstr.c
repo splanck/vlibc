@@ -13,11 +13,21 @@
     defined(__OpenBSD__) || defined(__DragonFly__)
 extern size_t host_confstr(int, char *, size_t) __asm("confstr");
 
+/*
+ * confstr() - obtain a string-valued system configuration option.
+ * When running on a BSD host, this simply forwards to the host's
+ * implementation. Otherwise it returns an error and sets errno to
+ * EINVAL as the option is unsupported.
+ */
 size_t confstr(int name, char *buf, size_t len)
 {
     return host_confstr(name, buf, len);
 }
 #else
+/*
+ * confstr() - stub implementation for systems without confstr().
+ * Always sets errno to EINVAL and returns 0.
+ */
 size_t confstr(int name, char *buf, size_t len)
 {
     (void)name;
