@@ -128,6 +128,7 @@ FTSENT *fts_read(FTS *fts)
         return NULL;
 
     struct stat st;
+    memset(&st, 0, sizeof(st));
     int r;
     if (fts->options & FTS_PHYSICAL)
         r = lstat(n->path, &st);
@@ -157,6 +158,8 @@ FTSENT *fts_read(FTS *fts)
     }
     if (r == 0)
         ent->fts_stat = st;
+    else
+        memset(&ent->fts_stat, 0, sizeof(ent->fts_stat));
 
     if (ent->fts_info == FTS_D) {
         DIR *d = opendir(ent->fts_path);
