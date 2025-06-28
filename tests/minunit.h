@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Minimal unit test framework macros.
+ */
 #ifndef MINUNIT_H
 #define MINUNIT_H
 

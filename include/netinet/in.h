@@ -1,3 +1,8 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Purpose: Network address structures and byte order helpers.
+ */
 #ifndef NETINET_IN_H
 #define NETINET_IN_H
 
