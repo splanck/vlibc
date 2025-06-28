@@ -166,6 +166,7 @@ SRC := \
     src/getsubopt.c \
     src/locale.c \
     src/locale_extra.c \
+    src/langinfo.c \
     src/wchar.c \
     src/wchar_conv.c \
     src/wchar_io.c \

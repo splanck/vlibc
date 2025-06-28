@@ -48,6 +48,7 @@
 #include "../include/fenv.h"
 #include "../include/complex.h"
 #include "../include/locale.h"
+#include "../include/langinfo.h"
 #include "../include/regex.h"
 #include "../include/ftw.h"
 #include "../include/fts.h"
@@ -3536,6 +3537,13 @@ static const char *test_locale_objects(void)
     return 0;
 }
 
+static const char *test_langinfo_codeset(void)
+{
+    const char *cs = nl_langinfo(CODESET);
+    mu_assert("codeset", cs && cs[0] != '\0');
+    return 0;
+}
+
 static const char *test_gethostname_fn(void)
 {
     char buf[256];
@@ -6003,6 +6011,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_putenv_unsetenv_stack),
         REGISTER_TEST("default", test_locale_from_env),
         REGISTER_TEST("default", test_locale_objects),
+        REGISTER_TEST("default", test_langinfo_codeset),
         REGISTER_TEST("default", test_gethostname_fn),
         REGISTER_TEST("default", test_uname_fn),
         REGISTER_TEST("default", test_confstr_path),

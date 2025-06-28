@@ -22,8 +22,8 @@ The **string** module provides fundamental operations needed by most C programs:
 - Basic locale handling reads the `LC_ALL` and `LANG` environment variables.
   `setlocale` defaults to those values and, on BSD systems, falls back to the
   host `setlocale(3)` when a locale other than `"C"` or `"POSIX"` is
-  requested. `localeconv` exposes formatting data. All strings are treated as
-  byte sequences.
+  requested. `localeconv` exposes formatting data and `nl_langinfo` queries
+  locale items such as `CODESET`. All strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
 - `printf` style routines understand `%d`, `%u`, `%s`, `%x`, `%X`, `%o`, `%p`,
   and `%c` with basic field width and precision handling.
