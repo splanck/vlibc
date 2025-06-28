@@ -386,6 +386,117 @@ struct hostent *gethostbyaddr(const void *addr, socklen_t len, int type)
     return NULL;
 }
 
+static int fill_hostent(const char *name, int type, const void *addr,
+                        struct hostent *ret, char *buf, size_t buflen)
+{
+    size_t need = sizeof(char *) + 2 * sizeof(char *);
+    need += strlen(name) + 1;
+    need += (type == AF_INET) ? sizeof(struct in_addr)
+                              : sizeof(struct in6_addr);
+    if (need > buflen)
+        return -1;
+
+    char **aliases = (char **)buf;
+    buf += sizeof(char *);
+    char **addrs = (char **)buf;
+    buf += 2 * sizeof(char *);
+
+    size_t nlen = strlcpy(buf, name, buflen - 2 * sizeof(char *));
+    if (nlen >= buflen - 2 * sizeof(char *))
+        return -1;
+    ret->h_name = buf;
+    buf += nlen + 1;
+
+    size_t alen = (type == AF_INET) ? sizeof(struct in_addr)
+                                    : sizeof(struct in6_addr);
+    memcpy(buf, addr, alen);
+
+    aliases[0] = NULL;
+    addrs[0] = buf;
+    addrs[1] = NULL;
+
+    ret->h_aliases = aliases;
+    ret->h_addrtype = type;
+    ret->h_length = alen;
+    ret->h_addr_list = addrs;
+    return 0;
+}
+
+int gethostbyname_r(const char *name, struct hostent *ret,
+                    char *buf, size_t buflen, struct hostent **result)
+{
+    if (!ret || !buf || !result)
+        return -1;
+    *result = NULL;
+
+    uint32_t ip4;
+    if (hosts_lookup(name, &ip4) == 0) {
+        if (fill_hostent(name, AF_INET, &ip4, ret, buf, buflen) != 0)
+            return -1;
+        *result = ret;
+        return 0;
+    }
+
+    struct addrinfo *ai;
+    if (getaddrinfo(name, NULL, NULL, &ai) != 0)
+        return -1;
+
+    int r = -1;
+    if (ai->ai_family == AF_INET) {
+        struct sockaddr_in *sa = (struct sockaddr_in *)ai->ai_addr;
+        r = fill_hostent(name, AF_INET, &sa->sin_addr, ret, buf, buflen);
+    } else if (ai->ai_family == AF_INET6) {
+        struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)ai->ai_addr;
+        r = fill_hostent(name, AF_INET6, &sa6->sin6_addr, ret, buf, buflen);
+    }
+    freeaddrinfo(ai);
+    if (r == 0)
+        *result = ret;
+    return r;
+}
+
+int gethostbyaddr_r(const void *addr, socklen_t len, int type,
+                    struct hostent *ret, char *buf, size_t buflen,
+                    struct hostent **result)
+{
+    if (!ret || !buf || !result)
+        return -1;
+    *result = NULL;
+
+    char namebuf[NI_MAXHOST];
+
+    if (type == AF_INET && len == sizeof(struct in_addr)) {
+        uint32_t ip = *(const uint32_t *)addr;
+        if (hosts_reverse_lookup(ip, namebuf, sizeof(namebuf)) != 0) {
+            struct sockaddr_in sa;
+            sa.sin_family = AF_INET;
+            sa.sin_port = 0;
+            sa.sin_addr = *(const struct in_addr *)addr;
+            if (getnameinfo((struct sockaddr *)&sa, sizeof(sa),
+                            namebuf, sizeof(namebuf), NULL, 0, 0) != 0)
+                return -1;
+        }
+        if (fill_hostent(namebuf, AF_INET, addr, ret, buf, buflen) != 0)
+            return -1;
+        *result = ret;
+        return 0;
+    } else if (type == AF_INET6 && len == sizeof(struct in6_addr)) {
+        struct sockaddr_in6 sa6;
+        memset(&sa6, 0, sizeof(sa6));
+        sa6.sin6_family = AF_INET6;
+        memcpy(&sa6.sin6_addr, addr, sizeof(struct in6_addr));
+        if (getnameinfo((struct sockaddr *)&sa6, sizeof(sa6),
+                        namebuf, sizeof(namebuf), NULL, 0, 0) != 0)
+            return -1;
+        if (fill_hostent(namebuf, AF_INET6, addr, ret, buf, buflen) != 0)
+            return -1;
+        *result = ret;
+        return 0;
+    }
+    errno = EAFNOSUPPORT;
+    return -1;
+}
+
 struct gai_entry {
     int code;
     const char *msg;
