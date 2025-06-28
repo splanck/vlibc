@@ -142,8 +142,8 @@ int execvp(const char *file, char *const argv[])
         const char *end = strchr(p, ':');
         size_t len = end ? (size_t)(end - p) : strlen(p);
 
-        size_t tlen = len ? len : 1; /* allow empty meaning current dir */
-        char *buf = malloc(tlen + 1 + flen + 1);
+        size_t alloc_len = len ? (len + 1 + flen + 1) : (2 + flen + 1);
+        char *buf = malloc(alloc_len);
         if (!buf)
             return -1;
 
@@ -153,8 +153,10 @@ int execvp(const char *file, char *const argv[])
             memcpy(buf + len + 1, file, flen);
             buf[len + 1 + flen] = '\0';
         } else {
-            memcpy(buf, file, flen);
-            buf[flen] = '\0';
+            buf[0] = '.';
+            buf[1] = '/';
+            memcpy(buf + 2, file, flen);
+            buf[2 + flen] = '\0';
         }
 
         execve(buf, argv, environ);
@@ -964,8 +966,8 @@ int posix_spawnp(pid_t *pid, const char *file,
         const char *end = strchr(p, ':');
         size_t len = end ? (size_t)(end - p) : strlen(p);
 
-        size_t tlen = len ? len : 1;
-        char *buf = malloc(tlen + 1 + flen + 1);
+        size_t alloc_len = len ? (len + 1 + flen + 1) : (2 + flen + 1);
+        char *buf = malloc(alloc_len);
         if (!buf)
             return ENOMEM;
 
@@ -975,8 +977,10 @@ int posix_spawnp(pid_t *pid, const char *file,
             memcpy(buf + len + 1, file, flen);
             buf[len + 1 + flen] = '\0';
         } else {
-            memcpy(buf, file, flen);
-            buf[flen] = '\0';
+            buf[0] = '.';
+            buf[1] = '/';
+            memcpy(buf + 2, file, flen);
+            buf[2 + flen] = '\0';
         }
 
         int r = posix_spawn(pid, buf, file_actions, attrp, argv, envp);
