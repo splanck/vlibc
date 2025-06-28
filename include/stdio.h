@@ -24,7 +24,7 @@ typedef struct {
     unsigned char ungot_char;    /* character from ungetc() */
     int is_mem;                  /* stream operates on memory rather than fd */
     int is_wmem;                 /* stream stores wchar_t instead of bytes */
-    char **mem_bufp;             /* pointer to buffer pointer for mem streams */
+    void **mem_bufp;             /* pointer to buffer pointer for mem streams */
     size_t *mem_sizep;           /* pointer to size for mem streams */
     int readable;                /* stream opened for reading */
     int writable;                /* stream opened for writing */
