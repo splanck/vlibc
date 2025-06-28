@@ -4968,6 +4968,33 @@ static const char *test_mqueue_attr(void)
     return 0;
 }
 
+static const char *test_mqueue_large_abstime(void)
+{
+    const char *name = "/vlibc_test_mq_large";
+    struct mq_attr attr = {0};
+    attr.mq_maxmsg = 1;
+    attr.mq_msgsize = 8;
+    mqd_t mq = mq_open(name, O_CREAT | O_RDWR, 0600, &attr);
+    mu_assert("mq_open", mq >= 0);
+
+    /* fill queue so the next send blocks */
+    mu_assert("mq_send", mq_send(mq, "one", 4, 0) == 0);
+
+    pthread_t t;
+    pthread_create(&t, NULL, delayed_recv, &mq);
+
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_sec += (INT_MAX / 1000) + 2; /* huge absolute time */
+    int r = mq_timedsend(mq, "two", 4, 0, &ts);
+    pthread_join(t, NULL);
+    mu_assert("timedsend", r == 0);
+
+    mq_close(mq);
+    mq_unlink(name);
+    return 0;
+}
+
 static const char *test_named_semaphore_create(void)
 {
     const char *name = "/vlibc_test_sem";
@@ -6442,6 +6469,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_mqueue_timed),
         REGISTER_TEST("default", test_mqueue_blocking_timed),
         REGISTER_TEST("default", test_mqueue_attr),
+        REGISTER_TEST("default", test_mqueue_large_abstime),
         REGISTER_TEST("default", test_named_semaphore_create),
         REGISTER_TEST("default", test_sysv_sem_basic),
         REGISTER_TEST("default", test_ftok_unique),
