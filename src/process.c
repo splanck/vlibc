@@ -161,6 +161,11 @@ int execv(const char *path, char *const argv[])
     return execve(path, argv, environ);
 }
 
+/*
+ * vlibc_build_argv() - helper to construct a NULL terminated argv array from
+ * a variable argument list.  Memory is allocated for the array and returned
+ * via the out parameter.
+ */
 static int vlibc_build_argv(const char *arg, va_list ap, char ***out)
 {
     va_list ap_copy;
@@ -553,7 +558,11 @@ int posix_spawn_file_actions_destroy(posix_spawn_file_actions_t *acts)
     return 0;
 }
 
-/* Helper to grow the file actions array */
+/*
+ * file_actions_add() - internal utility to append a new action to a
+ * posix_spawn_file_actions_t list.  Reallocates the array as needed and
+ * returns a pointer to the new slot via out.
+ */
 static int file_actions_add(posix_spawn_file_actions_t *acts,
                             struct posix_spawn_file_action **out)
 {
@@ -712,7 +721,10 @@ int posix_spawnattr_getpgroup(const posix_spawnattr_t *attr, pid_t *pgroup)
     return 0;
 }
 
-/* Internal helper to use vfork()/fork as available */
+/*
+ * vlibc_vfork() - small wrapper selecting vfork() when available and falling
+ * back to fork() otherwise.  Used internally by posix_spawn().
+ */
 static __attribute__((unused)) pid_t vlibc_vfork(void)
 {
 #ifdef SYS_vfork

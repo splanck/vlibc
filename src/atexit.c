@@ -32,6 +32,10 @@ int at_quick_exit(void (*func)(void))
     return 0;
 }
 
+/*
+ * __run_atexit() - invoke regular atexit handlers in reverse registration
+ * order.  Used by the exit() implementation to run cleanups.
+ */
 void __run_atexit(void)
 {
     for (int i = handler_count - 1; i >= 0; --i) {
@@ -40,6 +44,10 @@ void __run_atexit(void)
     }
 }
 
+/*
+ * __run_quick_exit() - invoke quick exit handlers in reverse order.
+ * Called internally by quick_exit() and _Exit() wrappers.
+ */
 static void __run_quick_exit(void)
 {
     for (int i = quick_count - 1; i >= 0; --i) {
@@ -50,6 +58,10 @@ static void __run_quick_exit(void)
 
 extern void _exit(int);
 
+/*
+ * quick_exit() - run registered quick exit handlers and then terminate the
+ * process without flushing stdio buffers.
+ */
 void quick_exit(int status)
 {
     __run_quick_exit();
