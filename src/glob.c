@@ -1,9 +1,31 @@
 /*
- * BSD 2-Clause License: Redistribution and use in source and binary forms, with or without modification, are permitted provided that the copyright notice and this permission notice appear in all copies. This software is provided "as is" without warranty.
+ * BSD 2-Clause "Simplified" License
  *
- * Purpose: Implements the glob functions for vlibc. Provides wrappers and helpers used by the standard library.
+ * Copyright (c) 2025, vlibc authors
+ * All rights reserved.
  *
- * Copyright (c) 2025
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Purpose: Implements the glob functions for vlibc.
  */
 
 #include "glob.h"
@@ -14,6 +36,7 @@
 #include "fnmatch.h"
 #include <errno.h>
 
+/* join_path() - join base path and name */
 static char *join_path(const char *base, const char *name)
 {
     size_t blen = base ? strlen(base) : 0;
@@ -33,6 +56,7 @@ static char *join_path(const char *base, const char *name)
     return res;
 }
 
+/* add_match() - append a path to glob results */
 static int add_match(glob_t *g, const char *path)
 {
     char **tmp = realloc(g->gl_pathv, sizeof(char*) * (g->gl_pathc + 2));
@@ -47,6 +71,7 @@ static int add_match(glob_t *g, const char *path)
     return 0;
 }
 
+/* cmp_str() - helper for sorting path strings */
 static int cmp_str(const void *a, const void *b)
 {
     const char *sa = *(const char *const*)a;
@@ -57,6 +82,7 @@ static int cmp_str(const void *a, const void *b)
 static int expand(const char *base, const char *pattern, glob_t *g, int flags,
                   int (*errfunc)(const char *, int));
 
+/* handle_dir() - process directory entries matching pattern */
 static int handle_dir(const char *dir, const char *pattern, const char *rest,
                       glob_t *g, int flags,
                       int (*errfunc)(const char *, int))
@@ -92,6 +118,7 @@ static int handle_dir(const char *dir, const char *pattern, const char *rest,
     return ret;
 }
 
+/* expand() - recursively expand pattern */
 static int expand(const char *base, const char *pattern, glob_t *g, int flags,
                   int (*errfunc)(const char *, int))
 {
@@ -110,6 +137,7 @@ static int expand(const char *base, const char *pattern, glob_t *g, int flags,
     return handle_dir(base, part, rest, g, flags, errfunc);
 }
 
+/* glob() - perform pathname expansion */
 int glob(const char *pattern, int flags,
          int (*errfunc)(const char *epath, int eerrno), glob_t *pglob)
 {
@@ -135,6 +163,7 @@ int glob(const char *pattern, int flags,
     return ret;
 }
 
+/* globfree() - release memory used by glob results */
 void globfree(glob_t *pglob)
 {
     if (!pglob)
