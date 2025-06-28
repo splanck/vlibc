@@ -53,7 +53,9 @@ int mkdir(const char *pathname, mode_t mode);
 int mkdirat(int dirfd, const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
 int chdir(const char *path);
+/* Check permissions for pathname; returns 0 or -1 and sets errno. */
 int access(const char *pathname, int mode);
+/* Dirfd-relative permission check returning 0 or -1 with errno set. */
 int faccessat(int dirfd, const char *pathname, int mode, int flags);
 /* Flush all pending writes for a descriptor using SYS_fsync or host fsync. */
 int fsync(int fd);

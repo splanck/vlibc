@@ -13,6 +13,11 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/*
+ * Wrapper for access(2). Passes pathname and mode directly to SYS_access
+ * when available or to a host fallback. Returns 0 on success or -1 with
+ * errno set to the negative syscall result.
+ */
 int access(const char *pathname, int mode)
 {
 #ifdef SYS_access
@@ -33,6 +38,12 @@ int access(const char *pathname, int mode)
 #endif
 }
 
+/*
+ * Wrapper for faccessat(2). The dirfd, pathname, mode and flags
+ * arguments are forwarded to SYS_faccessat or a host fallback.
+ * Returns 0 on success or -1 with errno reflecting the syscall
+ * error value.
+ */
 int faccessat(int dirfd, const char *pathname, int mode, int flags)
 {
 #ifdef SYS_faccessat
