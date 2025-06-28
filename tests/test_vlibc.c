@@ -4834,6 +4834,40 @@ static const char *test_passwd_enum(void)
     return 0;
 }
 
+static const char *test_passwd_long_entries(void)
+{
+    char tmpl[] = "/tmp/pwlongXXXXXX";
+    int fd = mkstemp(tmpl);
+    mu_assert("mkstemp", fd >= 0);
+    FILE *f = fdopen(fd, "w");
+    mu_assert("fdopen", f != NULL);
+
+    char buf[5000];
+    memset(buf, 'a', sizeof(buf) - 1);
+    buf[sizeof(buf) - 1] = '\0';
+
+    fprintf(f, "root:x:0:0:root:/root:/bin/sh\n");
+    fprintf(f, "big:x:1000:1000:%s:/home/big:/bin/sh\n", buf);
+    fclose(f);
+
+    setenv("VLIBC_PASSWD", tmpl, 1);
+
+    struct passwd *pw = getpwnam("big");
+    mu_assert("lookup", pw && pw->pw_uid == 1000 && strlen(pw->pw_gecos) == strlen(buf));
+
+    setpwent();
+    pw = getpwent();
+    mu_assert("first", pw && pw->pw_uid == 0);
+    pw = getpwent();
+    mu_assert("second", pw && pw->pw_uid == 1000);
+    mu_assert("end", getpwent() == NULL);
+    endpwent();
+
+    unsetenv("VLIBC_PASSWD");
+    unlink(tmpl);
+    return 0;
+}
+
 static const char *test_group_enum(void)
 {
     char tmpl[] = "/tmp/grpenumXXXXXX";
@@ -5728,6 +5762,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_passwd_lookup),
         REGISTER_TEST("default", test_group_lookup),
         REGISTER_TEST("default", test_passwd_enum),
+        REGISTER_TEST("default", test_passwd_long_entries),
         REGISTER_TEST("default", test_group_enum),
         REGISTER_TEST("default", test_getgrouplist_basic),
         REGISTER_TEST("default", test_getgrouplist_overflow),
