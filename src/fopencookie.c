@@ -1,3 +1,11 @@
+/*
+ * BSD 2-Clause License: Redistribution and use in source and binary forms, with
+ * or without modification, are permitted provided that the copyright notice and
+ * this permission notice appear in all copies. This software is provided "as is" without warranty.
+ *
+ * Purpose: Implements fopencookie for vlibc.
+ */
+
 #include "stdio.h"
 #include "memory.h"
 #include "string.h"
