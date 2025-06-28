@@ -1770,6 +1770,12 @@ static const char *test_single_byte_conv(void)
 {
     char bad[] = { (char)0xC0, 0 };
     mu_assert("mblen ascii", mblen("A", 1) == 1);
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
+    mu_assert("mblen utf8", mblen("\xC3\xA9", 2) == 2);
+#else
+    mu_assert("mblen utf8", mblen("\xC3\xA9", 2) == -1);
+#endif
     mu_assert("btowc ascii", btowc('A') == L'A');
     mu_assert("wctob ascii", wctob(L'A') == 'A');
     mu_assert("btowc eof", btowc(-1) == -1);

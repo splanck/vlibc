@@ -124,7 +124,7 @@ int w = wcswidth(L"hello", 5);      // 5
 ### Single-Byte Conversions
 
 `mblen` returns the number of bytes forming the next multibyte
-character or `-1` when the sequence is invalid. `btowc` converts a
+character or `-1` when the sequence is invalid. ASCII input is handled directly and on BSD systems other locales are passed to the host C library. `btowc` converts a
 single byte to a `wchar_t` using `mbrtowc` and yields `-1` on failure.
 `wctob` performs the opposite operation through `wcrtomb`, returning the
 resulting byte or `-1` when the character cannot be represented.
