@@ -70,6 +70,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include "../include/setjmp.h"
+#include "../include/ucontext.h"
 #include "../include/time.h"
 #include "../include/sys/resource.h"
 #include "../include/sys/times.h"
@@ -5612,6 +5613,53 @@ static const char *test_fenv_rounding(void)
     return 0;
 }
 
+static ucontext_t uc_main, uc_coro;
+static int coro_flag;
+
+static void simple_coro(void)
+{
+    coro_flag = 1;
+    swapcontext(&uc_coro, &uc_main);
+}
+
+static const char *test_ucontext_basic(void)
+{
+    char stack[8192];
+    coro_flag = 0;
+    getcontext(&uc_coro);
+    uc_coro.uc_stack.ss_sp = stack;
+    uc_coro.uc_stack.ss_size = sizeof(stack);
+    uc_coro.uc_link = &uc_main;
+    makecontext(&uc_coro, simple_coro, 0);
+
+    swapcontext(&uc_main, &uc_coro);
+    mu_assert("coro ran", coro_flag == 1);
+    return 0;
+}
+
+static ucontext_t uc_args_main, uc_args_coro;
+static int coro_sum;
+
+static void add_two(int a, int b)
+{
+    coro_sum = a + b;
+    swapcontext(&uc_args_coro, &uc_args_main);
+}
+
+static const char *test_ucontext_args(void)
+{
+    char stack[8192];
+    getcontext(&uc_args_coro);
+    uc_args_coro.uc_stack.ss_sp = stack;
+    uc_args_coro.uc_stack.ss_size = sizeof(stack);
+    uc_args_coro.uc_link = &uc_args_main;
+    makecontext(&uc_args_coro, (void (*)(void))add_two, 2, 5, 7);
+
+    swapcontext(&uc_args_main, &uc_args_coro);
+    mu_assert("sum", coro_sum == 12);
+    return 0;
+}
+
 static void encode_vis(const char *src, char *dst, int flags)
 {
     while (*src) {
@@ -6125,6 +6173,8 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_nvis_basic),
         REGISTER_TEST("default", test_fp_checks),
         REGISTER_TEST("default", test_fenv_rounding),
+        REGISTER_TEST("default", test_ucontext_basic),
+        REGISTER_TEST("default", test_ucontext_args),
         REGISTER_TEST("default", test_getopt_basic),
         REGISTER_TEST("default", test_getopt_missing),
         REGISTER_TEST("default", test_dlopen_basic),
