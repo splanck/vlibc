@@ -2591,6 +2591,15 @@ static const char *test_ferror_flag(void)
     return 0;
 }
 
+static const char *test_fopen_invalid_mode(void)
+{
+    errno = 0;
+    FILE *f = fopen("tmp_invalid", "z");
+    mu_assert("invalid mode NULL", f == NULL);
+    mu_assert("errno EINVAL", errno == EINVAL);
+    return 0;
+}
+
 struct write_arg {
     FILE *f;
     char ch;
@@ -6354,6 +6363,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_fflush),
         REGISTER_TEST("default", test_feof_flag),
         REGISTER_TEST("default", test_ferror_flag),
+        REGISTER_TEST("default", test_fopen_invalid_mode),
         REGISTER_TEST("default", test_flockfile_threadsafe),
         REGISTER_TEST("default", test_pthread_create_join),
         REGISTER_TEST("default", test_pthread),
