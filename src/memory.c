@@ -50,6 +50,9 @@ struct block_header {
 static struct block_header *free_list = NULL;
 static pthread_mutex_t free_lock = { ATOMIC_FLAG_INIT, PTHREAD_MUTEX_NORMAL, 0, 0 };
 
+/*
+ * free_impl() - return a block to the internal free list.
+ */
 static void free_impl(void *ptr)
 {
     if (!ptr)
@@ -166,6 +169,9 @@ void *malloc(size_t size)
     return (void *)(hdr + 1);
 }
 
+/*
+ * free_impl() - unmap a block allocated with mmap.
+ */
 static void free_impl(void *ptr)
 {
     if (!ptr)

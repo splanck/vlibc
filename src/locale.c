@@ -41,6 +41,12 @@ static struct lconv c_lconv = {
     .n_sign_posn = 127,
 };
 
+/*
+ * setlocale() - set or query the program's current locale.
+ * The category is mostly ignored unless forwarding to the
+ * host's implementation. Passing NULL returns the current
+ * locale name; an empty string selects the environment locale.
+ */
 char *setlocale(int category, const char *locale)
 {
     (void)category;
@@ -74,7 +80,10 @@ char *setlocale(int category, const char *locale)
     return NULL;
 #endif
 }
-
+/*
+ * localeconv() - return a pointer to the locale formatting
+ * conventions. Only the "C" locale is currently provided.
+ */
 struct lconv *localeconv(void)
 {
     return &c_lconv;
