@@ -11,6 +11,10 @@
 /* each thread maintains its own errno value */
 __thread int errno;
 
+/*
+ * __errno_location() - return address of the thread-local errno
+ * variable so callers can modify it directly.
+ */
 int *__errno_location(void)
 {
     return &errno;

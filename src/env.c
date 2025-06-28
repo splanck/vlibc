@@ -17,6 +17,11 @@ static int environ_owned = 0;
 /* per-entry ownership flags when environ_owned */
 static unsigned char *environ_flags = 0;
 
+/*
+ * env_init() - set the global environ pointer used by vlibc.
+ * Programs with a custom entry point should invoke this before
+ * using environment functions.
+ */
 void env_init(char **envp)
 {
     environ = envp;
@@ -24,6 +29,10 @@ void env_init(char **envp)
     environ_flags = 0;
 }
 
+/*
+ * getenv() - return the value associated with NAME or NULL
+ * if the variable is not present.
+ */
 char *getenv(const char *name)
 {
     if (!environ || !name)
@@ -36,6 +45,10 @@ char *getenv(const char *name)
     return NULL;
 }
 
+/*
+ * find_env_index() - helper used to locate NAME in environ.
+ * Returns its index or -1 when not found.
+ */
 static int find_env_index(const char *name, size_t len)
 {
     if (!environ)
@@ -47,6 +60,10 @@ static int find_env_index(const char *name, size_t len)
     return -1;
 }
 
+/*
+ * setenv() - add or update NAME with VALUE. If OVERWRITE is
+ * zero, an existing variable is left unchanged.
+ */
 int setenv(const char *name, const char *value, int overwrite)
 {
     if (!name || strchr(name, '='))
@@ -136,6 +153,11 @@ int setenv(const char *name, const char *value, int overwrite)
     return 0;
 }
 
+/*
+ * putenv() - insert the string NAME=VALUE directly into the
+ * environment without copying. The provided string must remain
+ * valid for the lifetime of the variable.
+ */
 int putenv(const char *str)
 {
     if (!str)
@@ -206,6 +228,9 @@ int putenv(const char *str)
     return 0;
 }
 
+/*
+ * unsetenv() - remove NAME from the environment.
+ */
 int unsetenv(const char *name)
 {
     if (!environ || !name || strchr(name, '='))
@@ -227,6 +252,10 @@ int unsetenv(const char *name)
     return 0;
 }
 
+/*
+ * clearenv() - remove all environment variables and reset
+ * environ to an empty list.
+ */
 int clearenv(void)
 {
     if (!environ)
