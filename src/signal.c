@@ -14,6 +14,9 @@
 #include "string.h"
 #include <stddef.h>
 
+/*
+ * sigaction() - examine or change the action associated with a signal.
+ */
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 {
 #ifdef SYS_rt_sigaction
@@ -32,6 +35,9 @@ int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
     return (int)ret;
 }
 
+/*
+ * sigprocmask() - examine or modify the set of blocked signals.
+ */
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
 {
 #ifdef SYS_rt_sigprocmask
@@ -50,6 +56,9 @@ int sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
     return (int)ret;
 }
 
+/*
+ * sigemptyset() - initialize SET to contain no signals.
+ */
 int sigemptyset(sigset_t *set)
 {
 #ifdef VLIBC_HAS___SIGSET_T
@@ -61,6 +70,9 @@ int sigemptyset(sigset_t *set)
     return 0;
 }
 
+/*
+ * sigfillset() - initialize SET to contain all signals.
+ */
 int sigfillset(sigset_t *set)
 {
 #ifdef VLIBC_HAS___SIGSET_T
@@ -72,6 +84,9 @@ int sigfillset(sigset_t *set)
     return 0;
 }
 
+/*
+ * sigaddset() - add SIGNO to SET.
+ */
 int sigaddset(sigset_t *set, int signo)
 {
     if (signo <= 0 || signo > 8 * (int)sizeof(sigset_t))
@@ -86,6 +101,9 @@ int sigaddset(sigset_t *set, int signo)
     return 0;
 }
 
+/*
+ * sigdelset() - remove SIGNO from SET.
+ */
 int sigdelset(sigset_t *set, int signo)
 {
     if (signo <= 0 || signo > 8 * (int)sizeof(sigset_t))
@@ -100,6 +118,9 @@ int sigdelset(sigset_t *set, int signo)
     return 0;
 }
 
+/*
+ * sigismember() - check whether SIGNO is in SET.
+ */
 int sigismember(const sigset_t *set, int signo)
 {
     if (signo <= 0 || signo > 8 * (int)sizeof(sigset_t))
@@ -142,6 +163,9 @@ static const struct sig_name sig_names[] = {
     { SIGTTOU, "Stopped (tty output)" },
     { 0, NULL }
 };
+/*
+ * strsignal() - return a human readable string for SIGNUM.
+ */
 
 char *strsignal(int signum)
 {
@@ -152,7 +176,9 @@ char *strsignal(int signum)
     return "Unknown signal";
 }
 
-/* Retrieve the set of pending signals */
+/*
+ * sigpending() - retrieve the set of signals pending for the process.
+ */
 int sigpending(sigset_t *set)
 {
 #ifdef SYS_rt_sigpending
@@ -170,7 +196,9 @@ int sigpending(sigset_t *set)
     return 0;
 }
 
-/* Suspend execution until a signal arrives */
+/*
+ * sigsuspend() - replace the process signal mask and wait for a signal.
+ */
 int sigsuspend(const sigset_t *mask)
 {
 #ifdef SYS_rt_sigsuspend
@@ -187,8 +215,9 @@ int sigsuspend(const sigset_t *mask)
     }
     return (int)ret;
 }
-
-/* Pause the process until a signal is caught */
+/*
+ * pause() - sleep until a signal is delivered.
+ */
 int pause(void)
 {
 #ifdef SYS_pause
@@ -205,7 +234,9 @@ int pause(void)
 #endif
 }
 
-/* Wait for a signal from the set with optional timeout */
+/*
+ * sigtimedwait() - wait for a signal from SET with an optional timeout.
+ */
 int sigtimedwait(const sigset_t *set, siginfo_t *info,
                  const struct timespec *timeout)
 {
@@ -228,13 +259,17 @@ int sigtimedwait(const sigset_t *set, siginfo_t *info,
     return (int)ret;
 }
 
-/* Wait for a signal from the set */
+/*
+ * sigwaitinfo() - wait for any signal in SET and return info about it.
+ */
 int sigwaitinfo(const sigset_t *set, siginfo_t *info)
 {
     return sigtimedwait(set, info, NULL);
 }
 
-/* Wait for a signal and return it */
+/*
+ * sigwait() - block until a signal in SET arrives and store its number.
+ */
 int sigwait(const sigset_t *set, int *sig)
 {
     siginfo_t info;
@@ -245,6 +280,9 @@ int sigwait(const sigset_t *set, int *sig)
         *sig = info.si_signo;
     return 0;
 }
+/*
+ * sigqueue() - send a queued signal with accompanying value to PID.
+ */
 
 int sigqueue(pid_t pid, int signo, const union sigval value)
 {
