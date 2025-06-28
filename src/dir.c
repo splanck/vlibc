@@ -18,9 +18,12 @@
 #endif
 
 /*
- * mkdir() - create a new directory at PATHNAME with the given MODE.
- * Uses SYS_mkdir when available or falls back to mkdirat with
- * AT_FDCWD on platforms lacking the direct syscall.
+ * mkdir() - create a new directory at PATHNAME with MODE.
+ *
+ * This is a thin wrapper around the SYS_mkdir or SYS_mkdirat system
+ * calls invoked via vlibc_syscall.  When SYS_mkdir is unavailable the
+ * implementation falls back to mkdirat with AT_FDCWD.  The return
+ * value is checked and converted to the usual errno/-1 convention.
  */
 int mkdir(const char *pathname, mode_t mode)
 {
@@ -38,7 +41,10 @@ int mkdir(const char *pathname, mode_t mode)
 
 /*
  * rmdir() - remove an empty directory specified by PATHNAME.
- * Returns 0 on success or -1 and sets errno when the syscall fails.
+ *
+ * The function invokes the SYS_rmdir syscall through vlibc_syscall.
+ * A negative return from the syscall is converted into -1 with errno
+ * set to the corresponding error code.
  */
 int rmdir(const char *pathname)
 {

@@ -28,7 +28,10 @@ struct _fts {
 };
 
 /*
- * queue_push - append a path node to the traversal queue.
+ * queue_push() - append a new path node to the internal traversal queue.
+ *
+ * PATH is duplicated and stored along with LEVEL indicating depth in the
+ * hierarchy.  Returns 0 on success or -1 if memory allocation fails.
  */
 static int queue_push(FTS *fts, const char *path, int level)
 {
@@ -51,7 +54,9 @@ static int queue_push(FTS *fts, const char *path, int level)
 }
 
 /*
- * queue_pop - remove and return the next node from the queue.
+ * queue_pop() - remove and return the next queued path node.
+ *
+ * Returns a pointer to the node or NULL if the queue is empty.
  */
 static struct node *queue_pop(FTS *fts)
 {
@@ -66,6 +71,10 @@ static struct node *queue_pop(FTS *fts)
 
 /*
  * fts_open() - start a file hierarchy traversal.
+ *
+ * PATHS is a NULL terminated list of root paths to traverse. OPTIONS
+ * controls traversal behaviour and COMPAR is an optional sorting
+ * callback.  Returns a new FTS handle or NULL on allocation failure.
  * Paths are queued and returned incrementally by fts_read().
  */
 FTS *fts_open(char * const *paths, int options,
@@ -101,8 +110,10 @@ static void free_entry(FTSENT *e)
 
 /*
  * fts_read() - return the next entry from the traversal queue.
- * Directories are expanded and their children queued for later
- * processing.
+ *
+ * The returned FTSENT describes the next path in the hierarchy.  If a
+ * directory is encountered its children are queued for later processing.
+ * NULL is returned when traversal is complete or on allocation failure.
  */
 FTSENT *fts_read(FTS *fts)
 {
@@ -189,6 +200,9 @@ FTSENT *fts_read(FTS *fts)
 
 /*
  * fts_close() - free all resources used by an FTS handle.
+ *
+ * Releases any queued paths and the current entry.  Returns 0 on
+ * success or -1 if the provided handle is NULL.
  */
 int fts_close(FTS *fts)
 {
