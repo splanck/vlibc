@@ -83,6 +83,19 @@ if (getifaddrs(&ifas) == 0) {
 }
 ```
 
+## Host Name
+
+`gethostname` retrieves the current host name into a buffer while
+`sethostname` updates it when permitted by the system:
+
+```c
+char name[64];
+if (gethostname(name, sizeof(name)) == 0)
+    printf("%s\n", name);
+/* Requires privileges */
+sethostname("myhost", 6);
+```
+
 ## I/O Multiplexing
 
 `select` and `poll` wait for activity on multiple file descriptors.
