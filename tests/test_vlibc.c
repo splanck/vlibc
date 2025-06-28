@@ -27,6 +27,7 @@
 #include <dirent.h>
 #include "../include/vlibc.h"
 #include "../include/dlfcn.h"
+#include "../include/netdb.h"
 
 #include <fcntl.h>
 #ifndef O_CLOEXEC
@@ -966,6 +967,61 @@ static const char *test_inet_aton_ntoa(void)
     struct in_addr back;
     r = inet_aton(s, &back);
     mu_assert("inet_aton round", r == 1 && back.s_addr == addr.s_addr);
+    return 0;
+}
+
+static const char *test_hosts_long_file(void)
+{
+    FILE *f = fopen("/etc/hosts", "r");
+    if (!f)
+        return "open hosts";
+    fseek(f, 0, SEEK_END);
+    long orig_len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char *orig = malloc(orig_len + 1);
+    if (!orig) {
+        fclose(f);
+        return "alloc";
+    }
+    if (fread(orig, 1, orig_len, f) != (size_t)orig_len) {
+        fclose(f);
+        free(orig);
+        return "read";
+    }
+    fclose(f);
+
+    f = fopen("/etc/hosts", "w");
+    if (!f) {
+        free(orig);
+        return "write open";
+    }
+    for (int i = 0; i < 300; i++)
+        fprintf(f, "10.0.0.%d filler%d\n", i % 255, i);
+    fprintf(f, "1.2.3.4 testhost\n");
+    fclose(f);
+
+    struct addrinfo *ai;
+    int r = getaddrinfo("testhost", NULL, NULL, &ai);
+    int ok_lookup = (r == 0);
+    uint32_t ip = ok_lookup ?
+        ((struct sockaddr_in *)ai->ai_addr)->sin_addr.s_addr : 0;
+    if (ok_lookup)
+        freeaddrinfo(ai);
+
+    struct in_addr ia = { .s_addr = ip };
+    struct hostent *he = ok_lookup ?
+        gethostbyaddr(&ia, sizeof(ia), AF_INET) : NULL;
+    int ok_reverse = (he && strcmp(he->h_name, "testhost") == 0);
+
+    f = fopen("/etc/hosts", "w");
+    if (f) {
+        fwrite(orig, 1, orig_len, f);
+        fclose(f);
+    }
+    free(orig);
+
+    mu_assert("lookup", ok_lookup && ip == inet_addr("1.2.3.4"));
+    mu_assert("reverse", ok_reverse);
     return 0;
 }
 
@@ -5504,6 +5560,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("network", test_udp_send_recv),
         REGISTER_TEST("network", test_inet_pton_ntop),
         REGISTER_TEST("network", test_inet_aton_ntoa),
+        REGISTER_TEST("network", test_hosts_long_file),
         REGISTER_TEST("default", test_errno_open),
         REGISTER_TEST("default", test_errno_stat),
         REGISTER_TEST("default", test_stat_wrappers),
