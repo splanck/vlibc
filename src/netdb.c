@@ -106,77 +106,75 @@ static int parse_ipv6(const char *s, unsigned char *out)
 
 static int hosts_lookup(const char *node, uint32_t *ip)
 {
-    int fd = open("/etc/hosts", O_RDONLY, 0);
-    if (fd < 0)
+    FILE *f = fopen("/etc/hosts", "r");
+    if (!f)
         return -1;
 
-    char buf[2048];
-    ssize_t n = read(fd, buf, sizeof(buf) - 1);
-    close(fd);
-    if (n <= 0)
-        return -1;
-    buf[n] = '\0';
-
-    char *saveptr1;
-    for (char *line = strtok_r(buf, "\n", &saveptr1); line; line = strtok_r(NULL, "\n", &saveptr1)) {
-        while (*line == ' ' || *line == '\t')
-            line++;
-        if (*line == '#' || *line == '\0')
+    char *line = NULL;
+    size_t cap = 0;
+    int ret = -1;
+    while (getline(&line, &cap, f) != -1) {
+        char *p = line;
+        while (*p == ' ' || *p == '\t')
+            p++;
+        if (*p == '#' || *p == '\n' || *p == '\0')
             continue;
-        char *saveptr2;
-        char *tok = strtok_r(line, " \t", &saveptr2);
+        char *save;
+        char *tok = strtok_r(p, " \t\n", &save);
         if (!tok)
             continue;
         uint32_t addr;
         if (parse_ipv4(tok, &addr) != 0)
             continue;
-        while ((tok = strtok_r(NULL, " \t", &saveptr2))) {
+        while ((tok = strtok_r(NULL, " \t\n", &save))) {
             if (strcmp(tok, node) == 0) {
                 *ip = addr;
-                return 0;
+                ret = 0;
+                goto out;
             }
         }
     }
-    return -1;
+out:
+    free(line);
+    fclose(f);
+    return ret;
 }
 
 static int hosts_reverse_lookup(uint32_t ip, char *name, size_t len)
 {
-    int fd = open("/etc/hosts", O_RDONLY, 0);
-    if (fd < 0)
+    FILE *f = fopen("/etc/hosts", "r");
+    if (!f)
         return -1;
 
-    char buf[2048];
-    ssize_t n = read(fd, buf, sizeof(buf) - 1);
-    close(fd);
-    if (n <= 0)
-        return -1;
-    buf[n] = '\0';
-
-    char *save1;
-    for (char *line = strtok_r(buf, "\n", &save1); line;
-         line = strtok_r(NULL, "\n", &save1)) {
-        while (*line == ' ' || *line == '\t')
-            line++;
-        if (*line == '#' || *line == '\0')
+    char *line = NULL;
+    size_t cap = 0;
+    int ret = -1;
+    while (getline(&line, &cap, f) != -1) {
+        char *p = line;
+        while (*p == ' ' || *p == '\t')
+            p++;
+        if (*p == '#' || *p == '\n' || *p == '\0')
             continue;
-        char *save2;
-        char *tok = strtok_r(line, " \t", &save2);
+        char *save;
+        char *tok = strtok_r(p, " \t\n", &save);
         if (!tok)
             continue;
         uint32_t addr;
         if (parse_ipv4(tok, &addr) != 0)
             continue;
         if (addr == ip) {
-            tok = strtok_r(NULL, " \t", &save2);
+            tok = strtok_r(NULL, " \t\n", &save);
             if (!tok)
-                return -1;
+                break;
             strncpy(name, tok, len - 1);
             name[len - 1] = '\0';
-            return 0;
+            ret = 0;
+            break;
         }
     }
-    return -1;
+    free(line);
+    fclose(f);
+    return ret;
 }
 
 
