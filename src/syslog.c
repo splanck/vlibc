@@ -13,6 +13,7 @@
 #include "io.h"
 #include "errno.h"
 #include "sys/socket.h"
+#include <fcntl.h>
 #include <sys/un.h>
 #include <unistd.h>
 #include <stdarg.h>
@@ -41,9 +42,16 @@ void openlog(const char *ident, int option, int facility)
         log_fd = -1;
     }
 
-    log_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+    int type = SOCK_DGRAM;
+#ifdef SOCK_CLOEXEC
+    type |= SOCK_CLOEXEC;
+#endif
+    log_fd = socket(AF_UNIX, type, 0);
     if (log_fd < 0)
         return;
+#ifndef SOCK_CLOEXEC
+    fcntl(log_fd, F_SETFD, FD_CLOEXEC);
+#endif
 
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(addr));
