@@ -524,9 +524,11 @@ struct posix_spawn_file_action {
     mode_t mode;
 };
 
-#define SPAWN_ACTION_OPEN  1
-#define SPAWN_ACTION_CLOSE 2
-#define SPAWN_ACTION_DUP2  3
+#define SPAWN_ACTION_OPEN   1
+#define SPAWN_ACTION_CLOSE  2
+#define SPAWN_ACTION_DUP2   3
+#define SPAWN_ACTION_CHDIR  4
+#define SPAWN_ACTION_FCHDIR 5
 
 /*
  * posix_spawn_file_actions_init() - initialise a file actions structure used
@@ -550,7 +552,8 @@ int posix_spawn_file_actions_destroy(posix_spawn_file_actions_t *acts)
     if (!acts)
         return EINVAL;
     for (size_t i = 0; i < acts->count; i++)
-        if (acts->actions[i].type == SPAWN_ACTION_OPEN)
+        if (acts->actions[i].type == SPAWN_ACTION_OPEN ||
+            acts->actions[i].type == SPAWN_ACTION_CHDIR)
             free(acts->actions[i].path);
     free(acts->actions);
     acts->actions = NULL;
@@ -643,6 +646,50 @@ int posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *acts, int fd)
     if (r)
         return r;
     a->type = SPAWN_ACTION_CLOSE;
+    a->fd = fd;
+    a->path = NULL;
+    return 0;
+}
+
+/* Change directory before executing */
+int posix_spawn_file_actions_addchdir(posix_spawn_file_actions_t *acts,
+                                      const char *path)
+{
+    if (!acts || !path)
+        return EINVAL;
+    struct posix_spawn_file_action *a;
+    int r = file_actions_add(acts, &a);
+    if (r)
+        return r;
+    a->type = SPAWN_ACTION_CHDIR;
+    a->fd = -1;
+    a->path = strdup(path);
+    if (!a->path) {
+        acts->count--;
+        if (acts->count == 0) {
+            free(acts->actions);
+            acts->actions = NULL;
+        } else {
+            struct posix_spawn_file_action *tmp =
+                realloc(acts->actions, acts->count * sizeof(*tmp));
+            if (tmp)
+                acts->actions = tmp;
+        }
+        return ENOMEM;
+    }
+    return 0;
+}
+
+/* Change directory using an open descriptor */
+int posix_spawn_file_actions_addfchdir(posix_spawn_file_actions_t *acts, int fd)
+{
+    if (!acts)
+        return EINVAL;
+    struct posix_spawn_file_action *a;
+    int r = file_actions_add(acts, &a);
+    if (r)
+        return r;
+    a->type = SPAWN_ACTION_FCHDIR;
     a->fd = fd;
     a->path = NULL;
     return 0;
@@ -826,6 +873,24 @@ int posix_spawn(pid_t *pid, const char *path,
                     break;
                 case SPAWN_ACTION_DUP2:
                     if (dup2(a->fd, a->newfd) < 0) {
+                        err = errno;
+                        ssize_t w = write(errpipe[1], &err, sizeof(err));
+                        if (w < (ssize_t)sizeof(err))
+                            _exit(127);
+                        _exit(127);
+                    }
+                    break;
+                case SPAWN_ACTION_CHDIR:
+                    if (chdir(a->path) < 0) {
+                        err = errno;
+                        ssize_t w = write(errpipe[1], &err, sizeof(err));
+                        if (w < (ssize_t)sizeof(err))
+                            _exit(127);
+                        _exit(127);
+                    }
+                    break;
+                case SPAWN_ACTION_FCHDIR:
+                    if (fchdir(a->fd) < 0) {
                         err = errno;
                         ssize_t w = write(errpipe[1], &err, sizeof(err));
                         if (w < (ssize_t)sizeof(err))

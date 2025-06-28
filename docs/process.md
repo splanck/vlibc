@@ -35,6 +35,9 @@ int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *acts, int fd,
 int posix_spawn_file_actions_adddup2(posix_spawn_file_actions_t *acts, int fd,
                                      int newfd);
 int posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *acts, int fd);
+int posix_spawn_file_actions_addchdir(posix_spawn_file_actions_t *acts,
+                                      const char *path);
+int posix_spawn_file_actions_addfchdir(posix_spawn_file_actions_t *acts, int fd);
 pid_t wait(int *status);
 pid_t waitpid(pid_t pid, int *status, int options);
 int kill(pid_t pid, int sig);
@@ -84,7 +87,8 @@ platform exposes `rt_sigqueueinfo` or falls back to the native implementation.
 
 `posix_spawn` accepts an attribute object controlling the signal mask and
 process group of the new process. File actions can be supplied to open, close
-or duplicate file descriptors before executing the program.  On the BSD
+or duplicate file descriptors and to change the working directory of the
+child before executing the program.  On the BSD
 family the implementation delegates to the native spawn facilities provided
 by the kernel.  When available, `posix_spawn` or a combination of
 `pdfork` and `fdwalk` is used to create the child efficiently.  Systems
@@ -114,6 +118,7 @@ sigaddset(&m, SIGUSR1);
 posix_spawnattr_setflags(&at, POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETPGROUP);
 posix_spawnattr_setsigmask(&at, &m);
 posix_spawnattr_setpgroup(&at, 0);
+posix_spawn_file_actions_addchdir(&fa, "/tmp");
 posix_spawn(&pid, "/bin/echo", &fa, &at, args, environ);
 
 /* Install a handler and send the process an interrupt. */
@@ -125,6 +130,7 @@ kill(getpid(), SIGINT);
 if (daemon(0, 0) < 0)
     perror("daemon");
 ```
+The `posix_spawn_file_actions_addchdir` and `posix_spawn_file_actions_addfchdir` helpers mirror the BSD `spawn.h` extensions and are emulated on platforms that lack native support.
 
 `execvp` performs the same operation as `execve` but searches the directories in the `PATH` environment variable when the program name does not contain a slash.
 `execv`, `execl`, `execlp` and `execle` are thin wrappers that build an
