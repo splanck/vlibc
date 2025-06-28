@@ -32,7 +32,12 @@ ssize_t aio_return(struct aiocb *cb) { return host_aio_return(cb); }
 int aio_suspend(const struct aiocb *const list[], int n,
                 const struct timespec *tmo)
 { return host_aio_suspend(list, n, tmo); }
-int aio_cancel(int fd, struct aiocb *cb) { return host_aio_cancel(fd, cb); }
+int aio_cancel(int fd, struct aiocb *cb)
+{
+    if (cb && fd != cb->aio_fildes)
+        return AIO_ALLDONE;
+    return host_aio_cancel(fd, cb);
+}
 int lio_listio(int mode, struct aiocb *const list[], int n,
                struct sigevent *sig)
 { return host_lio_listio(mode, list, n, sig); }
@@ -181,6 +186,8 @@ int aio_suspend(const struct aiocb *const list[], int n,
 
 int aio_cancel(int fd, struct aiocb *cb)
 {
+    if (cb && fd != cb->aio_fildes)
+        return AIO_ALLDONE;
     struct aio_task *t = get_task(cb);
     if (!t)
         return AIO_ALLDONE;

@@ -1400,6 +1400,35 @@ static const char *test_aio_basic(void)
     return 0;
 }
 
+static const char *test_aio_cancel_mismatch(void)
+{
+    const char *fname = "tmp_aio_cancel";
+    int fd = open(fname, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    mu_assert("open", fd >= 0);
+
+    struct aiocb cb;
+    memset(&cb, 0, sizeof(cb));
+    const char *msg = "hi";
+    cb.aio_fildes = fd;
+    cb.aio_buf = (void *)msg;
+    cb.aio_nbytes = 2;
+    cb.aio_offset = 0;
+    cb.aio_lio_opcode = LIO_WRITE;
+    mu_assert("aio_write", aio_write(&cb) == 0);
+
+    int badfd = fd + 1;
+    mu_assert("aio_cancel", aio_cancel(badfd, &cb) == AIO_ALLDONE);
+
+    const struct aiocb *wl[1] = {&cb};
+    mu_assert("aio_suspend", aio_suspend(wl, 1, NULL) == 0);
+    mu_assert("aio_error", aio_error(&cb) == 0);
+    mu_assert("aio_return", aio_return(&cb) == 2);
+
+    close(fd);
+    unlink(fname);
+    return 0;
+}
+
 static const char *test_sync_basic(void)
 {
     sync();
@@ -6091,6 +6120,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_fsync_basic),
         REGISTER_TEST("default", test_fdatasync_basic),
         REGISTER_TEST("default", test_aio_basic),
+        REGISTER_TEST("default", test_aio_cancel_mismatch),
         REGISTER_TEST("default", test_sync_basic),
         REGISTER_TEST("default", test_string_helpers),
         REGISTER_TEST("default", test_string_casecmp),
