@@ -13,6 +13,10 @@
 #include <unistd.h>
 #include "syscall.h"
 
+/*
+ * chmod() - change permissions of the file at `path` using SYS_chmod.
+ * Returns 0 on success or -1 with errno set on failure.
+ */
 int chmod(const char *path, mode_t mode)
 {
     long ret = vlibc_syscall(SYS_chmod, (long)path, mode, 0, 0, 0, 0);
@@ -23,6 +27,10 @@ int chmod(const char *path, mode_t mode)
     return (int)ret;
 }
 
+/*
+ * chown() - change the owner and group of `path` using SYS_chown.
+ * Returns 0 on success or -1 with errno set on failure.
+ */
 int chown(const char *path, uid_t owner, gid_t group)
 {
     long ret = vlibc_syscall(SYS_chown, (long)path, owner, group, 0, 0, 0);
@@ -33,6 +41,10 @@ int chown(const char *path, uid_t owner, gid_t group)
     return (int)ret;
 }
 
+/*
+ * umask() - set the process file creation mask to `mask` and
+ * return the previous value using SYS_umask.
+ */
 mode_t umask(mode_t mask)
 {
     long ret = vlibc_syscall(SYS_umask, mask, 0, 0, 0, 0, 0);
@@ -43,6 +55,11 @@ mode_t umask(mode_t mask)
     return (mode_t)ret;
 }
 
+/*
+ * fchmod() - change permissions of an open file descriptor using
+ * SYS_fchmod when available or a host fallback. Returns 0 on
+ * success or -1 with errno set on failure.
+ */
 int fchmod(int fd, mode_t mode)
 {
 #ifdef SYS_fchmod
@@ -63,6 +80,11 @@ int fchmod(int fd, mode_t mode)
 #endif
 }
 
+/*
+ * fchmodat() - change permissions of a path relative to `dirfd` using
+ * SYS_fchmodat when available. Returns 0 on success or -1 on failure
+ * with errno set.
+ */
 int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags)
 {
 #ifdef SYS_fchmodat
@@ -83,6 +105,11 @@ int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags)
 #endif
 }
 
+/*
+ * fchown() - change the owner and group of an open file descriptor
+ * using SYS_fchown or a host fallback. Returns 0 on success or -1
+ * on failure with errno set.
+ */
 int fchown(int fd, uid_t owner, gid_t group)
 {
 #ifdef SYS_fchown
@@ -103,6 +130,11 @@ int fchown(int fd, uid_t owner, gid_t group)
 #endif
 }
 
+/*
+ * fchownat() - change ownership of `pathname` relative to `dirfd` using
+ * SYS_fchownat when available. Returns 0 on success or -1 on failure
+ * with errno set.
+ */
 int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags)
 {
 #ifdef SYS_fchownat
@@ -123,6 +155,11 @@ int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flag
 #endif
 }
 
+/*
+ * lchown() - change ownership of a file without following symbolic
+ * links. Uses SYS_lchown when available and returns 0 on success or
+ * -1 with errno set on failure.
+ */
 int lchown(const char *pathname, uid_t owner, gid_t group)
 {
 #ifdef SYS_lchown
