@@ -121,17 +121,34 @@ int setenv(const char *name, const char *value, int overwrite)
         }
         environ = newenv;
         environ_flags = newflags;
+        struct dupinfo { int idx; char *old; };
+        struct dupinfo *dups = malloc(sizeof(struct dupinfo) * count);
+        int dupcount = 0;
+        if (!dups) {
+            free(entry);
+            return -1;
+        }
         for (int i = 0; i < count; ++i) {
             if (!environ_flags[i]) {
                 char *dup = strdup(environ[i]);
                 if (!dup) {
+                    for (int j = 0; j < dupcount; ++j) {
+                        free(environ[dups[j].idx]);
+                        environ[dups[j].idx] = dups[j].old;
+                        environ_flags[dups[j].idx] = 0;
+                    }
+                    free(dups);
                     free(entry);
                     return -1;
                 }
+                dups[dupcount].idx = i;
+                dups[dupcount].old = environ[i];
+                dupcount++;
                 environ[i] = dup;
                 environ_flags[i] = 1;
             }
         }
+        free(dups);
     } else {
         newenv = malloc(sizeof(char *) * (count + 2));
         newflags = malloc(sizeof(unsigned char) * (count + 2));
@@ -209,15 +226,31 @@ int putenv(const char *str)
         }
         environ = newenv;
         environ_flags = newflags;
+        struct dupinfo { int idx; char *old; };
+        struct dupinfo *dups = malloc(sizeof(struct dupinfo) * count);
+        int dupcount = 0;
+        if (!dups)
+            return -1;
         for (int i = 0; i < count; ++i) {
             if (!environ_flags[i]) {
                 char *dup = strdup(environ[i]);
-                if (!dup)
+                if (!dup) {
+                    for (int j = 0; j < dupcount; ++j) {
+                        free(environ[dups[j].idx]);
+                        environ[dups[j].idx] = dups[j].old;
+                        environ_flags[dups[j].idx] = 0;
+                    }
+                    free(dups);
                     return -1;
+                }
+                dups[dupcount].idx = i;
+                dups[dupcount].old = environ[i];
+                dupcount++;
                 environ[i] = dup;
                 environ_flags[i] = 1;
             }
         }
+        free(dups);
     } else {
         newenv = malloc(sizeof(char *) * (count + 2));
         newflags = malloc(sizeof(unsigned char) * (count + 2));
