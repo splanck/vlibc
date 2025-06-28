@@ -1,8 +1,12 @@
 /*
  * BSD 2-Clause License: Redistribution and use in source and binary forms, with
- * or without modification, are permitted provided that the copyright notice and this permission notice appear in all copies. This software is provided "as is" without warranty.
+ * or without modification, are permitted provided that the copyright notice and
+ * this permission notice appear in all copies. This software is provided "as is"
+ * without warranty.
  *
  * Purpose: Implements POSIX message queue wrappers for vlibc.
+ *
+ * Copyright (c) 2025
  */
 
 #include "mqueue.h"
@@ -13,6 +17,7 @@
 #include <stdarg.h>
 #include "syscall.h"
 
+/* Open or create a POSIX message queue. */
 mqd_t mq_open(const char *name, int oflag, ...)
 {
     mode_t mode = 0;
@@ -44,6 +49,7 @@ mqd_t mq_open(const char *name, int oflag, ...)
 #endif
 }
 
+/* Close an opened message queue descriptor. */
 int mq_close(mqd_t mqdes)
 {
 #ifdef SYS_mq_close
@@ -64,6 +70,7 @@ int mq_close(mqd_t mqdes)
 #endif
 }
 
+/* Remove a message queue name from the system. */
 int mq_unlink(const char *name)
 {
 #ifdef SYS_mq_unlink
@@ -84,6 +91,7 @@ int mq_unlink(const char *name)
 #endif
 }
 
+/* Send a message to the queue. */
 int mq_send(mqd_t mqdes, const char *msg_ptr, size_t msg_len, unsigned msg_prio)
 {
 #ifdef SYS_mq_send
@@ -104,6 +112,7 @@ int mq_send(mqd_t mqdes, const char *msg_ptr, size_t msg_len, unsigned msg_prio)
 #endif
 }
 
+/* Receive the next message from the queue. */
 ssize_t mq_receive(mqd_t mqdes, char *msg_ptr, size_t msg_len, unsigned *msg_prio)
 {
 #ifdef SYS_mq_receive
