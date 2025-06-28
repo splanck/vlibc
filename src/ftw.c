@@ -82,7 +82,7 @@ static int do_nftw(const char *path,
             memcpy(child, path, len);
             if (add)
                 child[len] = '/';
-            strcpy(child + len + add, e->d_name);
+            memcpy(child + len + add, e->d_name, name_len + 1);
             r = do_nftw(child, fn, fdlimit, flags, level + 1);
             free(child);
             if (r != 0) {

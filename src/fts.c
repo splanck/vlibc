@@ -12,6 +12,7 @@
 #include "string.h"
 #include "errno.h"
 #include "unistd.h"
+#include <stdint.h>
 
 struct node {
     struct node *next;
@@ -168,7 +169,15 @@ FTSENT *fts_read(FTS *fts)
                     continue;
                 size_t len = strlen(ent->fts_path);
                 size_t add = len && ent->fts_path[len-1] != '/' ? 1 : 0;
-                char *child = malloc(len + add + strlen(e->d_name) + 1);
+                size_t name_len = strlen(e->d_name);
+                if (len > SIZE_MAX - add - name_len - 1) {
+                    closedir(d);
+                    free_entry(ent);
+                    free(n);
+                    errno = ENAMETOOLONG;
+                    return NULL;
+                }
+                char *child = malloc(len + add + name_len + 1);
                 if (!child) {
                     closedir(d);
                     free_entry(ent);
@@ -178,7 +187,7 @@ FTSENT *fts_read(FTS *fts)
                 memcpy(child, ent->fts_path, len);
                 if (add)
                     child[len] = '/';
-                strcpy(child + len + add, e->d_name);
+                memcpy(child + len + add, e->d_name, name_len + 1);
                 if (queue_push(fts, child, n->level + 1) < 0) {
                     closedir(d);
                     free(child);
