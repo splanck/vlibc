@@ -25,7 +25,12 @@
 
 static ssize_t try_urandom(void *buf, size_t len)
 {
-    int fd = open("/dev/urandom", O_RDONLY);
+#ifdef O_CLOEXEC
+    int flags = O_RDONLY | O_CLOEXEC;
+#else
+    int flags = O_RDONLY;
+#endif
+    int fd = open("/dev/urandom", flags);
     if (fd < 0)
         return -1;
     size_t off = 0;

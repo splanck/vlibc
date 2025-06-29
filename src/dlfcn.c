@@ -102,7 +102,12 @@ void *dlopen(const char *filename, int flag)
     (void)flag;
     dl_err[0] = '\0';
 
-    int fd = open(filename, O_RDONLY);
+#ifdef O_CLOEXEC
+    int flags = O_RDONLY | O_CLOEXEC;
+#else
+    int flags = O_RDONLY;
+#endif
+    int fd = open(filename, flags);
     if (fd < 0) {
         set_error("open failed");
         return NULL;

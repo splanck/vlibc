@@ -83,7 +83,12 @@ static int lookup_r(const char *name, uid_t uid, int by_name,
         return -1;
     *result = NULL;
 
-    int fd = open(passwd_path(), O_RDONLY, 0);
+#ifdef O_CLOEXEC
+    int flags = O_RDONLY | O_CLOEXEC;
+#else
+    int flags = O_RDONLY;
+#endif
+    int fd = open(passwd_path(), flags, 0);
     if (fd < 0)
         return -1;
     char filebuf[4096];
