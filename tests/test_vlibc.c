@@ -5916,6 +5916,28 @@ static const char *test_regex_backref_fail(void)
     return 0;
 }
 
+static const char *test_regex_backref_basic_dup(void)
+{
+    regex_t re;
+    regmatch_t m[2];
+    regcomp(&re, "(ab)c\\1", 0);
+    int r = regexec(&re, "abcab", 2, m, 0);
+    regfree(&re);
+    mu_assert("regex match", r == 0);
+    mu_assert("group capture", m[1].rm_so == 0 && m[1].rm_eo == 2);
+    return 0;
+}
+
+static const char *test_regex_backref_fail_dup(void)
+{
+    regex_t re;
+    regcomp(&re, "(ab)c\\1", 0);
+    int r = regexec(&re, "abcac", 0, NULL, 0);
+    regfree(&re);
+    mu_assert("regex nomatch", r == REG_NOMATCH);
+    return 0;
+}
+
 static const char *test_regex_posix_class(void)
 {
     regex_t re;
@@ -6612,6 +6634,8 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("stdlib", test_tsearch_basic),
         REGISTER_TEST("regex", test_regex_backref_basic),
         REGISTER_TEST("regex", test_regex_backref_fail),
+        REGISTER_TEST("regex", test_regex_backref_basic_dup),
+        REGISTER_TEST("regex", test_regex_backref_fail_dup),
         REGISTER_TEST("regex", test_regex_posix_class),
         REGISTER_TEST("regex", test_regex_alternation),
         REGISTER_TEST("regex", test_regex_range),
