@@ -48,7 +48,7 @@ struct block_header {
 };
 
 static struct block_header *free_list = NULL;
-static pthread_mutex_t free_lock = { ATOMIC_FLAG_INIT, PTHREAD_MUTEX_NORMAL, 0, 0 };
+static pthread_mutex_t free_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /*
  * free_impl() - return a block to the internal free list.
