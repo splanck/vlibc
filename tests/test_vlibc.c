@@ -5641,6 +5641,30 @@ static const char *test_group_threadsafe(void)
     return 0;
 }
 
+static const char *test_system_passwd(void)
+{
+    unsetenv("VLIBC_PASSWD");
+    if (access("/etc/passwd", R_OK) != 0)
+        return 0; /* skip when not available */
+    setpwent();
+    struct passwd *pw = getpwent();
+    endpwent();
+    mu_assert("system passwd", pw != NULL);
+    return 0;
+}
+
+static const char *test_system_group(void)
+{
+    unsetenv("VLIBC_GROUP");
+    if (access("/etc/group", R_OK) != 0)
+        return 0; /* skip when not available */
+    setgrent();
+    struct group *gr = getgrent();
+    endgrent();
+    mu_assert("system group", gr != NULL);
+    return 0;
+}
+
 static const char *test_getgrouplist_basic(void)
 {
     char tmpl[] = "/tmp/glstXXXXXX";
@@ -6698,6 +6722,8 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("process", test_passwd_long_entries),
         REGISTER_TEST("process", test_group_enum),
         REGISTER_TEST("process", test_group_threadsafe),
+        REGISTER_TEST("process", test_system_passwd),
+        REGISTER_TEST("process", test_system_group),
         REGISTER_TEST("process", test_getgrouplist_basic),
         REGISTER_TEST("process", test_getgrouplist_overflow),
         REGISTER_TEST("process", test_getlogin_fn),
