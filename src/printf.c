@@ -31,6 +31,23 @@ static int uint_to_base(unsigned long value, unsigned base, int upper,
     return (int)i;
 }
 
+static int ull_to_base(unsigned long long value, unsigned base, int upper,
+                       char *buf, size_t size)
+{
+    const char *digits = upper ? "0123456789ABCDEF" : "0123456789abcdef";
+    char tmp[64];
+    size_t i = 0;
+    do {
+        tmp[i++] = digits[value % base];
+        value /= base;
+    } while (value && i < sizeof(tmp));
+    if (i > size)
+        i = size;
+    for (size_t j = 0; j < i; ++j)
+        buf[j] = tmp[i - j - 1];
+    return (int)i;
+}
+
 
 static void out_char(char *dst, size_t size, size_t *pos, char c)
 {
@@ -80,6 +97,16 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
             }
         }
 
+        int length = 0;
+        if (*p == 'l') {
+            length = 1;
+            ++p;
+            if (*p == 'l') {
+                length = 2;
+                ++p;
+            }
+        }
+
         char spec = *p;
         char buf[64];
         int len = 0;
@@ -103,28 +130,68 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
             break;
         }
         case 'd': {
-            int v = va_arg(ap, int);
-            sign = v < 0;
-            unsigned int uv = (unsigned int)v;
-            if (sign)
-                uv = 0u - uv;
-            len = uint_to_base(uv, 10, 0, buf, sizeof(buf));
+            if (length == 2) {
+                long long v = va_arg(ap, long long);
+                unsigned long long uv = (unsigned long long)v;
+                sign = v < 0;
+                if (sign)
+                    uv = 0ull - uv;
+                len = ull_to_base(uv, 10, 0, buf, sizeof(buf));
+            } else if (length == 1) {
+                long v = va_arg(ap, long);
+                unsigned long uv = (unsigned long)v;
+                sign = v < 0;
+                if (sign)
+                    uv = 0ul - uv;
+                len = uint_to_base(uv, 10, 0, buf, sizeof(buf));
+            } else {
+                int v = va_arg(ap, int);
+                unsigned int uv = (unsigned int)v;
+                sign = v < 0;
+                if (sign)
+                    uv = 0u - uv;
+                len = uint_to_base(uv, 10, 0, buf, sizeof(buf));
+            }
             break;
         }
         case 'u': {
-            unsigned int v = va_arg(ap, unsigned int);
-            len = uint_to_base(v, 10, 0, buf, sizeof(buf));
+            if (length == 2) {
+                unsigned long long v = va_arg(ap, unsigned long long);
+                len = ull_to_base(v, 10, 0, buf, sizeof(buf));
+            } else if (length == 1) {
+                unsigned long v = va_arg(ap, unsigned long);
+                len = uint_to_base(v, 10, 0, buf, sizeof(buf));
+            } else {
+                unsigned int v = va_arg(ap, unsigned int);
+                len = uint_to_base(v, 10, 0, buf, sizeof(buf));
+            }
             break;
         }
         case 'x':
         case 'X': {
-            unsigned int v = va_arg(ap, unsigned int);
-            len = uint_to_base(v, 16, spec == 'X', buf, sizeof(buf));
+            if (length == 2) {
+                unsigned long long v = va_arg(ap, unsigned long long);
+                len = ull_to_base(v, 16, spec == 'X', buf, sizeof(buf));
+            } else if (length == 1) {
+                unsigned long v = va_arg(ap, unsigned long);
+                len = uint_to_base(v, 16, spec == 'X', buf, sizeof(buf));
+            } else {
+                unsigned int v = va_arg(ap, unsigned int);
+                len = uint_to_base(v, 16, spec == 'X', buf, sizeof(buf));
+            }
             break;
         }
         case 'o': {
-            unsigned int v = va_arg(ap, unsigned int);
-            len = uint_to_base(v, 8, 0, buf, sizeof(buf));
+            if (length == 2) {
+                unsigned long long v = va_arg(ap, unsigned long long);
+                len = ull_to_base(v, 8, 0, buf, sizeof(buf));
+            } else if (length == 1) {
+                unsigned long v = va_arg(ap, unsigned long);
+                len = uint_to_base(v, 8, 0, buf, sizeof(buf));
+            } else {
+                unsigned int v = va_arg(ap, unsigned int);
+                len = uint_to_base(v, 8, 0, buf, sizeof(buf));
+            }
             break;
         }
         case 'p': {

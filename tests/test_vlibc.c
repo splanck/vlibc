@@ -2144,7 +2144,7 @@ static const char *test_printf_functions(void)
     mu_assert("lower hex", strcmp(buf, "2b") == 0);
 
     n = snprintf(buf, sizeof(buf), "[%4o]", 9);
-    mu_assert("octal width", strcmp(buf, "[   11]") == 0);
+    mu_assert("octal width", strcmp(buf, "[  11]") == 0);
 
     n = snprintf(buf, sizeof(buf), "[%.3o]", 7);
     mu_assert("octal precision", strcmp(buf, "[007]") == 0);
@@ -2158,6 +2158,18 @@ static const char *test_printf_functions(void)
 
     n = snprintf(buf, sizeof(buf), "[%.4x]", 3);
     mu_assert("precision", strcmp(buf, "[0003]") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%ld", (long)123456L);
+    mu_assert("snprintf long", n == (int)strlen("123456") && strcmp(buf, "123456") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%lu", (unsigned long)987654321UL);
+    mu_assert("snprintf ulong", n == (int)strlen("987654321") && strcmp(buf, "987654321") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%lld", (long long)-123456789012345LL);
+    mu_assert("snprintf long long", strcmp(buf, "-123456789012345") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%llu", (unsigned long long)123456789012345ULL);
+    mu_assert("snprintf ulong long", strcmp(buf, "123456789012345") == 0);
 
     n = snprintf(buf, sizeof(buf), "%d", INT_MIN);
     mu_assert("snprintf INT_MIN len", n == (int)strlen(buf));
