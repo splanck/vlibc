@@ -9,22 +9,24 @@
 #include "time.h"
 #include "errno.h"
 #include <sys/types.h>
-#include <sys/syscall.h>
 #include <unistd.h>
-#include "syscall.h"
+#include <pthread.h>
 
 /*
  * nanosleep() - suspend execution for the time specified in 'req'.  If
  * interrupted, the remaining time is written to 'rem' when non-NULL.
  * Returns 0 on success or -1 on failure with errno set.
  */
-int nanosleep(const struct timespec *req, struct timespec *rem)
+extern int host_nanosleep(const struct timespec *, struct timespec *);
+__asm__(".symver host_nanosleep,nanosleep@GLIBC_2.2.5");
+
+int vlibc_nanosleep(const struct timespec *req, struct timespec *rem)
 {
-    long ret = vlibc_syscall(SYS_nanosleep, (long)req, (long)rem, 0, 0, 0, 0);
-    if (ret < 0) {
-        errno = -ret;
+    int ret = host_nanosleep(req, rem);
+    if (ret == -1)
         return -1;
-    }
+    /* Ensure any pending cancellation is acted upon after sleeping */
+    pthread_testcancel();
     return 0;
 }
 

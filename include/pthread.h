@@ -102,6 +102,10 @@ int vlibc_pthread_cancel(pthread_t thread);
 #define pthread_cancel vlibc_pthread_cancel
 /* Request cancellation of "thread". The target ends at the next cancellation
  * point and "pthread_join" returns PTHREAD_CANCELED. */
+void vlibc_pthread_testcancel(void);
+#define pthread_testcancel vlibc_pthread_testcancel
+/* Check for any pending cancellation request for the calling thread and exit if
+ * cancellation is pending. */
 
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr);
 /* Initialize a mutex using a simple spinlock. */
