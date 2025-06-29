@@ -5857,6 +5857,25 @@ static const char *test_wordexp_malformed(void)
     return 0;
 }
 
+static const char *test_wordexp_unterminated_cases(void)
+{
+    wordexp_t we;
+
+    errno = 0;
+    int r = wordexp("'foo", &we);
+    mu_assert("unterminated single", r == WRDE_SYNTAX && errno == EINVAL);
+
+    errno = 0;
+    r = wordexp("\"foo", &we);
+    mu_assert("unterminated double", r == WRDE_SYNTAX && errno == EINVAL);
+
+    errno = 0;
+    r = wordexp("foo\\", &we);
+    mu_assert("final backslash", r == WRDE_SYNTAX && errno == EINVAL);
+
+    return 0;
+}
+
 static int int_cmp(const void *a, const void *b)
 {
     int ia = *(const int *)a;
@@ -6692,6 +6711,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("stdlib", test_sha512_hash),
         REGISTER_TEST("stdlib", test_wordexp_basic),
         REGISTER_TEST("stdlib", test_wordexp_malformed),
+        REGISTER_TEST("stdlib", test_wordexp_unterminated_cases),
         REGISTER_TEST("dirent", test_dirent),
         REGISTER_TEST("dirent", test_ftw_walk),
         REGISTER_TEST("ftw", test_ftw_long_path_fail),
