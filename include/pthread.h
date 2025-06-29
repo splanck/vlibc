@@ -30,6 +30,7 @@ typedef struct {
 
 #define PTHREAD_MUTEX_NORMAL 0
 #define PTHREAD_MUTEX_RECURSIVE 1
+#define PTHREAD_MUTEX_INITIALIZER { ATOMIC_FLAG_INIT, PTHREAD_MUTEX_NORMAL, 0, 0 }
 
 typedef struct {
     atomic_int seq;  /* number of signals issued */
