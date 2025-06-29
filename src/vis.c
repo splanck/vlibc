@@ -13,11 +13,17 @@
 #include <stdio.h>
 
 /* Return non-zero if character requires octal escaping */
+/* simple printable check independent of ctype table */
+static int is_print(int c)
+{
+    return c >= 0x20 && c <= 0x7e;
+}
+
 static int need_octal(int c, int flag)
 {
     if (flag & VIS_OCTAL)
         return 1;
-    if (!isprint(c))
+    if (!is_print(c))
         return 1;
     if ((c == ' ' && (flag & (VIS_SP|VIS_WHITE))) ||
         (c == '\t' && (flag & (VIS_TAB|VIS_WHITE))) ||
@@ -32,43 +38,117 @@ static int need_octal(int c, int flag)
  * the destination length and returns the number of bytes
  * written or -1 on overflow.
  */
+static int isoctal(int c)
+{
+    return c >= '0' && c <= '7';
+}
+
 int nvis(char *dst, size_t dlen, int c, int flag, int nextc)
 {
-    (void)nextc; /* unused */
+    char *start = dst;
     unsigned char ch = (unsigned char)c;
-    char buf[5];
-    size_t len = 0;
 
     if (!need_octal(ch, flag)) {
         if (ch == '\\' && !(flag & VIS_NOSLASH)) {
-            buf[0] = '\\'; buf[1] = '\\'; buf[2] = '\0'; len = 2;
+            if (dlen < 2 + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = '\\';
         } else {
-            buf[0] = ch; buf[1] = '\0'; len = 1;
+            if (dlen < 1 + 1)
+                return -1;
+            *dst++ = ch;
         }
-    } else if ((flag & VIS_CSTYLE) != 0) {
-        switch (ch) {
-        case '\n': buf[0] = '\\'; buf[1] = 'n'; buf[2] = '\0'; len = 2; break;
-        case '\r': buf[0] = '\\'; buf[1] = 'r'; buf[2] = '\0'; len = 2; break;
-        case '\b': buf[0] = '\\'; buf[1] = 'b'; buf[2] = '\0'; len = 2; break;
-        case '\a': buf[0] = '\\'; buf[1] = 'a'; buf[2] = '\0'; len = 2; break;
-        case '\v': buf[0] = '\\'; buf[1] = 'v'; buf[2] = '\0'; len = 2; break;
-        case '\t': buf[0] = '\\'; buf[1] = 't'; buf[2] = '\0'; len = 2; break;
-        case '\f': buf[0] = '\\'; buf[1] = 'f'; buf[2] = '\0'; len = 2; break;
-        case '\\': buf[0] = '\\'; buf[1] = '\\'; buf[2] = '\0'; len = 2; break;
-        default:
-            snprintf(buf, sizeof(buf), "\\%03o", ch);
-            len = strlen(buf);
-            break;
-        }
-    } else {
-        snprintf(buf, sizeof(buf), (flag & VIS_NOSLASH)?"%03o":"\\%03o", ch);
-        len = strlen(buf);
+        *dst = '\0';
+        return dst - start;
     }
 
-    if (len >= dlen)
+    if (flag & VIS_CSTYLE) {
+        switch (ch) {
+        case '\n':
+            if (dlen < 2 + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = 'n';
+            *dst = '\0';
+            return dst - start;
+        case '\r':
+            if (dlen < 2 + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = 'r';
+            *dst = '\0';
+            return dst - start;
+        case '\b':
+            if (dlen < 2 + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = 'b';
+            *dst = '\0';
+            return dst - start;
+        case '\a':
+            if (dlen < 2 + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = 'a';
+            *dst = '\0';
+            return dst - start;
+        case '\v':
+            if (dlen < 2 + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = 'v';
+            *dst = '\0';
+            return dst - start;
+        case '\t':
+            if (dlen < 2 + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = 't';
+            *dst = '\0';
+            return dst - start;
+        case '\f':
+            if (dlen < 2 + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = 'f';
+            *dst = '\0';
+            return dst - start;
+        case '\0':
+            if (dlen < (isoctal(nextc) ? 4 : 2) + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = '0';
+            if (isoctal(nextc)) {
+                *dst++ = '0';
+                *dst++ = '0';
+            }
+            *dst = '\0';
+            return dst - start;
+        case '\\':
+            if (dlen < 2 + 1)
+                return -1;
+            *dst++ = '\\';
+            *dst++ = '\\';
+            *dst = '\0';
+            return dst - start;
+        default:
+            if (dlen < 4 + 1)
+                return -1;
+            snprintf(dst, dlen, "\\%03o", ch);
+            return strlen(dst);
+        }
+    }
+
+    if (dlen < 4 + 1)
         return -1;
-    memcpy(dst, buf, len + 1);
-    return (int)len;
+    if (!(flag & VIS_NOSLASH))
+        *dst++ = '\\';
+    *dst++ = ((ch >> 6) & 07) + '0';
+    *dst++ = ((ch >> 3) & 07) + '0';
+    *dst++ = (ch & 07) + '0';
+    *dst = '\0';
+    return dst - start;
 }
 
 /*
@@ -77,8 +157,7 @@ int nvis(char *dst, size_t dlen, int c, int flag, int nextc)
  */
 int vis(char *dst, int c, int flag, int nextc)
 {
-    (void)nextc;
-    return nvis(dst, (size_t)-1, c, flag, 0);
+    return nvis(dst, (size_t)-1, c, flag, nextc);
 }
 
 /* simple state machine for decoding */
