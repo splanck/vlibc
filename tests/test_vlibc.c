@@ -3604,18 +3604,6 @@ static const char *test_setenv_overwrite_loop(void)
     return 0;
 }
 
-static const char *test_setenv_alloc_fail_basic(void)
-{
-    env_init(NULL);
-    setenv("A", "1", 1);
-    vlibc_test_alloc_fail_after = 2;
-    errno = 0;
-    int r = setenv("B", "2", 1);
-    mu_assert("alloc fail", r == -1 && errno == ENOMEM);
-    vlibc_test_alloc_fail_after = -1;
-    clearenv();
-    return 0;
-}
 
 static const char *test_setenv_realloc_fail_errno(void)
 {
@@ -6359,7 +6347,6 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("memory", test_reallocarray_basic),
         REGISTER_TEST("memory", test_recallocarray_grow),
         REGISTER_TEST("memory", test_setenv_overwrite_loop),
-        REGISTER_TEST("memory", test_setenv_alloc_fail_basic),
         REGISTER_TEST("memory", test_setenv_realloc_fail_errno),
         REGISTER_TEST("memory", test_setenv_strdup_fail),
         REGISTER_TEST("memory", test_putenv_alloc_fail_basic),
@@ -6507,7 +6494,7 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_putenv_unsetenv_stack),
         REGISTER_TEST("default", test_putenv_alloc_fail_basic),
         REGISTER_TEST("default", test_putenv_realloc_fail_errno),
-        REGISTER_TEST("default", test_setenv_alloc_fail_basic),
+        REGISTER_TEST("default", test_setenv_alloc_fail),
         REGISTER_TEST("default", test_setenv_realloc_fail_errno),
         REGISTER_TEST("default", test_setenv_strdup_fail),
         REGISTER_TEST("default", test_locale_from_env),
