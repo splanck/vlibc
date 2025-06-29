@@ -131,7 +131,15 @@ int mkostemp(char *template, int flags);
 int mkostemps(char *template, int suffixlen, int flags);
 FILE *tmpfile(void);
 /* Buffer must hold at least L_tmpnam characters or be NULL */
+char *__tmpnam_chk(char *s, size_t sz);
+char *__tmpnam_impl(char *s);
+#ifdef __GNUC__
+#define tmpnam(s) (__builtin_object_size((s), 0) != (size_t)-1 \
+        ? __tmpnam_chk((s), __builtin_object_size((s), 0)) \
+        : __tmpnam_impl(s))
+#else
 char *tmpnam(char *s);
+#endif
 char *tempnam(const char *dir, const char *pfx);
 
 FILE *open_memstream(char **bufp, size_t *sizep);

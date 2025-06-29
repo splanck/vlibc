@@ -14,6 +14,9 @@
 #include "stdlib.h"
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef tmpnam
+#undef tmpnam
+#endif
 
 static int fill_random(unsigned char *buf, size_t len)
 {
@@ -179,16 +182,9 @@ FILE *tmpfile(void)
  * static buffer is used, otherwise the result is written to 's'.  The
  * file is not created.
  */
-char *tmpnam(char *s)
+char *__tmpnam_impl(char *s)
 {
     static char buf[L_tmpnam];
-    if (s) {
-        size_t sz = __builtin_object_size(s, 0);
-        if (sz != (size_t)-1 && sz < L_tmpnam) {
-            errno = ERANGE;
-            return NULL;
-        }
-    }
     char *out = s ? s : buf;
     strcpy(out, "/tmp/vlibcXXXXXX");
     int fd = mkstemp(out);
@@ -197,6 +193,20 @@ char *tmpnam(char *s)
     close(fd);
     unlink(out);
     return out;
+}
+
+char *__tmpnam_chk(char *s, size_t sz)
+{
+    if (s && sz < L_tmpnam) {
+        errno = ERANGE;
+        return NULL;
+    }
+    return __tmpnam_impl(s);
+}
+
+char *tmpnam(char *s)
+{
+    return __tmpnam_impl(s);
 }
 
 /*
