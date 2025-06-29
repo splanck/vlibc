@@ -781,9 +781,6 @@ static const char *test_writev_nonblocking(void)
         }
     }
 
-    pthread_t t;
-    pthread_create(&t, NULL, drain_socket, &sv[1]);
-
     struct iovec iov[2];
     const char *a = "ab";
     const char *b = "cd";
@@ -792,6 +789,13 @@ static const char *test_writev_nonblocking(void)
     iov[1].iov_base = (void *)b;
     iov[1].iov_len = 2;
     ssize_t r = writev(sv[0], iov, 2);
+    mu_assert("EAGAIN writev", r == -1 && errno == EAGAIN);
+
+    pthread_t t;
+    pthread_create(&t, NULL, drain_socket, &sv[1]);
+    usleep(200000);
+
+    r = writev(sv[0], iov, 2);
     mu_assert("writev", r == 4);
 
     close(sv[0]);
