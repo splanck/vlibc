@@ -28,7 +28,11 @@ int shm_open(const char *name, int oflag, mode_t mode)
     extern int host_shm_open(const char *, int, mode_t) __asm__("shm_open");
     return host_shm_open(name, oflag, mode);
 #else
-    if (!name || name[0] != '/') {
+    if (!name || name[0] == '\0') {
+        errno = EINVAL;
+        return -1;
+    }
+    if (name[0] != '/') {
         errno = EINVAL;
         return -1;
     }
@@ -59,7 +63,11 @@ int shm_unlink(const char *name)
     extern int host_shm_unlink(const char *) __asm__("shm_unlink");
     return host_shm_unlink(name);
 #else
-    if (!name || name[0] != '/') {
+    if (!name || name[0] == '\0') {
+        errno = EINVAL;
+        return -1;
+    }
+    if (name[0] != '/') {
         errno = EINVAL;
         return -1;
     }
