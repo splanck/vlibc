@@ -118,10 +118,24 @@ static int compile_single(struct regex_alt *alt, const char *pattern,
             size_t start = ccl_idx;
             if (pattern[i+1] == '^') { alt->pat[j].type = INV_CHAR_CLASS; i++; }
             else alt->pat[j].type = CHAR_CLASS;
-            while (pattern[++i] && pattern[i] != ']') {
+            while (pattern[++i]) {
                 if (pattern[i] == '\\' && pattern[i+1]) {
                     alt->ccl[ccl_idx++] = pattern[i++];
+                    alt->ccl[ccl_idx++] = pattern[i];
+                    continue;
                 }
+                if (pattern[i] == '[' && pattern[i+1] == ':') {
+                    alt->ccl[ccl_idx++] = pattern[i++];
+                    while (pattern[i] && !(pattern[i] == ':' && pattern[i+1] == ']'))
+                        alt->ccl[ccl_idx++] = pattern[i++];
+                    if (pattern[i]) {
+                        alt->ccl[ccl_idx++] = pattern[i++];
+                        alt->ccl[ccl_idx++] = pattern[i];
+                    }
+                    continue;
+                }
+                if (pattern[i] == ']')
+                    break;
                 alt->ccl[ccl_idx++] = pattern[i];
             }
             alt->ccl[ccl_idx++] = 0;
@@ -569,7 +583,7 @@ static int matchpattern(struct token *pat, const char *text, int *matchlen,
                         const char *string, regmatch_t *caps)
 {
     int pre = *matchlen;
-    do {
+    for (;;) {
         if (pat[0].type == CAP_OPEN) {
             if (caps)
                 caps[pat[0].u.group].rm_so = text - string;
@@ -596,16 +610,25 @@ static int matchpattern(struct token *pat, const char *text, int *matchlen,
             pat++;
             continue;
         }
-        if (pat[0].type == UNUSED || pat[1].type == QUESTION)
+
+        if (pat[0].type == END && pat[1].type == UNUSED)
+            return *text == '\0';
+        if (pat[0].type == UNUSED)
+            return 1;
+        if (pat[1].type == QUESTION)
             return matchquestion(pat[0], &pat[2], text, matchlen, string, caps);
         else if (pat[1].type == STAR)
             return matchstar(pat[0], &pat[2], text, matchlen, string, caps);
         else if (pat[1].type == PLUS)
             return matchplus(pat[0], &pat[2], text, matchlen, string, caps);
-        else if (pat[0].type == END && pat[1].type == UNUSED)
-            return *text == '\0';
-        *matchlen += 1;
-    } while (*text && matchone(*pat++, *text++));
+
+        if (*text && matchone(*pat, *text)) {
+            (*matchlen)++;
+            pat++; text++;
+            continue;
+        }
+        break;
+    }
     *matchlen = pre;
     return 0;
 }
