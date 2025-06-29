@@ -19,47 +19,55 @@ ssize_t strfmon(char *s, size_t max, const char *format, ...)
 
     va_list ap;
     va_start(ap, format);
-    size_t pos = 0;
+    char *out = s;
+    size_t remaining = max;
+    size_t written = 0;
 
     for (const char *p = format; *p; ++p) {
         if (*p != '%') {
-            if (pos + 1 >= max) {
+            if (remaining <= 1) {
                 errno = E2BIG;
                 va_end(ap);
                 return -1;
             }
-            s[pos++] = *p;
+            *out++ = *p;
+            remaining--;
+            written++;
             continue;
         }
+
         ++p;
         if (*p == '%') {
-            if (pos + 1 >= max) {
+            if (remaining <= 1) {
                 errno = E2BIG;
                 va_end(ap);
                 return -1;
             }
-            s[pos++] = '%';
+            *out++ = '%';
+            remaining--;
+            written++;
             continue;
         }
 
         int left_align = 0;
         int width = 0;
         int prec = 2;
-        /* Skip flags we don't implement */
+
         for (;; ++p) {
             if (*p == '-') {
                 left_align = 1;
             } else if (*p == '+' || *p == '(' || *p == '!' || *p == '^' || *p == '=') {
-                /* ignore */
+                /* ignored flags */
             } else {
                 break;
             }
         }
-        /* Parse width */
+
         while (*p >= '0' && *p <= '9') {
             width = width * 10 + (*p - '0');
             ++p;
         }
+
         if (*p == '.') {
             ++p;
             prec = 0;
@@ -68,65 +76,81 @@ ssize_t strfmon(char *s, size_t max, const char *format, ...)
                 ++p;
             }
         }
+
         char conv = *p;
         if (conv != 'n' && conv != 'i') {
             errno = EINVAL;
             va_end(ap);
             return -1;
         }
+
         double val = va_arg(ap, double);
         int neg = val < 0.0;
         if (neg)
             val = -val;
 
         char numbuf[64];
-        if (snprintf(numbuf, sizeof(numbuf), "%.*f", prec, val) >= (int)sizeof(numbuf)) {
+        int n = snprintf(numbuf, sizeof(numbuf), "%.*f", prec, val);
+        if (n < 0 || (size_t)n >= sizeof(numbuf)) {
             errno = E2BIG;
             va_end(ap);
             return -1;
         }
 
         char curbuf[80];
-        if (neg)
-            snprintf(curbuf, sizeof(curbuf), "-$%s", numbuf);
-        else
-            snprintf(curbuf, sizeof(curbuf), "$%s", numbuf);
+        n = snprintf(curbuf, sizeof(curbuf), neg ? "-$%s" : "$%s", numbuf);
+        if (n < 0 || (size_t)n >= sizeof(curbuf)) {
+            errno = E2BIG;
+            va_end(ap);
+            return -1;
+        }
 
-        size_t len = strlen(curbuf);
+        size_t len = (size_t)n;
         size_t pad = 0;
         if (width > 0 && (size_t)width > len)
             pad = (size_t)width - len;
 
         if (!left_align) {
-            if (pos + pad + len >= max) {
+            if (remaining <= pad + len) {
                 errno = E2BIG;
                 va_end(ap);
                 return -1;
             }
-            for (size_t i = 0; i < pad; ++i)
-                s[pos++] = ' ';
-            memcpy(s + pos, curbuf, len);
-            pos += len;
+            for (size_t i = 0; i < pad; ++i) {
+                *out++ = ' ';
+                remaining--;
+                written++;
+            }
+            memcpy(out, curbuf, len);
+            out += len;
+            remaining -= len;
+            written += len;
         } else {
-            if (pos + pad + len >= max) {
+            if (remaining <= pad + len) {
                 errno = E2BIG;
                 va_end(ap);
                 return -1;
             }
-            memcpy(s + pos, curbuf, len);
-            pos += len;
-            for (size_t i = 0; i < pad; ++i)
-                s[pos++] = ' ';
+            memcpy(out, curbuf, len);
+            out += len;
+            remaining -= len;
+            written += len;
+            for (size_t i = 0; i < pad; ++i) {
+                *out++ = ' ';
+                remaining--;
+                written++;
+            }
         }
     }
 
-    if (pos >= max) {
+    if (remaining == 0) {
         errno = E2BIG;
         va_end(ap);
         return -1;
     }
-    s[pos] = '\0';
+
+    *out = '\0';
     va_end(ap);
-    return (ssize_t)pos;
+    return (ssize_t)written;
 }
 
