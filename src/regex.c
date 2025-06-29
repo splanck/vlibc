@@ -144,18 +144,20 @@ struct strlist {
     size_t cap;
 };
 
-/* Append a string to the growing list. */
-static void list_add(struct strlist *l, char *s)
+/* Append a string to the growing list.
+ * Returns 0 on success, -1 on allocation failure. */
+static int list_add(struct strlist *l, char *s)
 {
     if (l->count >= l->cap) {
         size_t nc = l->cap ? l->cap * 2 : 4;
         char **n = realloc(l->items, nc * sizeof(char *));
         if (!n)
-            return;
+            return -1;
         l->items = n;
         l->cap = nc;
     }
     l->items[l->count++] = s;
+    return 0;
 }
 
 /* Free all strings in the list and reset it. */
@@ -289,7 +291,9 @@ static char *expand_ranges(const char *pat)
 
 /* Recursively expand alternation operators. The resulting list must be
  * freed with list_free(). */
-static void expand_alts(const char *pat, struct strlist *out)
+/* Recursively expand alternation operators. The resulting list must be
+ * freed with list_free(). Returns 0 on success, -1 on allocation failure. */
+static int expand_alts(const char *pat, struct strlist *out)
 {
     int level = 0, cls = 0;
     size_t start = 0, len = strlen(pat);
@@ -303,24 +307,36 @@ static void expand_alts(const char *pat, struct strlist *out)
         if (c == ')' && level > 0) { level--; continue; }
         if (c == '|' && level == 0) {
             char *s = strndup(pat + start, i - start);
-            list_add(&seg, s);
+            if (!s || list_add(&seg, s) != 0) {
+                free(s);
+                list_free(&seg);
+                return -1;
+            }
             start = i + 1;
         }
     }
     char *s = strndup(pat + start, len - start);
-    list_add(&seg, s);
+    if (!s || list_add(&seg, s) != 0) {
+        free(s);
+        list_free(&seg);
+        return -1;
+    }
 
     if (seg.count > 1) {
         for (size_t i = 0; i < seg.count; i++) {
-            expand_alts(seg.items[i], out);
+            if (expand_alts(seg.items[i], out) != 0) {
+                list_free(&seg);
+                return -1;
+            }
         }
         list_free(&seg);
-        return;
+        return 0;
     }
 
     /* no top-level alternation: process groups */
     struct strlist cur = {0};
-    list_add(&cur, strdup(""));
+    if (list_add(&cur, strdup("")) != 0)
+        return -1;
     for (size_t i = 0; i < len; ) {
         if (pat[i] == '\\' && i + 1 < len) {
             for (size_t j = 0; j < cur.count; j++) {
@@ -356,8 +372,14 @@ static void expand_alts(const char *pat, struct strlist *out)
                 else j++;
             }
             char *inside = strndup(pat + i + 1, j - i - 2);
+            if (!inside) { list_free(&cur); list_free(&seg); return -1; }
             struct strlist sub = {0};
-            expand_alts(inside, &sub);
+            if (expand_alts(inside, &sub) != 0) {
+                free(inside);
+                list_free(&cur);
+                list_free(&seg);
+                return -1;
+            }
             free(inside);
             struct strlist newl = {0};
             for (size_t k = 0; k < cur.count; k++) {
@@ -370,7 +392,14 @@ static void expand_alts(const char *pat, struct strlist *out)
                     memcpy(ns + l + 1, sub.items[m], ilen);
                     ns[l + ilen + 1] = ')';
                     ns[l + ilen + 2] = '\0';
-                    list_add(&newl, ns);
+                    if (list_add(&newl, ns) != 0) {
+                        free(ns);
+                        list_free(&newl);
+                        list_free(&sub);
+                        list_free(&cur);
+                        list_free(&seg);
+                        return -1;
+                    }
                 }
                 free(cur.items[k]);
             }
@@ -389,9 +418,15 @@ static void expand_alts(const char *pat, struct strlist *out)
         }
     }
     for (size_t i = 0; i < cur.count; i++)
-        list_add(out, cur.items[i]);
+        if (list_add(out, cur.items[i]) != 0) {
+            free(cur.items[i]);
+            list_free(&cur);
+            list_free(&seg);
+            return -1;
+        }
     free(cur.items);
     list_free(&seg);
+    return 0;
 }
 
 /* Basic character category checks used by the matcher. */
@@ -583,7 +618,11 @@ int regcomp(regex_t *preg, const char *pattern, int cflags)
     if (!expanded)
         return -1;
     struct strlist alts = {0};
-    expand_alts(expanded, &alts);
+    if (expand_alts(expanded, &alts) != 0) {
+        free(expanded);
+        list_free(&alts);
+        return -1;
+    }
     free(expanded);
     if (alts.count == 0)
         return -1;
