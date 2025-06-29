@@ -68,6 +68,12 @@ static int do_glob_expand(wordexp_t *we, struct part *p)
 }
 
 /* Parse one shell-style word from *strp into out, handling quotes and escapes. */
+/*
+ * parse_word returns:
+ *  0 on success
+ * -1 on allocation failure (errno set to ENOMEM)
+ * -2 on syntax error such as unmatched quotes (errno set to EINVAL)
+ */
 static int parse_word(const char **strp, struct part *out)
 {
     const char *s = *strp;
@@ -133,7 +139,7 @@ static int parse_word(const char **strp, struct part *out)
     if (q || trailing_bs) {
         free(buf);
         errno = EINVAL;
-        return -1;
+        return -2;
     }
     buf[len]='\0';
     out->text = buf;
@@ -155,7 +161,9 @@ int wordexp(const char *words, wordexp_t *pwordexp)
     while (1) {
         while (isspace((unsigned char)*p)) p++;
         if (!*p) break;
-        if (parse_word(&p, &part) < 0) { wordfree(pwordexp); return WRDE_NOSPACE; }
+        int pr = parse_word(&p, &part);
+        if (pr == -1) { wordfree(pwordexp); return WRDE_NOSPACE; }
+        if (pr == -2) { wordfree(pwordexp); return WRDE_SYNTAX; }
         if (do_glob_expand(pwordexp, &part) < 0) { free(part.text); wordfree(pwordexp); return WRDE_NOSPACE; }
         free(part.text);
     }

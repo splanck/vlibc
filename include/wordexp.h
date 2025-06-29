@@ -18,6 +18,7 @@ typedef struct {
 /* error codes */
 #define WRDE_NOSPACE 1
 #define WRDE_BADCHAR 2
+#define WRDE_SYNTAX  3
 
 int wordexp(const char *words, wordexp_t *pwordexp);
 void wordfree(wordexp_t *pwordexp);
