@@ -40,7 +40,9 @@ cc -Iinclude hello.c libvlibc.a -o hello
 
 ## Tests
 
-Run `make test` to execute the suite. Use `TEST_GROUP` to select a subset.
+Run `make test` to execute the suite. Use `TEST_GROUP` to select a subset. The
+tests are organized into groups like `stdio`, `dirent`, `time`, `process`,
+`locale`, `regex`, `memory`, `network`, and `fdopen`.
 
 ## License
 
