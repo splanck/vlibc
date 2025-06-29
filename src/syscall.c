@@ -10,7 +10,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include_next <errno.h>
+#include "errno.h"
 
 long vlibc_syscall(long number, ...)
 {

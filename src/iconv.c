@@ -16,7 +16,7 @@
 #define iconv_open host_iconv_open
 #define iconv host_iconv_func
 #define iconv_close host_iconv_close
-#include_next <iconv.h>
+#include "host/iconv.h"
 #undef iconv_open
 #undef iconv
 #undef iconv_close
