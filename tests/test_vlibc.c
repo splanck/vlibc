@@ -5775,15 +5775,15 @@ static const char *test_wordexp_malformed(void)
 
     errno = 0;
     int r = wordexp("'foo", &we);
-    mu_assert("unterminated single", r == WRDE_NOSPACE && errno == EINVAL);
+    mu_assert("unterminated single", r == WRDE_SYNTAX && errno == EINVAL);
 
     errno = 0;
     r = wordexp("\"foo", &we);
-    mu_assert("unterminated double", r == WRDE_NOSPACE && errno == EINVAL);
+    mu_assert("unterminated double", r == WRDE_SYNTAX && errno == EINVAL);
 
     errno = 0;
     r = wordexp("foo\\", &we);
-    mu_assert("final backslash", r == WRDE_NOSPACE && errno == EINVAL);
+    mu_assert("final backslash", r == WRDE_SYNTAX && errno == EINVAL);
 
     return 0;
 }
