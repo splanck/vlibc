@@ -24,10 +24,10 @@ static const int days_per_month[2][12] = {
     {31,29,31,30,31,30,31,31,30,31,30,31}
 };
 
-static struct tm tm_buf;
+static __thread struct tm tm_buf;
 
 /*
- * Thread-unsafe wrapper around gmtime_r() that uses a static
+ * Wrapper around gmtime_r() that uses a thread-local
  * buffer to hold the result.
  */
 struct tm *gmtime(const time_t *timep)
@@ -36,8 +36,8 @@ struct tm *gmtime(const time_t *timep)
 }
 
 /*
- * Thread-unsafe wrapper around localtime_r() using a static
- * buffer. Timezone handling matches localtime_r.
+ * Wrapper around localtime_r() using a thread-local buffer.
+ * Timezone handling matches localtime_r.
  */
 struct tm *localtime(const time_t *timep)
 {
@@ -100,11 +100,11 @@ time_t timegm(struct tm *tm)
 
 /*
  * Format a time value in a human readable form using localtime().
- * The result is stored in a static buffer and is not thread-safe.
+ * The result is stored in a thread-local buffer.
  */
 char *ctime(const time_t *timep)
 {
-    static char buf[32];
+    static __thread char buf[32];
     struct tm *tm = localtime(timep);
     static const char *wd[7] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
     static const char *mn[12] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
@@ -153,11 +153,11 @@ char *asctime_r(const struct tm *tm, char *buf)
 }
 
 /*
- * Thread-unsafe wrapper around asctime_r() using a static buffer.
+ * Wrapper around asctime_r() using a thread-local buffer.
  */
 char *asctime(const struct tm *tm)
 {
-    static char buf[32];
+    static __thread char buf[32];
     return asctime_r(tm, buf);
 }
 
