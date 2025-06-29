@@ -236,6 +236,9 @@ test-memory: TEST_GROUP=memory
 
 test-network: TEST_GROUP=network
 test-network: test
+# Run a single test. Usage: make test-name NAME=<case>
+test-name: $(TEST_BIN)
+	TEST_NAME=$(NAME) $(TEST_BIN)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -260,4 +263,4 @@ install: $(LIB)
 clean:
 	rm -f $(OBJ) $(LIB) $(TEST_BIN) $(PLUGIN_SO)
 
-.PHONY: all install clean test test-memory test-network
+.PHONY: all install clean test test-memory test-network test-name
