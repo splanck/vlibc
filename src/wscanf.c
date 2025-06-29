@@ -12,6 +12,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 /* Advance past leading whitespace characters */
 static const wchar_t *skip_ws_w(const wchar_t *s)
@@ -26,8 +27,12 @@ static long wstrtol_wrap(const wchar_t *s, const wchar_t **end, int base)
 {
     char buf[128];
     size_t len = wcstombs(buf, s, sizeof(buf) - 1);
-    if (len == (size_t)-1)
-        len = 0;
+    if (len == (size_t)-1) {
+        errno = EILSEQ;
+        if (end)
+            *end = s;
+        return 0;
+    }
     buf[len] = '\0';
     char *endp;
     long v = strtol(buf, &endp, base);
@@ -41,8 +46,12 @@ static unsigned long wstrtoul_wrap(const wchar_t *s, const wchar_t **end, int ba
 {
     char buf[128];
     size_t len = wcstombs(buf, s, sizeof(buf) - 1);
-    if (len == (size_t)-1)
-        len = 0;
+    if (len == (size_t)-1) {
+        errno = EILSEQ;
+        if (end)
+            *end = s;
+        return 0;
+    }
     buf[len] = '\0';
     char *endp;
     unsigned long v = strtoul(buf, &endp, base);
@@ -56,8 +65,12 @@ static double wstrtod_wrap(const wchar_t *s, const wchar_t **end)
 {
     char buf[128];
     size_t len = wcstombs(buf, s, sizeof(buf) - 1);
-    if (len == (size_t)-1)
-        len = 0;
+    if (len == (size_t)-1) {
+        errno = EILSEQ;
+        if (end)
+            *end = s;
+        return 0.0;
+    }
     buf[len] = '\0';
     char *endp;
     double v = strtod(buf, &endp);
@@ -95,7 +108,10 @@ static int vswscanf_impl(const wchar_t *str, const wchar_t *fmt, va_list ap)
         if (*fmt == L'd') {
             s = skip_ws_w(s);
             const wchar_t *end;
+            errno = 0;
             long v = wstrtol_wrap(s, &end, 10);
+            if (errno == EILSEQ && end == s)
+                return count;
             if (end == s)
                 return count;
             *va_arg(ap, int *) = (int)v;
@@ -104,7 +120,10 @@ static int vswscanf_impl(const wchar_t *str, const wchar_t *fmt, va_list ap)
         } else if (*fmt == L'u') {
             s = skip_ws_w(s);
             const wchar_t *end;
+            errno = 0;
             long v = wstrtol_wrap(s, &end, 10);
+            if (errno == EILSEQ && end == s)
+                return count;
             if (end == s || v < 0)
                 return count;
             *va_arg(ap, unsigned *) = (unsigned)v;
@@ -113,7 +132,10 @@ static int vswscanf_impl(const wchar_t *str, const wchar_t *fmt, va_list ap)
         } else if (*fmt == L'x' || *fmt == L'X') {
             s = skip_ws_w(s);
             const wchar_t *end;
+            errno = 0;
             unsigned long v = wstrtoul_wrap(s, &end, 16);
+            if (errno == EILSEQ && end == s)
+                return count;
             if (end == s)
                 return count;
             *va_arg(ap, unsigned *) = (unsigned)v;
@@ -122,7 +144,10 @@ static int vswscanf_impl(const wchar_t *str, const wchar_t *fmt, va_list ap)
         } else if (*fmt == L'o') {
             s = skip_ws_w(s);
             const wchar_t *end;
+            errno = 0;
             unsigned long v = wstrtoul_wrap(s, &end, 8);
+            if (errno == EILSEQ && end == s)
+                return count;
             if (end == s)
                 return count;
             *va_arg(ap, unsigned *) = (unsigned)v;
@@ -133,7 +158,10 @@ static int vswscanf_impl(const wchar_t *str, const wchar_t *fmt, va_list ap)
                    *fmt == L'g' || *fmt == L'G') {
             s = skip_ws_w(s);
             const wchar_t *end;
+            errno = 0;
             double v = wstrtod_wrap(s, &end);
+            if (errno == EILSEQ && end == s)
+                return count;
             if (end == s)
                 return count;
             if (long_mod)

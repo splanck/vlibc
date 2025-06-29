@@ -11,6 +11,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "memory.h"
+#include <errno.h>
 
 extern size_t host_mbrtowc(wchar_t *, const char *, size_t, mbstate_t *) __asm__("mbrtowc");
 extern size_t host_wcrtomb(char *, wchar_t, mbstate_t *) __asm__("wcrtomb");
@@ -220,8 +221,11 @@ size_t wcsrtombs(char *dst, const wchar_t **src, size_t n, mbstate_t *ps)
 static char *wcs_to_mb_tmp(const wchar_t *s, char *stack, size_t stack_sz, size_t *out_len)
 {
     size_t len = wcstombs(NULL, s, 0);
-    if (len == (size_t)-1)
-        len = 0;
+    if (len == (size_t)-1) {
+        errno = EILSEQ;
+        *out_len = 0;
+        return NULL;
+    }
     *out_len = len;
     if (len < stack_sz) {
         wcstombs(stack, s, len + 1);
