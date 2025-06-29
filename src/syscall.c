@@ -24,15 +24,14 @@ long vlibc_syscall(long number, ...)
     unsigned long a6 = va_arg(ap, unsigned long);
     va_end(ap);
 
-    long ret = syscall(number, a1, a2, a3, a4, a5, a6);
-    /*
-     * POSIX semantics: syscall() returns -1 on failure and sets errno.
-     * Negative values other than -1 are valid results for some calls,
-     * so check explicitly for -1 and propagate errno as a negative code.
-     */
-    if (ret == -1) {
-        int err = errno;
-        return -err;
-    }
+    register long r10 __asm__("r10") = (long)a4;
+    register long r8  __asm__("r8")  = (long)a5;
+    register long r9  __asm__("r9")  = (long)a6;
+    long ret;
+    __asm__ volatile ("syscall"
+                      : "=a" (ret)
+                      : "a" (number), "D" (a1), "S" (a2), "d" (a3),
+                        "r" (r10), "r" (r8), "r" (r9)
+                      : "rcx", "r11", "memory");
     return ret;
 }
