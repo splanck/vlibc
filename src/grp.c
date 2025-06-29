@@ -86,7 +86,12 @@ static struct group *parse_line(const char *line)
 /* lookup() - search the group file by name or gid */
 static struct group *lookup(const char *name, gid_t gid, int by_name)
 {
-    int fd = open(group_path(), O_RDONLY, 0);
+#ifdef O_CLOEXEC
+    int flags = O_RDONLY | O_CLOEXEC;
+#else
+    int flags = O_RDONLY;
+#endif
+    int fd = open(group_path(), flags, 0);
     if (fd < 0)
         return NULL;
     char buf[4096];
@@ -207,7 +212,12 @@ static struct group *parse_line(const char *line)
 /* setgrent() - open group file for iteration */
 void setgrent(void)
 {
-    int fd = open(group_path(), O_RDONLY, 0);
+#ifdef O_CLOEXEC
+    int flags = O_RDONLY | O_CLOEXEC;
+#else
+    int flags = O_RDONLY;
+#endif
+    int fd = open(group_path(), flags, 0);
     if (fd < 0) {
         next_line = NULL;
         return;
@@ -290,7 +300,12 @@ int getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups)
     int count = 0;
     groups[count++] = group;
 
-    int fd = open(group_path(), O_RDONLY, 0);
+#ifdef O_CLOEXEC
+    int flags = O_RDONLY | O_CLOEXEC;
+#else
+    int flags = O_RDONLY;
+#endif
+    int fd = open(group_path(), flags, 0);
     if (fd < 0)
         return -1;
     char buf[4096];

@@ -109,7 +109,12 @@ static int lookup_r(const char *name, gid_t gid, int by_name,
         return -1;
     *result = NULL;
 
-    int fd = open(group_path(), O_RDONLY, 0);
+#ifdef O_CLOEXEC
+    int flags = O_RDONLY | O_CLOEXEC;
+#else
+    int flags = O_RDONLY;
+#endif
+    int fd = open(group_path(), flags, 0);
     if (fd < 0)
         return -1;
     char filebuf[4096];
