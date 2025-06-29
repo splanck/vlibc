@@ -183,7 +183,7 @@ int getaddrinfo(const char *node, const char *service,
 {
     (void)hints;
     if (!node && !service)
-        return -1;
+        return EAI_NONAME;
 
     uint32_t ip4 = 0;
     unsigned char ip6[16];
@@ -195,8 +195,7 @@ int getaddrinfo(const char *node, const char *service,
             family = AF_INET;
         } else {
             if (hosts_lookup(node, &ip4) != 0) {
-                errno = ENOENT;
-                return -1;
+                return EAI_NONAME;
             }
             family = AF_INET;
         }
@@ -210,7 +209,7 @@ int getaddrinfo(const char *node, const char *service,
 
     struct addrinfo *ai = malloc(sizeof(struct addrinfo));
     if (!ai)
-        return -1;
+        return EAI_MEMORY;
     ai->ai_flags = 0;
     ai->ai_family = family;
     ai->ai_socktype = 0;
@@ -221,7 +220,7 @@ int getaddrinfo(const char *node, const char *service,
         struct sockaddr_in6 *sa6 = malloc(sizeof(struct sockaddr_in6));
         if (!sa6) {
             free(ai);
-            return -1;
+            return EAI_MEMORY;
         }
         sa6->sin6_family = AF_INET6;
         sa6->sin6_port = htons(port);
@@ -234,7 +233,7 @@ int getaddrinfo(const char *node, const char *service,
         struct sockaddr_in *sa = malloc(sizeof(struct sockaddr_in));
         if (!sa) {
             free(ai);
-            return -1;
+            return EAI_MEMORY;
         }
         sa->sin_family = AF_INET;
         sa->sin_port = htons(port);
