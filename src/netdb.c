@@ -13,12 +13,17 @@
 #include "errno.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "limits.h"
 #include "arpa/inet.h"
 #include <stdint.h>
 #include <netinet/in.h>
 
 #ifndef O_RDONLY
 #define O_RDONLY 0
+#endif
+
+#ifndef HOSTS_MAX_LINE
+#define HOSTS_MAX_LINE 1024
 #endif
 
 static int parse_ipv4(const char *s, uint32_t *out)
@@ -113,7 +118,14 @@ static int hosts_lookup(const char *node, uint32_t *ip)
     char *line = NULL;
     size_t cap = 0;
     int ret = -1;
-    while (getline(&line, &cap, f) != -1) {
+    ssize_t len;
+    while ((len = getline(&line, &cap, f)) != -1) {
+        if (len >= HOSTS_MAX_LINE && line[len - 1] != '\n') {
+            int c;
+            while ((c = fgetc(f)) != '\n' && c != -1)
+                ;
+            continue;
+        }
         char *p = line;
         while (*p == ' ' || *p == '\t')
             p++;
@@ -149,7 +161,14 @@ static int hosts_reverse_lookup(uint32_t ip, char *name, size_t len)
     char *line = NULL;
     size_t cap = 0;
     int ret = -1;
-    while (getline(&line, &cap, f) != -1) {
+    ssize_t len_read;
+    while ((len_read = getline(&line, &cap, f)) != -1) {
+        if (len_read >= HOSTS_MAX_LINE && line[len_read - 1] != '\n') {
+            int c;
+            while ((c = fgetc(f)) != '\n' && c != -1)
+                ;
+            continue;
+        }
         char *p = line;
         while (*p == ' ' || *p == '\t')
             p++;
