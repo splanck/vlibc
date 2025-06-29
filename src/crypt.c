@@ -77,6 +77,7 @@
 #include "stdlib.h"
 #include <alloca.h>
 #include <openssl/evp.h>
+#include <openssl/crypto.h>
 #include "crypt.h"
 
 #ifndef u_char
@@ -799,17 +800,22 @@ crypt_md5(const char *pw, const char *salt, char *buffer)
                 continue;
         sl = ep - salt;
 
+        if (!OPENSSL_init_crypto(0, NULL))
+                return (-1);
+
         ctx = EVP_MD_CTX_new();
         ctx1 = EVP_MD_CTX_new();
         if (ctx == NULL || ctx1 == NULL)
-                return (-1);
+                goto fail;
 
-        EVP_DigestInit_ex(ctx, EVP_md5(), NULL);
+        if (EVP_DigestInit_ex(ctx, EVP_md5(), NULL) != 1)
+                goto fail;
         EVP_DigestUpdate(ctx, pw, strlen(pw));
         EVP_DigestUpdate(ctx, magic, strlen(magic));
         EVP_DigestUpdate(ctx, salt, sl);
 
-        EVP_DigestInit_ex(ctx1, EVP_md5(), NULL);
+        if (EVP_DigestInit_ex(ctx1, EVP_md5(), NULL) != 1)
+                goto fail;
         EVP_DigestUpdate(ctx1, pw, strlen(pw));
         EVP_DigestUpdate(ctx1, salt, sl);
         EVP_DigestUpdate(ctx1, pw, strlen(pw));
@@ -865,6 +871,13 @@ crypt_md5(const char *pw, const char *salt, char *buffer)
         EVP_MD_CTX_free(ctx);
         EVP_MD_CTX_free(ctx1);
         return (0);
+
+fail:
+        if (ctx)
+                EVP_MD_CTX_free(ctx);
+        if (ctx1)
+                EVP_MD_CTX_free(ctx1);
+        return (-1);
 }
 
 /*
@@ -909,16 +922,21 @@ crypt_sha256(const char *key, const char *salt, char *buffer)
                 salt_len = 16;
         key_len = strlen(key);
 
+        if (!OPENSSL_init_crypto(0, NULL))
+                return (-1);
+
         ctx = EVP_MD_CTX_new();
         alt_ctx = EVP_MD_CTX_new();
         if (ctx == NULL || alt_ctx == NULL)
-                return (-1);
+                goto fail;
 
-        EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
+        if (EVP_DigestInit_ex(ctx, EVP_sha256(), NULL) != 1)
+                goto fail;
         EVP_DigestUpdate(ctx, key, key_len);
         EVP_DigestUpdate(ctx, salt, salt_len);
 
-        EVP_DigestInit_ex(alt_ctx, EVP_sha256(), NULL);
+        if (EVP_DigestInit_ex(alt_ctx, EVP_sha256(), NULL) != 1)
+                goto fail;
         EVP_DigestUpdate(alt_ctx, key, key_len);
         EVP_DigestUpdate(alt_ctx, salt, salt_len);
         EVP_DigestUpdate(alt_ctx, key, key_len);
@@ -999,6 +1017,13 @@ crypt_sha256(const char *key, const char *salt, char *buffer)
         EVP_MD_CTX_free(ctx);
         EVP_MD_CTX_free(alt_ctx);
         return (0);
+
+fail:
+        if (ctx)
+                EVP_MD_CTX_free(ctx);
+        if (alt_ctx)
+                EVP_MD_CTX_free(alt_ctx);
+        return (-1);
 }
 
 /*
@@ -1043,16 +1068,21 @@ crypt_sha512(const char *key, const char *salt, char *buffer)
                 salt_len = 16;
         key_len = strlen(key);
 
+        if (!OPENSSL_init_crypto(0, NULL))
+                return (-1);
+
         ctx = EVP_MD_CTX_new();
         alt_ctx = EVP_MD_CTX_new();
         if (ctx == NULL || alt_ctx == NULL)
-                return (-1);
+                goto fail;
 
-        EVP_DigestInit_ex(ctx, EVP_sha512(), NULL);
+        if (EVP_DigestInit_ex(ctx, EVP_sha512(), NULL) != 1)
+                goto fail;
         EVP_DigestUpdate(ctx, key, key_len);
         EVP_DigestUpdate(ctx, salt, salt_len);
 
-        EVP_DigestInit_ex(alt_ctx, EVP_sha512(), NULL);
+        if (EVP_DigestInit_ex(alt_ctx, EVP_sha512(), NULL) != 1)
+                goto fail;
         EVP_DigestUpdate(alt_ctx, key, key_len);
         EVP_DigestUpdate(alt_ctx, salt, salt_len);
         EVP_DigestUpdate(alt_ctx, key, key_len);
@@ -1144,6 +1174,13 @@ crypt_sha512(const char *key, const char *salt, char *buffer)
         EVP_MD_CTX_free(ctx);
         EVP_MD_CTX_free(alt_ctx);
         return (0);
+
+fail:
+        if (ctx)
+                EVP_MD_CTX_free(ctx);
+        if (alt_ctx)
+                EVP_MD_CTX_free(alt_ctx);
+        return (-1);
 }
 
 /*

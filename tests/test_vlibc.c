@@ -71,6 +71,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <openssl/evp.h>
 #include "../include/setjmp.h"
 #include "../include/ucontext.h"
 #include "../include/time.h"
@@ -5739,6 +5740,60 @@ static const char *test_crypt_sha512(void)
     return 0;
 }
 
+static const char *test_md5_hash(void)
+{
+    unsigned char md[EVP_MAX_MD_SIZE];
+    unsigned int len = 0;
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    mu_assert("ctx", ctx != NULL);
+    mu_assert("init", EVP_DigestInit_ex(ctx, EVP_md5(), NULL) == 1);
+    EVP_DigestUpdate(ctx, "pw", 2);
+    EVP_DigestFinal_ex(ctx, md, &len);
+    EVP_MD_CTX_free(ctx);
+    char hex[2*EVP_MAX_MD_SIZE+1];
+    for (unsigned int i = 0; i < len; i++)
+        sprintf(hex + i*2, "%02x", md[i]);
+    hex[len*2] = '\0';
+    mu_assert("md5 hash", strcmp(hex, "8fe4c11451281c094a6578e6ddbf5eed") == 0);
+    return 0;
+}
+
+static const char *test_sha256_hash(void)
+{
+    unsigned char md[EVP_MAX_MD_SIZE];
+    unsigned int len = 0;
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    mu_assert("ctx", ctx != NULL);
+    mu_assert("init", EVP_DigestInit_ex(ctx, EVP_sha256(), NULL) == 1);
+    EVP_DigestUpdate(ctx, "pw", 2);
+    EVP_DigestFinal_ex(ctx, md, &len);
+    EVP_MD_CTX_free(ctx);
+    char hex[2*EVP_MAX_MD_SIZE+1];
+    for (unsigned int i = 0; i < len; i++)
+        sprintf(hex + i*2, "%02x", md[i]);
+    hex[len*2] = '\0';
+    mu_assert("sha256 hash", strcmp(hex, "30c952fab122c3f9759f02a6d95c3758b246b4fee239957b2d4fee46e26170c4") == 0);
+    return 0;
+}
+
+static const char *test_sha512_hash(void)
+{
+    unsigned char md[EVP_MAX_MD_SIZE];
+    unsigned int len = 0;
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    mu_assert("ctx", ctx != NULL);
+    mu_assert("init", EVP_DigestInit_ex(ctx, EVP_sha512(), NULL) == 1);
+    EVP_DigestUpdate(ctx, "pw", 2);
+    EVP_DigestFinal_ex(ctx, md, &len);
+    EVP_MD_CTX_free(ctx);
+    char hex[2*EVP_MAX_MD_SIZE+1];
+    for (unsigned int i = 0; i < len; i++)
+        sprintf(hex + i*2, "%02x", md[i]);
+    hex[len*2] = '\0';
+    mu_assert("sha512 hash", strcmp(hex, "be196838736ddfd0007dd8b2e8f46f22d440d4c5959925cb49135abc9cdb01e84961aa43dd0ddb6ee59975eb649280d9f44088840af37451828a6412b9b574fc") == 0);
+    return 0;
+}
+
 static const char *test_wordexp_basic(void)
 {
     char tmpl[] = "/tmp/wexpXXXXXX";
@@ -6610,6 +6665,9 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("stdlib", test_crypt_md5),
         REGISTER_TEST("stdlib", test_crypt_sha256),
         REGISTER_TEST("stdlib", test_crypt_sha512),
+        REGISTER_TEST("stdlib", test_md5_hash),
+        REGISTER_TEST("stdlib", test_sha256_hash),
+        REGISTER_TEST("stdlib", test_sha512_hash),
         REGISTER_TEST("stdlib", test_wordexp_basic),
         REGISTER_TEST("stdlib", test_wordexp_malformed),
         REGISTER_TEST("dirent", test_dirent),
