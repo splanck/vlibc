@@ -21,22 +21,26 @@ int getsubopt(char **optionp, char * const *tokens, char **valuep)
         end++;
 
     char *val = NULL;
+    char *next = NULL;
+
     if (*end == '=') {
         *end = '\0';
         val = end + 1;
         end = val;
         while (*end && *end != ',')
             end++;
-        if (*end)
+        if (*end == ',') {
+            next = end + 1;
             *end = '\0';
+        }
+        if (val[0] == '\0')
+            val = NULL;
+    } else if (*end == ',') {
+        next = end + 1;
+        *end = '\0';
     }
 
-    if (*end == ',') {
-        *end = '\0';
-        *optionp = end + 1;
-    } else {
-        *optionp = end;
-    }
+    *optionp = next ? next : end;
 
     for (int i = 0; tokens && tokens[i]; i++) {
         if (strcmp(arg, tokens[i]) == 0) {
