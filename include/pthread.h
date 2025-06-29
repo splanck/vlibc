@@ -126,6 +126,8 @@ int pthread_cond_signal(pthread_cond_t *cond);
 /* Wake one waiter on the condition variable. */
 int pthread_cond_broadcast(pthread_cond_t *cond);
 /* Wake all waiters on the condition variable. */
+int pthread_cond_destroy(pthread_cond_t *cond);
+/* Destroy a condition variable (no-op). */
 
 int pthread_rwlock_init(pthread_rwlock_t *rwlock, void *attr);
 /* Initialize a read-write lock allowing shared readers. */

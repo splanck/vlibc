@@ -203,6 +203,13 @@ int pthread_cond_broadcast(pthread_cond_t *cond)
     return 0;
 }
 
+/* Destroy a condition variable (no resources to release). */
+int pthread_cond_destroy(pthread_cond_t *cond)
+{
+    (void)cond;
+    return 0;
+}
+
 #define KEY_MAX 64
 
 static pthread_mutex_t key_lock;
