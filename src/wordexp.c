@@ -114,8 +114,15 @@ static int parse_word(const char **strp, struct part *out)
         if (!q && c == '"') { q=2; s++; continue; }
         if (q==2) {
             if (c == '"') { q=0; s++; continue; }
-            if (c == '\\' && s[1]) {
-                c = s[1]; s += 2;
+            if (c == '\\') {
+                if (s[1]) {
+                    c = s[1];
+                    s += 2;
+                } else {
+                    trailing_bs = 1;
+                    s++;
+                    break;
+                }
             } else {
                 s++;
             }
