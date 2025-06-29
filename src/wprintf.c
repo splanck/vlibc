@@ -238,6 +238,7 @@ int vfwprintf(FILE *stream, const wchar_t *format, va_list ap)
             size_t mlen = wcstombs(NULL, wbuf, 0);
             if (mlen == (size_t)-1) {
                 free(wbuf);
+                errno = EILSEQ;
                 return -1;
             }
             char *mbuf = malloc(mlen + 1);
