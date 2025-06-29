@@ -72,3 +72,23 @@ Available groups are `memory`, `network`, `fdopen`, `stdio`, `dirent`, `time`,
 
 This builds `tests/run_tests` and executes the selected category.
 
+List all defined tests with:
+
+```sh
+make test TEST_LIST=1        # or ./tests/run_tests --list
+```
+
+To run a specific case only:
+
+```sh
+make test-name NAME=test_getcwd_chdir
+# or
+TEST_NAME=test_getcwd_chdir make test
+```
+
+Run every test in a chosen group:
+
+```sh
+make test TEST_GROUP=memory
+```
+

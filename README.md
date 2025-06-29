@@ -44,6 +44,26 @@ Run `make test` to execute the suite. Use `TEST_GROUP` to select a subset. The
 tests are organized into groups like `stdio`, `dirent`, `time`, `process`,
 `locale`, `regex`, `memory`, `network`, and `fdopen`.
 
+List all available tests with:
+
+```sh
+make test TEST_LIST=1        # or ./tests/run_tests --list
+```
+
+Run a single test case by name:
+
+```sh
+make test-name NAME=test_getcwd_chdir
+# or
+TEST_NAME=test_getcwd_chdir make test
+```
+
+To run all tests in a specific category, pass the group name:
+
+```sh
+make test TEST_GROUP=memory
+```
+
 ## License
 
 Released under the [BSD 2-Clause "Simplified" License](LICENSE).

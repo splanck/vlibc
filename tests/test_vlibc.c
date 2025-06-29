@@ -94,6 +94,7 @@
 int printf(const char *fmt, ...);
 
 int tests_run = 0;
+static int list_only = 0;
 
 typedef const char *(*test_func)(void);
 struct test_case {
@@ -6623,6 +6624,10 @@ static const char *run_tests(const char *category, const char *name)
     for (size_t i = 0; i < sizeof(tests)/sizeof(tests[0]); i++) {
         if ((category == NULL || strcmp(tests[i].category, category) == 0) &&
             (name == NULL || strcmp(tests[i].name, name) == 0)) {
+            if (list_only) {
+                printf("%s %s\n", tests[i].category, tests[i].name);
+                continue;
+            }
             const char *msg = tests[i].func();
             if (msg)
                 return msg;
@@ -6635,18 +6640,33 @@ int main(int argc, char *argv[])
 {
     const char *category = NULL;
     const char *test_name = NULL;
+    extern char **__environ;
+    env_init(__environ);
 
-    if (argc > 1)
-        category = argv[1];
-    else
+    const char *env_list = getenv("TEST_LIST");
+    if (env_list && strcmp(env_list, "0") != 0)
+        list_only = 1;
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--list") == 0) {
+            list_only = 1;
+        } else if (category == NULL) {
+            category = argv[i];
+        } else if (test_name == NULL) {
+            test_name = argv[i];
+        }
+    }
+
+    if (!category)
         category = getenv("TEST_GROUP");
 
-    if (argc > 2)
-        test_name = argv[2];
-    else
+    if (!test_name)
         test_name = getenv("TEST_NAME");
 
     const char *result = run_tests(category, test_name);
+    if (list_only)
+        return 0;
+
     if (result)
         printf("%s\n", result);
     else
