@@ -6628,9 +6628,7 @@ static const char *run_tests(const char *category, const char *name)
                 printf("%s %s\n", tests[i].category, tests[i].name);
                 continue;
             }
-            const char *msg = tests[i].func();
-            if (msg)
-                return msg;
+            mu_run_test(tests[i].func);
         }
     }
     return 0;
