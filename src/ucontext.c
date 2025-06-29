@@ -80,10 +80,12 @@ void makecontext(ucontext_t *ucp, void (*func)(void), int argc, ...)
 
     char *sp = (char *)ucp->uc_stack.ss_sp + ucp->uc_stack.ss_size;
     sp = (char *)((uintptr_t)sp & ~15UL);
+    sp -= 8; /* keep 16-byte alignment after push in trampoline */
     setjmp(ucp->__jmpbuf);
-    ((long *)ucp->__jmpbuf)[6] = (long)sp;
-    ((long *)ucp->__jmpbuf)[7] = (long)ctx_trampoline;
-    ((long *)ucp->__jmpbuf)[2] = (long)ucp; /* r12 */
+    struct __jmp_buf_tag *jb = (struct __jmp_buf_tag *)ucp->__jmpbuf;
+    jb->__jmpbuf[6] = (long)sp;             /* rsp */
+    jb->__jmpbuf[7] = (long)ctx_trampoline; /* rip */
+    jb->__jmpbuf[2] = (long)ucp;            /* r12 */
 }
 
 int swapcontext(ucontext_t *oucp, const ucontext_t *ucp)
