@@ -143,7 +143,8 @@ int timespec_get(struct timespec *ts, int base);
 /* sleep helpers */
 unsigned sleep(unsigned seconds);
 int usleep(useconds_t usec);
-int nanosleep(const struct timespec *req, struct timespec *rem);
+int vlibc_nanosleep(const struct timespec *req, struct timespec *rem);
+#define nanosleep vlibc_nanosleep
 int clock_nanosleep(clockid_t clk_id, int flags,
                     const struct timespec *req, struct timespec *rem);
 /*

@@ -24,6 +24,7 @@ extern int host_pthread_create(pthread_t *, const void *,
                                void *(*)(void *), void *);
 extern int host_pthread_join(pthread_t, void **);
 extern int host_pthread_detach(pthread_t);
+extern void host_pthread_testcancel(void);
 
 /* Map the host_* symbols to the versioned glibc pthread symbols. */
 __asm__(".symver host_pthread_self,pthread_self@GLIBC_2.2.5");
@@ -33,6 +34,7 @@ __asm__(".symver host_pthread_cancel,pthread_cancel@GLIBC_2.2.5");
 __asm__(".symver host_pthread_create,pthread_create@GLIBC_2.2.5");
 __asm__(".symver host_pthread_join,pthread_join@GLIBC_2.2.5");
 __asm__(".symver host_pthread_detach,pthread_detach@GLIBC_2.2.5");
+__asm__(".symver host_pthread_testcancel,pthread_testcancel@GLIBC_2.2.5");
 
 /* Initialize a mutex implemented as a simple spinlock. */
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
@@ -341,4 +343,9 @@ void vlibc_pthread_exit(void *retval)
 int vlibc_pthread_cancel(pthread_t thread)
 {
     return host_pthread_cancel(thread);
+}
+
+void vlibc_pthread_testcancel(void)
+{
+    host_pthread_testcancel();
 }
