@@ -6326,7 +6326,7 @@ static const char *test_getsubopt_unknown(void)
     return 0;
 }
 
-static const char *run_tests(const char *category)
+static const char *run_tests(const char *category, const char *name)
 {
     static const struct test_case tests[] = {
         REGISTER_TEST("memory", test_malloc),
@@ -6621,7 +6621,8 @@ static const char *run_tests(const char *category)
         REGISTER_TEST("default", test_getsubopt_unknown),
     };
     for (size_t i = 0; i < sizeof(tests)/sizeof(tests[0]); i++) {
-        if (category == NULL || strcmp(tests[i].category, category) == 0) {
+        if ((category == NULL || strcmp(tests[i].category, category) == 0) &&
+            (name == NULL || strcmp(tests[i].name, name) == 0)) {
             const char *msg = tests[i].func();
             if (msg)
                 return msg;
@@ -6633,16 +6634,25 @@ static const char *run_tests(const char *category)
 int main(int argc, char *argv[])
 {
     const char *category = NULL;
+    const char *test_name = NULL;
+
     if (argc > 1)
         category = argv[1];
     else
         category = getenv("TEST_GROUP");
 
-    const char *result = run_tests(category);
+    if (argc > 2)
+        test_name = argv[2];
+    else
+        test_name = getenv("TEST_NAME");
+
+    const char *result = run_tests(category, test_name);
     if (result)
         printf("%s\n", result);
     else
         printf("ALL TESTS PASSED\n");
+    if (test_name)
+        printf("Selected test: %s\n", test_name);
     printf("Tests run: %d\n", tests_run);
     return result != 0;
 }
