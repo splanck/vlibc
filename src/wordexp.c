@@ -23,13 +23,21 @@ struct part {
 /* Append a single word to the result array, reallocating as needed. */
 static int add_word(wordexp_t *we, const char *str)
 {
-    char **tmp = realloc(we->we_wordv, sizeof(char*) * (we->we_wordc + 2));
+    char **old = we->we_wordv;
+    char **tmp = realloc(old, sizeof(char*) * (we->we_wordc + 2));
     if (!tmp)
         return -1;
-    we->we_wordv = tmp;
-    we->we_wordv[we->we_wordc] = strdup(str);
-    if (!we->we_wordv[we->we_wordc])
+
+    char *dup = strdup(str);
+    if (!dup) {
+        if (tmp != old)
+            free(tmp);
+        errno = ENOMEM;
         return -1;
+    }
+
+    we->we_wordv = tmp;
+    we->we_wordv[we->we_wordc] = dup;
     we->we_wordc++;
     we->we_wordv[we->we_wordc] = NULL;
     return 0;
