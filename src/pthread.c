@@ -11,15 +11,28 @@
 #include <stdatomic.h>
 #include "time.h"
 
-extern pthread_t host_pthread_self(void) __asm__("pthread_self");
-extern int host_pthread_equal(pthread_t, pthread_t) __asm__("pthread_equal");
-extern void host_pthread_exit(void *) __asm__("pthread_exit");
-extern int host_pthread_cancel(pthread_t) __asm__("pthread_cancel");
+/*
+ * Reference the host's pthread symbols directly by their GLIBC versioned
+ * names so that the wrappers call into the real implementation rather than
+ * recursively invoking themselves.
+ */
+extern pthread_t host_pthread_self(void);
+extern int host_pthread_equal(pthread_t, pthread_t);
+extern void host_pthread_exit(void *);
+extern int host_pthread_cancel(pthread_t);
 extern int host_pthread_create(pthread_t *, const void *,
-                               void *(*)(void *), void *)
-    __asm__("pthread_create");
-extern int host_pthread_join(pthread_t, void **) __asm__("pthread_join");
-extern int host_pthread_detach(pthread_t) __asm__("pthread_detach");
+                               void *(*)(void *), void *);
+extern int host_pthread_join(pthread_t, void **);
+extern int host_pthread_detach(pthread_t);
+
+/* Map the host_* symbols to the versioned glibc pthread symbols. */
+__asm__(".symver host_pthread_self,pthread_self@GLIBC_2.2.5");
+__asm__(".symver host_pthread_equal,pthread_equal@GLIBC_2.2.5");
+__asm__(".symver host_pthread_exit,pthread_exit@GLIBC_2.2.5");
+__asm__(".symver host_pthread_cancel,pthread_cancel@GLIBC_2.2.5");
+__asm__(".symver host_pthread_create,pthread_create@GLIBC_2.2.5");
+__asm__(".symver host_pthread_join,pthread_join@GLIBC_2.2.5");
+__asm__(".symver host_pthread_detach,pthread_detach@GLIBC_2.2.5");
 
 /* Initialize a mutex implemented as a simple spinlock. */
 int pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
@@ -211,7 +224,7 @@ int pthread_cond_destroy(pthread_cond_t *cond)
 
 #define KEY_MAX 64
 
-static pthread_mutex_t key_lock;
+static pthread_mutex_t key_lock = PTHREAD_MUTEX_INITIALIZER;
 static void (*key_destructors[KEY_MAX])(void *);
 static __thread void *key_values[KEY_MAX];
 
@@ -263,8 +276,8 @@ void *pthread_getspecific(pthread_key_t key)
 }
 
 /* Create a new thread executing start_routine. */
-int pthread_create(pthread_t *thread, const void *attr,
-                   void *(*start_routine)(void *), void *arg)
+int vlibc_pthread_create(pthread_t *thread, const void *attr,
+                         void *(*start_routine)(void *), void *arg)
 {
     if (!thread || !start_routine)
         return EINVAL;
@@ -279,18 +292,18 @@ int pthread_create(pthread_t *thread, const void *attr,
 }
 
 /* Wait for the given thread to terminate. */
-int pthread_join(pthread_t thread, void **retval)
+int vlibc_pthread_join(pthread_t thread, void **retval)
 {
     return host_pthread_join(thread, retval);
 }
 
 /* Mark the thread as detached. */
-int pthread_detach(pthread_t thread)
+int vlibc_pthread_detach(pthread_t thread)
 {
     return host_pthread_detach(thread);
 }
 
-static pthread_mutex_t once_lock;
+static pthread_mutex_t once_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Execute the initialization routine exactly once. */
 int pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
@@ -307,25 +320,25 @@ int pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
 }
 
 /* Return the calling thread's ID. */
-pthread_t pthread_self(void)
+pthread_t vlibc_pthread_self(void)
 {
     return host_pthread_self();
 }
 
 /* Compare two thread IDs for equality. */
-int pthread_equal(pthread_t a, pthread_t b)
+int vlibc_pthread_equal(pthread_t a, pthread_t b)
 {
     return host_pthread_equal(a, b);
 }
 
 /* Terminate the calling thread. */
-void pthread_exit(void *retval)
+void vlibc_pthread_exit(void *retval)
 {
     host_pthread_exit(retval);
 }
 
 /* Request cancellation of a thread. */
-int pthread_cancel(pthread_t thread)
+int vlibc_pthread_cancel(pthread_t thread)
 {
     return host_pthread_cancel(thread);
 }
