@@ -66,8 +66,9 @@ make test-memory              # same as TEST_GROUP=memory
 make test-network             # same as TEST_GROUP=network
 ```
 
-Available groups are `default`, `memory`, `network`, and `fdopen`. You can also
-pass a group name directly to `tests/run_tests`.
+Available groups are `memory`, `network`, `fdopen`, `stdio`, `dirent`, `time`,
+`process`, `locale`, and `regex`. Pass a group name directly to
+`tests/run_tests` or set the `TEST_GROUP` variable.
 
 This builds `tests/run_tests` and executes the selected category.
 
