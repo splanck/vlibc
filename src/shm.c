@@ -43,9 +43,13 @@ int shm_open(const char *name, int oflag, mode_t mode)
         return -1;
     }
     snprintf(path, len, "/dev/shm%s", name);
-    int ret = open(path, oflag, mode);
+    int fd = open(path, oflag | O_CLOEXEC, mode);
     free(path);
-    return ret;
+#ifdef O_CLOEXEC
+    if (fd >= 0 && !(oflag & O_CLOEXEC))
+        fcntl(fd, F_SETFD, FD_CLOEXEC);
+#endif
+    return fd;
 #endif
 }
 
