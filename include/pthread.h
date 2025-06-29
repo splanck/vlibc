@@ -75,24 +75,31 @@ int pthread_attr_getdetachstate(const pthread_attr_t *attr, int *state);
 int pthread_attr_setstacksize(pthread_attr_t *attr, size_t size);
 int pthread_attr_getstacksize(const pthread_attr_t *attr, size_t *size);
 
-int pthread_create(pthread_t *thread, const void *attr,
-                   void *(*start_routine)(void *), void *arg);
+int vlibc_pthread_create(pthread_t *thread, const void *attr,
+                         void *(*start_routine)(void *), void *arg);
+#define pthread_create vlibc_pthread_create
 /* Spawn a new thread executing "start_routine" with "arg" via the
  * host's pthread implementation.  Returns 0 on success or an errno
  * style value on failure. */
-int pthread_join(pthread_t thread, void **retval);
+int vlibc_pthread_join(pthread_t thread, void **retval);
+#define pthread_join vlibc_pthread_join
 /* Wait for the given thread to finish and retrieve its return value.
  * The return code mirrors the underlying pthread_join result. */
-int pthread_detach(pthread_t thread);
+int vlibc_pthread_detach(pthread_t thread);
+#define pthread_detach vlibc_pthread_detach
 /* Mark the thread as detached so its resources are released on exit.
  * Returns 0 on success or an error number. */
-pthread_t pthread_self(void);
+pthread_t vlibc_pthread_self(void);
+#define pthread_self vlibc_pthread_self
 /* Obtain the identifier of the calling thread. */
-int pthread_equal(pthread_t a, pthread_t b);
+int vlibc_pthread_equal(pthread_t a, pthread_t b);
+#define pthread_equal vlibc_pthread_equal
 /* Compare two thread identifiers for equality. */
-void pthread_exit(void *retval) __attribute__((noreturn));
+void vlibc_pthread_exit(void *retval) __attribute__((noreturn));
+#define pthread_exit vlibc_pthread_exit
 /* Terminate the calling thread and make "retval" available to pthread_join. */
-int pthread_cancel(pthread_t thread);
+int vlibc_pthread_cancel(pthread_t thread);
+#define pthread_cancel vlibc_pthread_cancel
 /* Request cancellation of "thread". The target ends at the next cancellation
  * point and "pthread_join" returns PTHREAD_CANCELED. */
 
