@@ -16,7 +16,7 @@
 #define duplocale  host_duplocale
 #define freelocale host_freelocale
 #define uselocale  host_uselocale
-#include_next <locale.h>
+#include "host/locale.h"
 #undef newlocale
 #undef duplocale
 #undef freelocale

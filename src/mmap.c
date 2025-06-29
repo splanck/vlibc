@@ -8,7 +8,6 @@
 
 #include "sys/mman.h"
 #include "errno.h"
-#include_next <sys/mman.h>
 
 /*
  * Call the system implementations of mmap(2), munmap(2) and mprotect(2)

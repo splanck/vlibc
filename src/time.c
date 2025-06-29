@@ -12,8 +12,6 @@
 #include <unistd.h>
 #include "syscall.h"
 #if !defined(SYS_time) && !defined(SYS_clock_gettime)
-#include_next <time.h>
-#include <sys/time.h>
 extern time_t host_time(time_t *t) __asm__("time");
 extern int host_gettimeofday(struct timeval *tv, void *tz)
     __asm__("gettimeofday");

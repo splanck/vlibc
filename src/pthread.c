@@ -7,7 +7,6 @@
  */
 
 #include "pthread.h"
-#include_next <pthread.h>
 #include <errno.h>
 #include <stdatomic.h>
 #include "time.h"

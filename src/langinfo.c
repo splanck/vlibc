@@ -9,7 +9,7 @@
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
 #define nl_langinfo host_nl_langinfo
-#include_next <langinfo.h>
+#include "host/langinfo.h"
 #undef nl_langinfo
 extern char *host_nl_langinfo(nl_item) __asm("nl_langinfo");
 

@@ -9,12 +9,6 @@
 #include "unistd.h"
 #include "errno.h"
 
-#if defined(__has_include)
-#  if __has_include_next(<unistd.h>)
-#    include_next <unistd.h>
-#  endif
-#endif
-
 /*
  * On most platforms the system provides a sysconf() implementation.
  * Expose it so we can fall back to it when needed.

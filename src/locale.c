@@ -13,7 +13,7 @@
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
 #define setlocale host_setlocale
-#include_next <locale.h>
+#include "host/locale.h"
 #undef setlocale
 extern char *host_setlocale(int, const char *) __asm("setlocale");
 #endif

@@ -7,7 +7,7 @@
  */
 
 #include <stdarg.h>
-#include_next <errno.h>
+#include "errno.h"
 #include "syscall.h"
 
 /*
