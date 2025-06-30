@@ -19,6 +19,7 @@
 #include <sys/time.h>
 #endif
 #include "memory.h"
+#include <string.h>
 
 struct vlibc_timer {
 #if defined(__linux__) || defined(__NetBSD__)
@@ -37,6 +38,12 @@ int timer_create(clockid_t clockid, struct sigevent *sevp, timer_t *timerid)
         return -1;
     }
 #ifdef SYS_timer_create
+    struct sigevent default_sev;
+    if (!sevp) {
+        memset(&default_sev, 0, sizeof(default_sev));
+        default_sev.sigev_notify = SIGEV_NONE;
+        sevp = &default_sev;
+    }
     struct vlibc_timer *t = malloc(sizeof(*t));
     if (!t) {
         errno = ENOMEM;
@@ -57,6 +64,12 @@ int timer_create(clockid_t clockid, struct sigevent *sevp, timer_t *timerid)
     if (!t) {
         errno = ENOMEM;
         return -1;
+    }
+    struct sigevent default_sev;
+    if (!sevp) {
+        memset(&default_sev, 0, sizeof(default_sev));
+        default_sev.sigev_notify = SIGEV_NONE;
+        sevp = &default_sev;
     }
     extern int host_timer_create(clockid_t, struct sigevent *, timer_t *) __asm__("timer_create");
     timer_t hid;

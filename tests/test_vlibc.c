@@ -106,6 +106,8 @@ struct test_case {
 
 static void handle_usr1(int);
 static void *send_signal(void *);
+static void handle_alarm(int);
+static volatile sig_atomic_t alarm_count;
 
 #define REGISTER_TEST(cat, fn) { #fn, cat, fn }
 
@@ -3229,6 +3231,12 @@ static const char *test_sched_get_set_scheduler(void)
 
 static const char *test_timer_basic(void)
 {
+    alarm_count = 0;
+    struct sigaction sa_new, sa_old;
+    sa_new.sa_handler = handle_alarm;
+    sigemptyset(&sa_new.sa_mask);
+    sa_new.sa_flags = 0;
+    sigaction(SIGALRM, &sa_new, &sa_old);
     timer_t t;
     struct itimerspec its = { {0, 0}, {0, 2000000} };
     mu_assert("timer_create", timer_create(CLOCK_REALTIME, NULL, &t) == 0);
@@ -3238,7 +3246,9 @@ static const char *test_timer_basic(void)
     struct itimerspec cur;
     mu_assert("timer_gettime", timer_gettime(t, &cur) == 0);
     mu_assert("expired", cur.it_value.tv_sec == 0 && cur.it_value.tv_nsec == 0);
+    mu_assert("no_sigalrm", alarm_count == 0);
     mu_assert("timer_delete", timer_delete(t) == 0);
+    sigaction(SIGALRM, &sa_old, NULL);
     return 0;
 }
 
@@ -4767,6 +4777,12 @@ static const char *test_abort_fn(void)
 }
 
 static volatile sig_atomic_t got_signal;
+
+static void handle_alarm(int signo)
+{
+    (void)signo;
+    alarm_count++;
+}
 
 static void handle_usr1(int signo)
 {
