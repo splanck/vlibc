@@ -88,8 +88,13 @@ void warnx(const char *fmt, ...)
 static void __attribute__((noreturn))
 verr_internal(int status, const char *fmt, va_list ap, int use_errno)
 {
+    /*
+     * Use _exit() so a child process that hasn't run vlibc_init() doesn't
+     * execute any atexit handlers inherited from the parent. This ensures
+     * the warning message written above is the only output generated.
+     */
     vwarn_internal(fmt, ap, use_errno);
-    exit(status);
+    _exit(status);
     __builtin_unreachable();
 }
 
