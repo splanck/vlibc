@@ -9,14 +9,37 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include "syscall.h"
+#include "sys/resource.h"
+
+#ifndef CLK_TCK_FALLBACK
+#define CLK_TCK_FALLBACK 100
+#endif
 
 clock_t times(struct tms *buf)
 {
 #ifdef SYS_times
-    long ret = vlibc_syscall(SYS_times, (long)buf, 0, 0, 0, 0, 0);
+    struct tms ktms;
+    struct tms *arg = buf ? buf : &ktms;
+    long ret = vlibc_syscall(SYS_times, (long)arg, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return (clock_t)-1;
+    }
+    if (buf) {
+        struct rusage ru;
+        long hz = sysconf(_SC_CLK_TCK);
+        if (hz <= 0)
+            hz = CLK_TCK_FALLBACK;
+        if (getrusage(RUSAGE_SELF, &ru) == 0) {
+            buf->tms_utime = ru.ru_utime.tv_sec * hz +
+                             (ru.ru_utime.tv_usec > 0);
+            buf->tms_stime = ru.ru_stime.tv_sec * hz +
+                             (ru.ru_stime.tv_usec > 0);
+            buf->tms_cutime = ktms.tms_cutime;
+            buf->tms_cstime = ktms.tms_cstime;
+        } else if (arg != buf) {
+            *buf = ktms;
+        }
     }
     return (clock_t)ret;
 #elif defined(__FreeBSD__) || defined(__NetBSD__) || \
