@@ -3196,8 +3196,14 @@ static const char *test_priority_wrappers(void)
     mu_assert("getpriority", orig != -1 || errno == 0);
     mu_assert("setpriority", setpriority(PRIO_PROCESS, 0, orig + 1) == 0);
     mu_assert("verify", getpriority(PRIO_PROCESS, 0) == orig + 1);
-    mu_assert("nice", nice(-1) == orig);
-    mu_assert("restore", getpriority(PRIO_PROCESS, 0) == orig);
+    int n = nice(-1);
+    if (n == -1 && (errno == EPERM || errno == EACCES)) {
+        /* lack privilege to raise priority; ensure value unchanged */
+        mu_assert("nice", getpriority(PRIO_PROCESS, 0) == orig + 1);
+    } else {
+        mu_assert("nice", n == orig);
+        mu_assert("restore", getpriority(PRIO_PROCESS, 0) == orig);
+    }
     return 0;
 }
 

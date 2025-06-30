@@ -68,7 +68,15 @@ int getpriority(int which, int who)
         errno = -ret;
         return -1;
     }
+#ifdef __linux__
+    /*
+     * On Linux the raw syscall returns "20 - nice".  Convert this
+     * back to the standard nice value range of -20..19.
+     */
+    return 20 - (int)ret;
+#else
     return (int)ret;
+#endif
 #elif defined(__FreeBSD__) || defined(__NetBSD__) || \
       defined(__OpenBSD__) || defined(__DragonFly__)
     extern int host_getpriority(int, int) __asm("getpriority");
