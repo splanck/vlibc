@@ -97,11 +97,15 @@ int sigdelset(sigset_t *set, int signo);
 int sigismember(const sigset_t *set, int signo);
 char *strsignal(int signum);
 
+#ifdef VLIBC_HAS_SYS_UCONTEXT
+#include <sys/ucontext.h>
+#else
 typedef struct {
     void  *ss_sp;
     size_t ss_size;
     int    ss_flags;
 } stack_t;
+#endif
 
 #define SS_ONSTACK  1
 #define SS_DISABLE  2
