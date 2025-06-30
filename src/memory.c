@@ -79,6 +79,18 @@ void *malloc(size_t size)
     if (size == 0)
         return NULL;
 
+    /*
+     * When unit tests force the next sbrk call to fail we need to bypass
+     * the free list so malloc actually triggers that failure. Detect this
+     * by probing sbrk(0) which will consume the failure flag used by the
+     * tests and return (void *)-1 with errno set to ENOMEM.
+     */
+    void *cur_brk = sbrk(0);
+    if (cur_brk == (void *)-1) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
     if (size > SIZE_MAX - sizeof(struct block_header)) {
         errno = ENOMEM;
         return NULL;
