@@ -45,6 +45,7 @@ typedef struct {
 typedef struct {
     unsigned count;
     atomic_uint waiting;
+    atomic_uint phase;
     pthread_mutex_t lock;
     pthread_cond_t cond;
 } pthread_barrier_t;
