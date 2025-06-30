@@ -97,6 +97,7 @@ char *realpath(const char *path, char *resolved_path)
                     --out_len;
                 if (out_len > 1)
                     --out_len; /* drop trailing '/' */
+                outbuf[out_len] = '\0';
             }
         } else {
             if (out_len > 1)

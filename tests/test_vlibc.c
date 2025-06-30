@@ -5274,6 +5274,9 @@ static const char *test_realpath_basic(void)
 
     mu_assert("realpath parent", realpath("tests/..", buf) != NULL);
     mu_assert("parent eq", strcmp(buf, cwd) == 0);
+    char *dyn = realpath("tests/..", NULL);
+    mu_assert("parent eq alloc", dyn && strcmp(dyn, cwd) == 0);
+    free(dyn);
 
     char expect[256];
     strcpy(expect, cwd);
