@@ -79,6 +79,10 @@ int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
 {
 #ifdef SYS_rt_sigprocmask
+    /*
+     * The kernel expects the size of one word (8 bytes on 64-bit
+     * platforms) rather than sizeof(sigset_t).
+     */
     long ret = vlibc_syscall(SYS_rt_sigprocmask, how, (long)set,
                              (long)oldset, sizeof(unsigned long), 0, 0);
 #elif defined(SYS_sigprocmask)
