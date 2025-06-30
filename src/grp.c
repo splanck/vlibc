@@ -37,6 +37,7 @@
 #include "pthread.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdio.h>
 #include "errno.h"
 #include <sys/syscall.h>
 #include "syscall.h"
@@ -58,6 +59,9 @@ static const char *group_path(void)
 static __thread struct group gr;
 static __thread char *members[64];
 static __thread char linebuf[256];
+static __thread FILE *gr_file;
+static __thread char *file_line;
+static __thread size_t file_cap;
 
 /* parse_line() - parse an entry from the group file */
 static struct group *parse_line(const char *line)
@@ -143,6 +147,26 @@ extern void host_endgrent(void) __asm("endgrent");
 void setgrent(void)
 {
     pthread_mutex_lock(&gr_lock);
+    const char *path = getenv("VLIBC_GROUP");
+    if (path && *path) {
+        if (gr_file) {
+            rewind(gr_file);
+        } else {
+#ifdef O_CLOEXEC
+            int flags = O_RDONLY | O_CLOEXEC;
+#else
+            int flags = O_RDONLY;
+#endif
+            int fd = open(path, flags, 0);
+            if (fd >= 0) {
+                gr_file = fdopen(fd, "r");
+                if (!gr_file)
+                    close(fd);
+            }
+        }
+        pthread_mutex_unlock(&gr_lock);
+        return;
+    }
     host_setgrent();
     pthread_mutex_unlock(&gr_lock);
 }
@@ -151,6 +175,23 @@ void setgrent(void)
 struct group *getgrent(void)
 {
     pthread_mutex_lock(&gr_lock);
+    const char *path = getenv("VLIBC_GROUP");
+    if (path && *path) {
+        if (!gr_file)
+            setgrent();
+        if (!gr_file) {
+            pthread_mutex_unlock(&gr_lock);
+            return NULL;
+        }
+        ssize_t len = getline(&file_line, &file_cap, gr_file);
+        if (len == -1) {
+            pthread_mutex_unlock(&gr_lock);
+            return NULL;
+        }
+        struct group *g = parse_line(file_line);
+        pthread_mutex_unlock(&gr_lock);
+        return g;
+    }
     struct group *g = host_getgrent();
     pthread_mutex_unlock(&gr_lock);
     return g;
@@ -160,6 +201,15 @@ struct group *getgrent(void)
 void endgrent(void)
 {
     pthread_mutex_lock(&gr_lock);
+    const char *path = getenv("VLIBC_GROUP");
+    if (path && *path) {
+        if (gr_file) {
+            fclose(gr_file);
+            gr_file = NULL;
+        }
+        pthread_mutex_unlock(&gr_lock);
+        return;
+    }
     host_endgrent();
     pthread_mutex_unlock(&gr_lock);
 }
