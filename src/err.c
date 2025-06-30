@@ -17,15 +17,38 @@
 /* Print a formatted warning to stderr, optionally appending errno. */
 static void vwarn_internal(const char *fmt, va_list ap, int use_errno)
 {
-    if (fmt && *fmt)
-        vfprintf(stderr, fmt, ap);
-    if (use_errno) {
-        if (fmt && *fmt)
-            fprintf(stderr, ": %s", strerror(errno));
+    int printed = 0;
+
+    if (fmt && *fmt) {
+        if (stderr)
+            vfprintf(stderr, fmt, ap);
         else
-            fprintf(stderr, "%s", strerror(errno));
+            vdprintf(2, fmt, ap);
+        printed = 1;
     }
-    fprintf(stderr, "\n");
+
+    if (use_errno) {
+        const char *msg = strerror(errno);
+        if (stderr) {
+            if (printed)
+                fprintf(stderr, ": %s", msg);
+            else
+                fprintf(stderr, "%s", msg);
+        } else {
+            if (printed)
+                dprintf(2, ": %s", msg);
+            else
+                dprintf(2, "%s", msg);
+        }
+        printed = 1;
+    }
+
+    if (printed) {
+        if (stderr)
+            fputc('\n', stderr);
+        else
+            dprintf(2, "\n");
+    }
 }
 
 /* Warn with errno using a va_list. */
