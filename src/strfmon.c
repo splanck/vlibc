@@ -9,6 +9,70 @@
 #include "stdio.h"
 #include "errno.h"
 #include <stdarg.h>
+#include <stdint.h>
+
+/*
+ * Convert a positive double to a decimal string with the given precision.
+ * Returns the number of characters written not including the null byte or
+ * -1 on error. The buffer is always null terminated when size > 0.
+ */
+static int fmt_double(char *buf, size_t size, double val, int prec)
+{
+    if (size == 0)
+        return -1;
+
+    if (prec < 0)
+        prec = 0;
+    if (prec > 9)
+        prec = 9; /* avoid overflow of scaling factor */
+
+    /* round to the requested precision */
+    double r = 0.5;
+    for (int i = 0; i < prec; i++)
+        r /= 10.0;
+    val += r;
+
+    uint64_t intpart = (uint64_t)val;
+    double frac = val - (double)intpart;
+
+    uint64_t scale = 1;
+    for (int i = 0; i < prec; i++)
+        scale *= 10;
+    uint64_t fracpart = (uint64_t)(frac * (double)scale);
+
+    /* convert integer part */
+    char tmp[32];
+    size_t pos = 0;
+    do {
+        tmp[pos++] = (char)('0' + intpart % 10);
+        intpart /= 10;
+    } while (intpart && pos < sizeof(tmp));
+    if (pos >= sizeof(tmp))
+        return -1;
+
+    /* ensure buffer is large enough */
+    size_t needed = pos + (prec ? prec + 1 : 0);
+    if (needed >= size)
+        return -1;
+
+    /* output integer part */
+    size_t out = 0;
+    for (size_t i = 0; i < pos; i++)
+        buf[out++] = tmp[pos - i - 1];
+
+    /* output fractional part */
+    if (prec) {
+        buf[out++] = '.';
+        for (int i = prec - 1; i >= 0; i--) {
+            buf[out + i] = (char)('0' + (fracpart % 10));
+            fracpart /= 10;
+        }
+        out += (size_t)prec;
+    }
+
+    buf[out] = '\0';
+    return (int)out;
+}
 
 ssize_t strfmon(char *s, size_t max, const char *format, ...)
 {
@@ -90,8 +154,8 @@ ssize_t strfmon(char *s, size_t max, const char *format, ...)
             val = -val;
 
         char numbuf[64];
-        int n = snprintf(numbuf, sizeof(numbuf), "%.*f", prec, val);
-        if (n < 0 || (size_t)n >= sizeof(numbuf)) {
+        int n = fmt_double(numbuf, sizeof(numbuf), val, prec);
+        if (n < 0) {
             errno = E2BIG;
             va_end(ap);
             return -1;
