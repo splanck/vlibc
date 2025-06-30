@@ -90,7 +90,9 @@ mqd_t mq_open(const char *name, int oflag, ...)
         va_end(ap);
     }
 #ifdef SYS_mq_open
-    long ret = vlibc_syscall(SYS_mq_open, (long)name, oflag, mode, (long)attr, 0, 0);
+    /* Linux mq_open syscall expects the queue name without the leading '/'. */
+    const char *qname = name && name[0] == '/' ? name + 1 : name;
+    long ret = vlibc_syscall(SYS_mq_open, (long)qname, oflag, mode, (long)attr, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return (mqd_t)-1;
@@ -124,9 +126,8 @@ int mq_close(mqd_t mqdes)
     extern int host_mq_close(mqd_t) __asm__("mq_close");
     return host_mq_close(mqdes);
 #else
-    (void)mqdes;
-    errno = ENOSYS;
-    return -1;
+    /* On Linux there is no mq_close syscall; use close(2). */
+    return close(mqdes);
 #endif
 }
 
@@ -134,7 +135,8 @@ int mq_close(mqd_t mqdes)
 int mq_unlink(const char *name)
 {
 #ifdef SYS_mq_unlink
-    long ret = vlibc_syscall(SYS_mq_unlink, (long)name, 0, 0, 0, 0, 0);
+    const char *qname = name && name[0] == '/' ? name + 1 : name;
+    long ret = vlibc_syscall(SYS_mq_unlink, (long)qname, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = -ret;
         return -1;
@@ -161,6 +163,22 @@ int mq_send(mqd_t mqdes, const char *msg_ptr, size_t msg_len, unsigned msg_prio)
         return -1;
     }
     return (int)ret;
+#elif defined(SYS_mq_timedsend_time64)
+    long ret = vlibc_syscall(SYS_mq_timedsend_time64, mqdes, (long)msg_ptr,
+                             msg_len, msg_prio, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#elif defined(SYS_mq_timedsend)
+    long ret = vlibc_syscall(SYS_mq_timedsend, mqdes, (long)msg_ptr,
+                             msg_len, msg_prio, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
 #elif defined(__FreeBSD__) || defined(__NetBSD__) || \
       defined(__OpenBSD__) || defined(__DragonFly__)
     extern int host_mq_send(mqd_t, const char *, size_t, unsigned) __asm__("mq_send");
@@ -177,6 +195,22 @@ ssize_t mq_receive(mqd_t mqdes, char *msg_ptr, size_t msg_len, unsigned *msg_pri
 {
 #ifdef SYS_mq_receive
     long ret = vlibc_syscall(SYS_mq_receive, mqdes, (long)msg_ptr, msg_len, (long)msg_prio, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+#elif defined(SYS_mq_timedreceive_time64)
+    long ret = vlibc_syscall(SYS_mq_timedreceive_time64, mqdes, (long)msg_ptr,
+                             msg_len, (long)msg_prio, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (ssize_t)ret;
+#elif defined(SYS_mq_timedreceive)
+    long ret = vlibc_syscall(SYS_mq_timedreceive, mqdes, (long)msg_ptr,
+                             msg_len, (long)msg_prio, 0);
     if (ret < 0) {
         errno = -ret;
         return -1;
