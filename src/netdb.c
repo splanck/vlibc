@@ -138,6 +138,7 @@ static int hosts_lookup(const char *node, uint32_t *ip)
         uint32_t addr;
         if (parse_ipv4(tok, &addr) != 0)
             continue;
+        addr = htonl(addr);
         while ((tok = strtok_r(NULL, " \t\n", &save))) {
             if (strcmp(tok, node) == 0) {
                 *ip = addr;
@@ -181,6 +182,7 @@ static int hosts_reverse_lookup(uint32_t ip, char *name, size_t len)
         uint32_t addr;
         if (parse_ipv4(tok, &addr) != 0)
             continue;
+        addr = htonl(addr);
         if (addr == ip) {
             tok = strtok_r(NULL, " \t\n", &save);
             if (!tok)
@@ -211,6 +213,7 @@ int getaddrinfo(const char *node, const char *service,
         if (parse_ipv6(node, ip6) == 0) {
             family = AF_INET6;
         } else if (parse_ipv4(node, &ip4) == 0) {
+            ip4 = htonl(ip4);
             family = AF_INET;
         } else {
             if (hosts_lookup(node, &ip4) != 0) {
