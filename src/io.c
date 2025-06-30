@@ -443,9 +443,8 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 }
 
 /*
- * Change the current working directory using a descriptor. When the
- * dedicated SYS_fchdir syscall is unavailable, fall back to the
- * F_CHDIR fcntl command if provided by the host system.
+ * Change the current working directory using a descriptor. Always
+ * invoke the SYS_fchdir syscall when available.
  */
 int fchdir(int fd)
 {
@@ -457,15 +456,6 @@ int fchdir(int fd)
     }
     return (int)ret;
 #else
-#ifdef F_CHDIR
-    int ret = fcntl(fd, F_CHDIR);
-    if (ret < 0)
-        return -1;
-    return ret;
-#else
-    (void)fd;
-    errno = ENOSYS;
-    return -1;
-#endif
+    (void)fd; errno = ENOSYS; return -1;
 #endif
 }
