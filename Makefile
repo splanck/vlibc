@@ -27,6 +27,12 @@ ifeq ($(HAVE_DUP3),1)
 CFLAGS += -DVLIBC_HAVE_DUP3=1
 endif
 
+       # Detect presence of system ucontext implementation
+HAVE_SYS_UCONTEXT := $(shell printf '#include <ucontext.h>\nint main(void){ucontext_t uc; getcontext(&uc); makecontext(&uc,(void(*)(void))0,0); setcontext(&uc);return 0;}' | $(CC) -x c - -Werror -c -o /dev/null 2>/dev/null && echo 1 || echo 0)
+ifeq ($(HAVE_SYS_UCONTEXT),1)
+CFLAGS += -DVLIBC_HAS_SYS_UCONTEXT=1
+endif
+
 TARGET_OS ?= $(OS)
 ifeq ($(TARGET_OS),)
 TARGET_OS := $(shell uname -s)
@@ -210,6 +216,10 @@ SRC := \
     src/sigsetjmp.c \
     src/fmtmsg.c \
     src/progname.c
+
+ifeq ($(HAVE_SYS_UCONTEXT),1)
+SRC := $(filter-out src/ucontext.c,$(SRC))
+endif
 
 ARCH_SRC := $(wildcard src/arch/$(ARCH)/*.c)
 SRC += $(if $(ARCH_SRC),$(ARCH_SRC),src/setjmp.c)

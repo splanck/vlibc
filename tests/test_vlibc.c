@@ -73,7 +73,7 @@
 #include <signal.h>
 #include <openssl/evp.h>
 #include "../include/setjmp.h"
-#include "../include/ucontext.h"
+#include "ucontext.h"
 #include "../include/time.h"
 #include "../include/sys/resource.h"
 #include "../include/sys/times.h"
