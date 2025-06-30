@@ -8,8 +8,9 @@
 
 #include "stdlib.h"
 #include "errno.h"
-
-extern char *host_getcwd(char *buf, size_t size) __asm__("getcwd");
+#include <sys/syscall.h>
+#include <unistd.h>
+#include "syscall.h"
 
 /*
  * getcwd() - return the absolute path of the current working directory.
@@ -23,7 +24,16 @@ char *getcwd(char *buf, size_t size)
             errno = EINVAL;
             return NULL;
         }
-        return host_getcwd(buf, size);
+#ifdef SYS_getcwd
+        long ret = vlibc_syscall(SYS_getcwd, (long)buf, size, 0, 0, 0, 0);
+        if (ret < 0) {
+            errno = -ret;
+            return NULL;
+        }
+        return (char *)buf;
+#else
+        (void)buf; (void)size; errno = ENOSYS; return NULL;
+#endif
     }
 
     size_t cap = size ? size : 256;
@@ -32,11 +42,17 @@ char *getcwd(char *buf, size_t size)
         return NULL;
 
     for (;;) {
-        char *res = host_getcwd(out, cap);
-        if (res)
+#ifdef SYS_getcwd
+        long ret = vlibc_syscall(SYS_getcwd, (long)out, cap, 0, 0, 0, 0);
+        if (ret >= 0)
             return out;
-        if (errno != ERANGE)
+        if (-ret != ERANGE) {
+            errno = -ret;
             break;
+        }
+#else
+        (void)out; (void)cap; errno = ENOSYS; break;
+#endif
         size_t new_cap = cap * 2;
         char *tmp = realloc(out, new_cap);
         if (!tmp) {
