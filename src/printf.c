@@ -105,6 +105,9 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
                 length = 2;
                 ++p;
             }
+        } else if (*p == 'j') {
+            length = 3;
+            ++p;
         }
 
         char spec = *p;
@@ -130,7 +133,14 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
             break;
         }
         case 'd': {
-            if (length == 2) {
+            if (length == 3) {
+                intmax_t v = va_arg(ap, intmax_t);
+                unsigned long long uv = (unsigned long long)v;
+                sign = v < 0;
+                if (sign)
+                    uv = 0ull - uv;
+                len = ull_to_base(uv, 10, 0, buf, sizeof(buf));
+            } else if (length == 2) {
                 long long v = va_arg(ap, long long);
                 unsigned long long uv = (unsigned long long)v;
                 sign = v < 0;
@@ -155,7 +165,10 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
             break;
         }
         case 'u': {
-            if (length == 2) {
+            if (length == 3) {
+                uintmax_t v = va_arg(ap, uintmax_t);
+                len = ull_to_base((unsigned long long)v, 10, 0, buf, sizeof(buf));
+            } else if (length == 2) {
                 unsigned long long v = va_arg(ap, unsigned long long);
                 len = ull_to_base(v, 10, 0, buf, sizeof(buf));
             } else if (length == 1) {
@@ -169,7 +182,10 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
         }
         case 'x':
         case 'X': {
-            if (length == 2) {
+            if (length == 3) {
+                uintmax_t v = va_arg(ap, uintmax_t);
+                len = ull_to_base((unsigned long long)v, 16, spec == 'X', buf, sizeof(buf));
+            } else if (length == 2) {
                 unsigned long long v = va_arg(ap, unsigned long long);
                 len = ull_to_base(v, 16, spec == 'X', buf, sizeof(buf));
             } else if (length == 1) {
@@ -182,7 +198,10 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
             break;
         }
         case 'o': {
-            if (length == 2) {
+            if (length == 3) {
+                uintmax_t v = va_arg(ap, uintmax_t);
+                len = ull_to_base((unsigned long long)v, 8, 0, buf, sizeof(buf));
+            } else if (length == 2) {
                 unsigned long long v = va_arg(ap, unsigned long long);
                 len = ull_to_base(v, 8, 0, buf, sizeof(buf));
             } else if (length == 1) {

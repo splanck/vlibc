@@ -2179,6 +2179,12 @@ static const char *test_printf_functions(void)
     n = snprintf(buf, sizeof(buf), "%llu", (unsigned long long)123456789012345ULL);
     mu_assert("snprintf ulong long", strcmp(buf, "123456789012345") == 0);
 
+    n = snprintf(buf, sizeof(buf), "%jd", (intmax_t)-123456789012345LL);
+    mu_assert("snprintf intmax", strcmp(buf, "-123456789012345") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%ju", (uintmax_t)123456789012345ULL);
+    mu_assert("snprintf uintmax", strcmp(buf, "123456789012345") == 0);
+
     n = snprintf(buf, sizeof(buf), "%d", INT_MIN);
     mu_assert("snprintf INT_MIN len", n == (int)strlen(buf));
     char *endptr;
