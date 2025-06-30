@@ -14,14 +14,52 @@
 #include "string.h"
 #include <stddef.h>
 
+#ifdef __x86_64__
+__asm__(".globl vlibc_rt_sigreturn\n"
+        "vlibc_rt_sigreturn:\n"
+        "mov $15, %rax\n"
+        "syscall\n");
+extern void vlibc_rt_sigreturn(void);
+#endif
+
+struct k_sigaction {
+    sighandler_t sa_handler;
+    unsigned long sa_flags;
+    void (*sa_restorer)(void);
+    sigset_t sa_mask;
+};
+
 /*
  * sigaction() - examine or change the action associated with a signal.
  */
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 {
 #ifdef SYS_rt_sigaction
-    long ret = vlibc_syscall(SYS_rt_sigaction, signum, (long)act,
-                             (long)oldact, sizeof(sigset_t), 0, 0);
+    struct k_sigaction kact, kold;
+    struct k_sigaction *pact = NULL;
+    struct k_sigaction *pold = NULL;
+    if (act) {
+        kact.sa_handler = act->sa_handler;
+        kact.sa_flags = act->sa_flags;
+#ifdef __x86_64__
+        kact.sa_flags |= SA_RESTORER;
+        kact.sa_restorer = vlibc_rt_sigreturn;
+#else
+        kact.sa_restorer = NULL;
+#endif
+        kact.sa_mask = act->sa_mask;
+        pact = &kact;
+    }
+    if (oldact)
+        pold = &kold;
+    long ret = vlibc_syscall(SYS_rt_sigaction, signum, (long)pact,
+                             (long)pold, sizeof(unsigned long), 0, 0);
+    if (ret >= 0 && oldact) {
+        oldact->sa_handler = kold.sa_handler;
+        oldact->sa_mask = kold.sa_mask;
+        oldact->sa_flags = kold.sa_flags;
+        oldact->sa_restorer = kold.sa_restorer;
+    }
 #elif defined(SYS_sigaction)
     long ret = vlibc_syscall(SYS_sigaction, signum, (long)act,
                              (long)oldact, 0, 0, 0);
@@ -42,7 +80,7 @@ int sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
 {
 #ifdef SYS_rt_sigprocmask
     long ret = vlibc_syscall(SYS_rt_sigprocmask, how, (long)set,
-                             (long)oldset, sizeof(sigset_t), 0, 0);
+                             (long)oldset, sizeof(unsigned long), 0, 0);
 #elif defined(SYS_sigprocmask)
     long ret = vlibc_syscall(SYS_sigprocmask, how, (long)set,
                              (long)oldset, 0, 0, 0);
@@ -183,7 +221,7 @@ int sigpending(sigset_t *set)
 {
 #ifdef SYS_rt_sigpending
     long ret = vlibc_syscall(SYS_rt_sigpending, (long)set,
-                             sizeof(sigset_t), 0, 0, 0, 0);
+                             sizeof(unsigned long), 0, 0, 0, 0);
 #elif defined(SYS_sigpending)
     long ret = vlibc_syscall(SYS_sigpending, (long)set, 0, 0, 0, 0, 0);
 #else
@@ -203,7 +241,7 @@ int sigsuspend(const sigset_t *mask)
 {
 #ifdef SYS_rt_sigsuspend
     long ret = vlibc_syscall(SYS_rt_sigsuspend, (long)mask,
-                             sizeof(sigset_t), 0, 0, 0, 0);
+                             sizeof(unsigned long), 0, 0, 0, 0);
 #elif defined(SYS_sigsuspend)
     long ret = vlibc_syscall(SYS_sigsuspend, (long)mask, 0, 0, 0, 0, 0);
 #else
@@ -243,11 +281,11 @@ int sigtimedwait(const sigset_t *set, siginfo_t *info,
 #ifdef SYS_rt_sigtimedwait_time64
     long ret = vlibc_syscall(SYS_rt_sigtimedwait_time64, (long)set,
                              (long)info, (long)timeout,
-                             sizeof(sigset_t), 0, 0);
+                             sizeof(unsigned long), 0, 0);
 #elif defined(SYS_rt_sigtimedwait)
     long ret = vlibc_syscall(SYS_rt_sigtimedwait, (long)set,
                              (long)info, (long)timeout,
-                             sizeof(sigset_t), 0, 0);
+                             sizeof(unsigned long), 0, 0);
 #else
     (void)set; (void)info; (void)timeout;
     long ret = -ENOSYS;
