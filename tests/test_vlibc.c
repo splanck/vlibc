@@ -2300,7 +2300,7 @@ static const char *test_scanf_functions(void)
     close(p[0]);
     mu_assert("scanf hex count", r == 2);
     mu_assert("scanf hex val", a == 0x1a);
-    mu_assert("scanf oct val", b == 015);
+    mu_assert("scanf oct val", b == 017);
 
     r = sscanf("ff 12", "%x %o", &a, &b);
     mu_assert("hex/octal count", r == 2);
@@ -2378,7 +2378,7 @@ static const char *test_vscanf_variants(void)
     r = call_vsscanf("1a 17", "%x %o", &a, &b);
     mu_assert("vsscanf hex count", r == 2);
     mu_assert("vsscanf hex val", a == 0x1a);
-    mu_assert("vsscanf oct val", b == 015);
+    mu_assert("vsscanf oct val", b == 017);
 
     f = fopen("tmp_vscan2", "w+");
     mu_assert("vfopen2", f != NULL);
