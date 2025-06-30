@@ -22,7 +22,10 @@
 #include <string.h>
 
 struct vlibc_timer {
-#if defined(__linux__) || defined(__NetBSD__)
+#if defined(__linux__)
+    long id;
+    int is_fd;
+#elif defined(__NetBSD__)
     long id;
 #else
     int kq;
@@ -57,6 +60,30 @@ int timer_create(clockid_t clockid, struct sigevent *sevp, timer_t *timerid)
         return -1;
     }
     t->id = id;
+#if defined(__linux__)
+    t->is_fd = 0;
+#endif
+    *timerid = t;
+    return 0;
+#elif defined(SYS_timerfd_create)
+    if (sevp && sevp->sigev_notify != SIGEV_NONE) {
+        errno = EINVAL;
+        return -1;
+    }
+    struct vlibc_timer *t = malloc(sizeof(*t));
+    if (!t) {
+        errno = ENOMEM;
+        return -1;
+    }
+    long fd = vlibc_syscall(SYS_timerfd_create, clockid, 0, 0, 0, 0, 0);
+    if (fd < 0) {
+        int err = -fd;
+        free(t);
+        errno = err;
+        return -1;
+    }
+    t->id = fd;
+    t->is_fd = 1;
     *timerid = t;
     return 0;
 #elif defined(__NetBSD__)
@@ -113,11 +140,30 @@ int timer_delete(timer_t timerid)
     }
 #ifdef SYS_timer_delete
     struct vlibc_timer *t = (struct vlibc_timer *)timerid;
+#if defined(__linux__)
+    if (t->is_fd) {
+#ifdef SYS_close
+        long ret = vlibc_syscall(SYS_close, t->id, 0, 0, 0, 0, 0);
+        int err = 0;
+        if (ret < 0)
+            err = -ret;
+        free(t);
+        if (ret < 0) {
+            errno = err;
+            return -1;
+        }
+        return 0;
+#else
+        free(t);
+        errno = ENOSYS;
+        return -1;
+#endif
+    }
+#endif /* __linux__ */
     long ret = vlibc_syscall(SYS_timer_delete, t->id, 0, 0, 0, 0, 0);
     int err = 0;
-    if (ret < 0) {
+    if (ret < 0)
         err = -ret;
-    }
     free(t);
     if (ret < 0) {
         errno = err;
@@ -161,6 +207,22 @@ int timer_settime(timer_t timerid, int flags,
     }
 #ifdef SYS_timer_settime
     struct vlibc_timer *t = (struct vlibc_timer *)timerid;
+#if defined(__linux__)
+    if (t->is_fd) {
+#ifdef SYS_timerfd_settime
+        long ret = vlibc_syscall(SYS_timerfd_settime, t->id, flags,
+                                 (long)new_value, (long)old_value, 0);
+        if (ret < 0) {
+            errno = -ret;
+            return -1;
+        }
+        return 0;
+#else
+        errno = ENOSYS;
+        return -1;
+#endif
+    }
+#endif
     long ret = vlibc_syscall(SYS_timer_settime, t->id, flags,
                              (long)new_value, (long)old_value, 0);
     if (ret < 0) {
@@ -181,6 +243,15 @@ int timer_settime(timer_t timerid, int flags,
            0, ms, NULL);
     (void)flags; (void)old_value;
     return kevent(t->kq, &kev, 1, NULL, 0, NULL);
+#elif defined(SYS_timerfd_settime)
+    struct vlibc_timer *t = (struct vlibc_timer *)timerid;
+    long ret = vlibc_syscall(SYS_timerfd_settime, t->id, flags,
+                             (long)new_value, (long)old_value, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
 #else
     (void)flags; (void)old_value;
     errno = ENOSYS;
@@ -196,6 +267,22 @@ int timer_gettime(timer_t timerid, struct itimerspec *curr_value)
     }
 #ifdef SYS_timer_gettime
     struct vlibc_timer *t = (struct vlibc_timer *)timerid;
+#if defined(__linux__)
+    if (t->is_fd) {
+#ifdef SYS_timerfd_gettime
+        long ret = vlibc_syscall(SYS_timerfd_gettime, t->id,
+                                 (long)curr_value, 0, 0, 0);
+        if (ret < 0) {
+            errno = -ret;
+            return -1;
+        }
+        return 0;
+#else
+        errno = ENOSYS;
+        return -1;
+#endif
+    }
+#endif
     long ret = vlibc_syscall(SYS_timer_gettime, t->id,
                              (long)curr_value, 0, 0, 0);
     if (ret < 0) {
@@ -213,6 +300,15 @@ int timer_gettime(timer_t timerid, struct itimerspec *curr_value)
     curr_value->it_value.tv_nsec = 0;
     curr_value->it_interval.tv_sec = 0;
     curr_value->it_interval.tv_nsec = 0;
+    return 0;
+#elif defined(SYS_timerfd_gettime)
+    struct vlibc_timer *t = (struct vlibc_timer *)timerid;
+    long ret = vlibc_syscall(SYS_timerfd_gettime, t->id,
+                             (long)curr_value, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
     return 0;
 #else
     errno = ENOSYS;

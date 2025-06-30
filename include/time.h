@@ -76,15 +76,41 @@ typedef union sigval {
     void *sival_ptr;
 } sigval_t;
 
+#ifndef __SIGEV_MAX_SIZE
+#define __SIGEV_MAX_SIZE 64
+#endif
+
+#ifndef __SIGEV_PAD_SIZE
+#if defined(__x86_64__)
+# define __SIGEV_PAD_SIZE ((__SIGEV_MAX_SIZE / sizeof(int)) - 4)
+#else
+# define __SIGEV_PAD_SIZE ((__SIGEV_MAX_SIZE / sizeof(int)) - 3)
+#endif
+#endif
+
 struct sigevent {
-    int sigev_notify;
-    int sigev_signo;
     sigval_t sigev_value;
+    int sigev_signo;
+    int sigev_notify;
+    union {
+        int _pad[__SIGEV_PAD_SIZE];
+        int _tid;
+        struct {
+            void (*_function)(sigval_t);
+            void *_attribute; /* really pthread_attr_t */
+        } _sigev_thread;
+    } _sigev_un;
 };
 
+#define sigev_notify_function   _sigev_un._sigev_thread._function
+#define sigev_notify_attributes _sigev_un._sigev_thread._attribute
+#define sigev_notify_thread_id  _sigev_un._tid
+
 #ifndef SIGEV_SIGNAL
-#define SIGEV_SIGNAL 0
-#define SIGEV_NONE   1
+#define SIGEV_SIGNAL    0
+#define SIGEV_NONE      1
+#define SIGEV_THREAD    2
+#define SIGEV_THREAD_ID 4
 #endif
 
 #ifndef __timer_t_defined
