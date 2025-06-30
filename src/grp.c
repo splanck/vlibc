@@ -34,11 +34,14 @@
 #include "stdlib.h"
 #include "memory.h"
 #include "env.h"
+#include "pthread.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include "errno.h"
 #include <sys/syscall.h>
 #include "syscall.h"
+
+static pthread_mutex_t gr_lock = { ATOMIC_FLAG_INIT, PTHREAD_MUTEX_RECURSIVE, 0, 0 };
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
@@ -139,19 +142,26 @@ extern void host_endgrent(void) __asm("endgrent");
 /* setgrent() - reset group iteration */
 void setgrent(void)
 {
+    pthread_mutex_lock(&gr_lock);
     host_setgrent();
+    pthread_mutex_unlock(&gr_lock);
 }
 
 /* getgrent() - read next group entry */
 struct group *getgrent(void)
 {
-    return host_getgrent();
+    pthread_mutex_lock(&gr_lock);
+    struct group *g = host_getgrent();
+    pthread_mutex_unlock(&gr_lock);
+    return g;
 }
 
 /* endgrent() - finish group iteration */
 void endgrent(void)
 {
+    pthread_mutex_lock(&gr_lock);
     host_endgrent();
+    pthread_mutex_unlock(&gr_lock);
 }
 
 #else
@@ -215,6 +225,7 @@ static struct group *parse_line(const char *line)
 /* setgrent() - open group file for iteration */
 void setgrent(void)
 {
+    pthread_mutex_lock(&gr_lock);
 #ifdef O_CLOEXEC
     int flags = O_RDONLY | O_CLOEXEC;
 #else
@@ -224,36 +235,48 @@ void setgrent(void)
     gr_initialized = 1;
     if (fd < 0) {
         next_line = NULL;
+        pthread_mutex_unlock(&gr_lock);
         return;
     }
     ssize_t n = read(fd, filebuf, sizeof(filebuf) - 1);
     close(fd);
     if (n <= 0) {
         next_line = NULL;
+        pthread_mutex_unlock(&gr_lock);
         return;
     }
     filebuf[n] = '\0';
     next_line = filebuf;
+    pthread_mutex_unlock(&gr_lock);
 }
 
 /* getgrent() - read next group from file */
 struct group *getgrent(void)
 {
+    pthread_mutex_lock(&gr_lock);
     if (!gr_initialized)
         setgrent();
-    if (!next_line)
+    if (!next_line) {
+        pthread_mutex_unlock(&gr_lock);
         return NULL;
+    }
     char *line = strtok_r(next_line, "\n", &next_line);
-    if (!line)
+    if (!line) {
+        pthread_mutex_unlock(&gr_lock);
         return NULL;
-    return parse_line(line);
+    }
+    struct group *g = parse_line(line);
+    pthread_mutex_unlock(&gr_lock);
+    return g;
 }
 
 /* endgrent() - close group file */
 void endgrent(void)
 {
+    pthread_mutex_lock(&gr_lock);
     next_line = NULL;
     gr_initialized = 0;
+    pthread_mutex_unlock(&gr_lock);
 }
 
 #endif
