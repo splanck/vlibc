@@ -23,8 +23,28 @@
 #undef siglongjmp
 #endif
 
+/*
+ * Use the host C library's __sigsetjmp/__siglongjmp when available.  They may
+ * not be exported on all systems so reference them weakly and fall back to the
+ * older field-based implementation when missing.
+ */
+
+#if defined(__GNUC__)
+extern int __sigsetjmp(sigjmp_buf, int) __attribute__((weak));
+extern void __siglongjmp(sigjmp_buf, int) __attribute__((weak));
+#else
+extern int __sigsetjmp(sigjmp_buf, int);
+extern void __siglongjmp(sigjmp_buf, int);
+#endif
+
+/* _longjmp from the system C library is used if __siglongjmp is absent. */
+extern void _longjmp(jmp_buf, int);
+
 int sigsetjmp(sigjmp_buf env, int save)
 {
+    if (&__sigsetjmp)
+        return __sigsetjmp(env, save);
+
     if (save) {
         env[0].__mask_was_saved = 1;
         sigprocmask(SIG_BLOCK, NULL, &env[0].__saved_mask);
@@ -36,7 +56,12 @@ int sigsetjmp(sigjmp_buf env, int save)
 
 void siglongjmp(sigjmp_buf env, int val)
 {
+    if (&__siglongjmp) {
+        __siglongjmp(env, val);
+        __builtin_unreachable();
+    }
+
     if (env[0].__mask_was_saved)
         sigprocmask(SIG_SETMASK, &env[0].__saved_mask, NULL);
-    longjmp(env, val);
+    _longjmp(env, val);
 }
