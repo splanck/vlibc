@@ -69,7 +69,7 @@ fmtmsg(long class, const char *label, int sev, const char *text,
 
 #define INSERT_COLON   if (*output != '\0') strlcat(output, ": ", size)
 #define INSERT_NEWLINE if (*output != '\0') strlcat(output, "\n", size)
-#define INSERT_SPACE   if (*output != '\0') strlcat(output, " ", size)
+#define INSERT_SPACE   if (*output != '\0') strlcat(output, "  ", size)
 
 static char *
 printfmt(char *msgverb, long class, const char *label, int sev,
