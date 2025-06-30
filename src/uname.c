@@ -8,6 +8,9 @@
 
 #include "sys/utsname.h"
 #include "errno.h"
+#include <sys/syscall.h>
+#include <unistd.h>
+#include "syscall.h"
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
@@ -51,11 +54,20 @@ int uname(struct utsname *u)
 }
 
 #else
-extern int host_uname(struct utsname *) __asm__("uname");
 
 int uname(struct utsname *u)
 {
+#ifdef SYS_uname
+    long ret = vlibc_syscall(SYS_uname, (long)u, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+#else
+    extern int host_uname(struct utsname *) __asm__("uname");
     return host_uname(u);
+#endif
 }
 #endif
 
