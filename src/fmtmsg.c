@@ -45,8 +45,12 @@ fmtmsg(long class, const char *label, int sev, const char *text,
             free(msgverb);
             return MM_NOTOK;
         }
-        if (*output != '\0')
-            fprintf(stderr, "%s", output);
+        if (*output != '\0') {
+            if (stderr)
+                fprintf(stderr, "%s", output);
+            else
+                dprintf(2, "%s", output);
+        }
         free(msgverb);
         free(output);
     }
