@@ -65,6 +65,11 @@ typedef int sig_atomic_t;
 #define SIG_IGN ((sighandler_t)1)
 #define SIG_ERR ((sighandler_t)-1)
 
+/* flags for struct sigaction */
+#ifndef SA_RESTORER
+#define SA_RESTORER 0x04000000
+#endif
+
 /* how argument for sigprocmask */
 #define SIG_BLOCK   0
 #define SIG_UNBLOCK 1
@@ -80,6 +85,7 @@ struct sigaction {
     sighandler_t sa_handler;
     sigset_t sa_mask;
     int sa_flags;
+    void (*sa_restorer)(void);
 };
 
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
