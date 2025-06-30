@@ -10,9 +10,23 @@
 
 #include "sys/mman.h"
 #include "errno.h"
+#include "unistd.h"
+#include <stdint.h>
 
 int posix_madvise(void *addr, size_t len, int advice)
 {
-    int r = madvise(addr, len, advice);
+    size_t ps = 4096;
+    uintptr_t start = (uintptr_t)addr;
+    uintptr_t end = start + len;
+
+    if (end < start)
+        return EINVAL;
+
+    uintptr_t aligned_start = start & ~(uintptr_t)(ps - 1);
+    uintptr_t aligned_end = (end + ps - 1) & ~(uintptr_t)(ps - 1);
+
+    int r = madvise((void *)aligned_start,
+                    aligned_end - aligned_start,
+                    advice);
     return r == -1 ? errno : 0;
 }
