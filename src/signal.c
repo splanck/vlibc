@@ -12,6 +12,7 @@
 #include "syscall.h"
 #include "memory.h"
 #include "string.h"
+#include "unistd.h"
 #include <stddef.h>
 
 #ifdef __x86_64__
@@ -333,10 +334,9 @@ int sigqueue(pid_t pid, int signo, const union sigval value)
     vmemset(&info, 0, sizeof(info));
     info.si_signo = signo;
     info.si_code = -1; /* SI_QUEUE */
-    size_t off = 3 * sizeof(int) + 2 * sizeof(int);
-    if (sizeof(void *) > sizeof(int))
-        off = (off + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
-    *(union sigval *)((char *)&info + off) = value;
+    info._pad[0] = getpid();
+    info._pad[1] = getuid();
+    *(union sigval *)&info._pad[3] = value;
     long ret = vlibc_syscall(SYS_rt_sigqueueinfo, pid, signo,
                              (long)&info, 0, 0, 0);
     if (ret < 0) {
