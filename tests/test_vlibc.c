@@ -927,9 +927,12 @@ static const char *test_isatty_stdin(void)
 
 static const char *test_ttyname_dev_tty(void)
 {
-    int fd = open("/dev/tty", O_RDWR);
-    if (fd < 0)
-        return 0; /* skip when not available */
+    int fd = open("/dev/tty", O_RDWR | O_NONBLOCK);
+    if (fd < 0) {
+        if (errno == ENXIO || errno == ENODEV)
+            return 0; /* skip when no controlling tty */
+        mu_assert("open /dev/tty", fd >= 0);
+    }
     char buf[64];
     int r = ttyname_r(fd, buf, sizeof(buf));
     char *name = ttyname(fd);
