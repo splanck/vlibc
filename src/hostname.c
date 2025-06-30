@@ -32,6 +32,7 @@
 #include "errno.h"
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "syscall.h"
 
 /*
@@ -53,8 +54,27 @@ int gethostname(char *name, size_t len)
     }
     return 0;
 #else
-    extern int host_gethostname(char *, size_t) __asm__("gethostname");
-    return host_gethostname(name, len);
+    if (!name || len == 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    int fd = open("/proc/sys/kernel/hostname", O_RDONLY);
+    if (fd < 0)
+        fd = open("/etc/hostname", O_RDONLY);
+    if (fd < 0)
+        return -1;
+
+    ssize_t r = read(fd, name, len - 1);
+    close(fd);
+    if (r < 0)
+        return -1;
+
+    size_t n = (size_t)r;
+    if (n > 0 && name[n - 1] == '\n')
+        n--;
+    name[n] = '\0';
+    return 0;
 #endif
 }
 
