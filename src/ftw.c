@@ -51,7 +51,7 @@ static int do_nftw(const char *path,
     info.base = base ? (int)(base + 1 - path) : 0;
     info.level = level;
 
-    if (!(flags & FTW_DEPTH) || type != FTW_D) {
+    if (!(flags & FTW_DEPTH) || type != FTW_D || level == 0) {
         r = fn(path, &st, type, &info);
         if (r != 0)
             return r;
@@ -138,6 +138,6 @@ int nftw(const char *path, nftw_func_t fn, int fdlimit, int flags)
 int ftw(const char *path, ftw_func_t fn, int fdlimit)
 {
     ftw_cb = fn;
-    return nftw(path, ftw_wrapper, fdlimit, 0);
+    return nftw(path, ftw_wrapper, fdlimit, FTW_PHYS | FTW_DEPTH);
 }
 
