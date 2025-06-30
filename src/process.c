@@ -89,13 +89,26 @@ int execve(const char *pathname, char *const argv[], char *const envp[])
 
 /*
  * fexecve() - execute a program referenced by an open file descriptor. If the
- * platform provides SYS_fexecve the call is made directly. BSD systems fall
- * back to executing /dev/fd/<fd> via execve().
+ * platform provides SYS_fexecve the call is made directly. When SYS_execveat
+ * is available we call it with AT_EMPTY_PATH. Otherwise BSD systems fall back
+ * to executing /dev/fd/<fd> and other platforms use /proc/self/fd/<fd> via
+ * execve().
  */
 int fexecve(int fd, char *const argv[], char *const envp[])
 {
 #ifdef SYS_fexecve
     long ret = vlibc_syscall(SYS_fexecve, fd, (long)argv, (long)envp, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (int)ret;
+#elif defined(SYS_execveat)
+#ifndef AT_EMPTY_PATH
+#define AT_EMPTY_PATH 0x1000
+#endif
+    long ret = vlibc_syscall(SYS_execveat, fd, (long)"", (long)argv,
+                             (long)envp, AT_EMPTY_PATH, 0);
     if (ret < 0) {
         errno = -ret;
         return -1;
@@ -108,9 +121,9 @@ int fexecve(int fd, char *const argv[], char *const envp[])
     snprintf(path, sizeof(path), "/dev/fd/%d", fd);
     return execve(path, argv, envp);
 #else
-    (void)fd; (void)argv; (void)envp;
-    errno = ENOSYS;
-    return -1;
+    char path[64];
+    snprintf(path, sizeof(path), "/proc/self/fd/%d", fd);
+    return execve(path, argv, envp);
 #endif
 #endif
 }
