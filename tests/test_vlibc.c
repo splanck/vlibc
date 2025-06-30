@@ -253,6 +253,16 @@ static void *grp_lookup_worker(void *arg)
     return NULL;
 }
 
+static void *grp_enum_worker(void *arg)
+{
+    (void)arg;
+    setgrent();
+    while (getgrent() != NULL)
+        ;
+    endgrent();
+    return NULL;
+}
+
 static const char *test_malloc(void)
 {
     void *p = malloc(16);
@@ -5677,12 +5687,19 @@ static const char *test_group_threadsafe(void)
     void *r2 = (void *)1;
     pthread_join(t1, &r1);
     pthread_join(t2, &r2);
+    mu_assert("grp lookup1", r1 == NULL);
+    mu_assert("grp lookup2", r2 == NULL);
+
+    pthread_create(&t1, NULL, grp_enum_worker, NULL);
+    pthread_create(&t2, NULL, grp_enum_worker, NULL);
+    pthread_join(t1, &r1);
+    pthread_join(t2, &r2);
 
     unsetenv("VLIBC_GROUP");
     unlink(tmpl);
 
-    mu_assert("grp thread1", r1 == NULL);
-    mu_assert("grp thread2", r2 == NULL);
+    mu_assert("grp enum1", r1 == NULL);
+    mu_assert("grp enum2", r2 == NULL);
     return 0;
 }
 
