@@ -59,22 +59,17 @@ pid_t fork(void)
 }
 
 /*
- * vfork() - create a new process sharing the parent's address space until
- * the child either execs or exits. When the SYS_vfork syscall exists it is
- * invoked directly, otherwise the wrapper falls back to fork().
+ * vfork() - create a new process and temporarily suspend the parent until the
+ * child either execs or exits.  The original implementation invoked the
+ * `SYS_vfork` syscall directly when available, but that can leave the parent
+ * using a corrupted stack if the child calls into the C library.  To avoid
+ * those issues we emulate `vfork` using `fork`.  This still returns 0 in the
+ * child and the child's PID in the parent while allowing the child to safely
+ * call into the library before exiting or executing a new program.
  */
 pid_t vfork(void)
 {
-#ifdef SYS_vfork
-    long ret = vlibc_syscall(SYS_vfork, 0, 0, 0, 0, 0, 0);
-    if (ret < 0) {
-        errno = -ret;
-        return -1;
-    }
-    return (pid_t)ret;
-#else
     return fork();
-#endif
 }
 
 /*
