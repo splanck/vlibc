@@ -10,6 +10,7 @@
 #include "time.h"
 #include "stdlib.h"
 #include "memory.h"
+#include "errno.h"
 
 /*
  * wcsftime() - format time data as a wide-character string using strftime
@@ -21,6 +22,10 @@ size_t wcsftime(wchar_t *s, size_t max, const wchar_t *format, const struct tm *
         return 0;
 
     size_t flen = wcstombs(NULL, format, 0);
+    if (flen == (size_t)-1) {
+        errno = EILSEQ;
+        return 0;
+    }
     char *fmt = malloc(flen + 1);
     if (!fmt)
         return 0;
