@@ -3827,6 +3827,37 @@ static const char *test_setenv_alloc_fail(void)
     return 0;
 }
 
+static const char *test_clearenv_alloc_fail(void)
+{
+    env_init(NULL);
+    mu_assert("setenv A", setenv("A", "1", 1) == 0);
+    mu_assert("setenv B", setenv("B", "2", 1) == 0);
+
+    vlibc_test_alloc_fail_after = 0;
+    errno = 0;
+    int r = clearenv();
+    mu_assert("alloc1 fail", r == -1);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    mu_assert("env unchanged1", getenv("A") && getenv("B"));
+
+    vlibc_test_alloc_fail_after = -1;
+    mu_assert("clearenv success", clearenv() == 0);
+
+    mu_assert("setenv A2", setenv("A", "1", 1) == 0);
+    mu_assert("setenv B2", setenv("B", "2", 1) == 0);
+
+    vlibc_test_alloc_fail_after = 1;
+    errno = 0;
+    r = clearenv();
+    mu_assert("alloc2 fail", r == -1);
+    mu_assert("errno ENOMEM", errno == ENOMEM);
+    mu_assert("env unchanged2", getenv("A") && getenv("B"));
+
+    vlibc_test_alloc_fail_after = -1;
+    mu_assert("clearenv success2", clearenv() == 0);
+    return 0;
+}
+
 static const char *test_locale_from_env(void)
 {
     env_init(NULL);
@@ -6734,6 +6765,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("locale", test_setenv_alloc_fail),
         REGISTER_TEST("locale", test_setenv_realloc_fail_errno),
         REGISTER_TEST("locale", test_setenv_strdup_fail),
+        REGISTER_TEST("locale", test_clearenv_alloc_fail),
         REGISTER_TEST("locale", test_locale_from_env),
         REGISTER_TEST("locale", test_locale_objects),
         REGISTER_TEST("locale", test_langinfo_codeset),

@@ -254,17 +254,27 @@ int clearenv(void)
             environ[i] = NULL;
         return 0;
     }
-    for (int i = 0; environ[i]; ++i) {
-        if (environ_flags && environ_flags[i])
-            free(environ[i]);
-    }
-    free(environ);
-    free(environ_flags);
-    environ = malloc(sizeof(char *));
-    environ_flags = malloc(sizeof(unsigned char));
-    if (!environ || !environ_flags)
+    char **oldenv = environ;
+    unsigned char *oldflags = environ_flags;
+    char **newenv = malloc(sizeof(char *));
+    unsigned char *newflags = malloc(sizeof(unsigned char));
+    if (!newenv || !newflags) {
+        free(newenv);
+        free(newflags);
+        errno = ENOMEM;
         return -1;
+    }
+
+    for (int i = 0; oldenv[i]; ++i) {
+        if (oldflags && oldflags[i])
+            free(oldenv[i]);
+    }
+    free(oldenv);
+    free(oldflags);
+
     environ_owned = 1;
+    environ = newenv;
+    environ_flags = newflags;
     environ[0] = NULL;
     environ_flags[0] = 0;
     return 0;
