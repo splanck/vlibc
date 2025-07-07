@@ -321,8 +321,11 @@ void *aligned_alloc(size_t alignment, size_t size)
     }
 
     void *ptr = NULL;
-    if (posix_memalign(&ptr, alignment, size) != 0)
+    int rc = posix_memalign(&ptr, alignment, size);
+    if (rc != 0) {
+        errno = rc;
         return NULL;
+    }
     return ptr;
 }
 
