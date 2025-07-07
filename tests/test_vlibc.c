@@ -1978,6 +1978,18 @@ static const char *test_wmemstream_basic(void)
     return 0;
 }
 
+static const char *test_open_memstream_alloc_fail(void)
+{
+    vlibc_test_alloc_fail_after = 0;
+    errno = 0;
+    char *buf = NULL;
+    size_t size = 0;
+    FILE *f = open_memstream(&buf, &size);
+    mu_assert("alloc fail", f == NULL && errno == ENOMEM);
+    vlibc_test_alloc_fail_after = -1;
+    return 0;
+}
+
 static const char *test_fmemopen_bad_mode(void)
 {
     errno = 0;
@@ -6627,6 +6639,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("stdlib", test_wmem_ops),
         REGISTER_TEST("stdlib", test_wchar_search),
         REGISTER_TEST("stdio", test_wmemstream_basic),
+        REGISTER_TEST("stdio", test_open_memstream_alloc_fail),
         REGISTER_TEST("stdio", test_fmemopen_bad_mode),
         REGISTER_TEST("stdio", test_fopencookie_basic),
         REGISTER_TEST("stdlib", test_iconv_ascii_roundtrip),
