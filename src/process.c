@@ -150,6 +150,11 @@ int execvp(const char *file, char *const argv[])
         const char *end = strchr(p, ':');
         size_t len = end ? (size_t)(end - p) : strlen(p);
 
+        if (flen > SIZE_MAX - len - 2) {
+            errno = ENAMETOOLONG;
+            return -1;
+        }
+
         size_t alloc_len = len ? (len + 1 + flen + 1) : (2 + flen + 1);
         char *buf = malloc(alloc_len);
         if (!buf)
@@ -973,6 +978,9 @@ int posix_spawnp(pid_t *pid, const char *file,
     while (1) {
         const char *end = strchr(p, ':');
         size_t len = end ? (size_t)(end - p) : strlen(p);
+
+        if (flen > SIZE_MAX - len - 2)
+            return ENAMETOOLONG;
 
         size_t alloc_len = len ? (len + 1 + flen + 1) : (2 + flen + 1);
         char *buf = malloc(alloc_len);
