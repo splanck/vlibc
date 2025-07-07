@@ -59,8 +59,10 @@ FILE *open_wmemstream(wchar_t **bufp, size_t *sizep)
         return NULL;
     }
     FILE *f = malloc(sizeof(FILE));
-    if (!f)
+    if (!f) {
+        errno = ENOMEM;
         return NULL;
+    }
     memset(f, 0, sizeof(FILE));
     atomic_flag_clear(&f->lock);
     f->fd = -1;
