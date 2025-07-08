@@ -39,7 +39,8 @@ this if the operating system lacks a compatible interface.
 
 When possible vlibc defers to the host C library's `setjmp` and `longjmp`.
 For targets lacking a native implementation, custom versions live under
-`src/arch/<arch>/setjmp.c`.
+`src/arch/<arch>/setjmp.c`. Implementations are provided for
+**x86_64**, **aarch64** and **armv7**.
 
 ```c
 int setjmp(jmp_buf env);
@@ -91,9 +92,8 @@ speeds stored in a `termios` structure are changed with `cfsetispeed()` and
   [process.md](process.md).
 - Locale handling falls back to the host implementation for values other
   than `"C"` or `"POSIX"`.
-- `setjmp`/`longjmp` and `sigsetjmp`/`siglongjmp` rely on the host C library
-  when available. Only an x86_64 fallback implementation is provided and
-  the signal-mask fields follow glibc's layout.
+- `setjmp`/`longjmp` and `sigsetjmp`/`siglongjmp` have native implementations
+  for **x86_64**, **aarch64** and **armv7**.
 - Regular expressions cover only a subset of POSIX syntax. Capture
   groups and numeric backreferences are supported but more advanced
   features remain unimplemented.
