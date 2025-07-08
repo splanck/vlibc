@@ -6081,6 +6081,23 @@ static const char *test_qsort_strings(void)
     return 0;
 }
 
+static const char *test_bsearch_large(void)
+{
+    const size_t count = 1000000;
+    int *arr = malloc(count * sizeof(int));
+    if (!arr)
+        return "alloc fail";
+    for (size_t i = 0; i < count; ++i)
+        arr[i] = (int)i;
+
+    int key = (int)(count - 1);
+    int *res = bsearch(&key, arr, count, sizeof(int), int_cmp);
+    int ok = res && *res == key;
+    free(arr);
+    mu_assert("bsearch large", ok);
+    return 0;
+}
+
 static int int_cmp_dir(const void *a, const void *b, void *ctx)
 {
     int dir = *(int *)ctx;
@@ -6888,6 +6905,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("dirent", test_fts_alloc_fail),
         REGISTER_TEST("stdlib", test_qsort_int),
         REGISTER_TEST("stdlib", test_qsort_strings),
+        REGISTER_TEST("stdlib", test_bsearch_large),
         REGISTER_TEST("stdlib", test_qsort_r_desc),
         REGISTER_TEST("stdlib", test_hsearch_basic),
         REGISTER_TEST("stdlib", test_tsearch_basic),

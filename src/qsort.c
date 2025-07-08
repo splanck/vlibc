@@ -66,7 +66,7 @@ void *bsearch(const void *key, const void *base, size_t nmemb, size_t size,
     const char *b = base;
 
     while (low < high) {
-        size_t mid = (low + high) / 2;
+        size_t mid = low + (high - low) / 2;
         const void *elem = b + mid * size;
         int c = compar(key, elem);
         if (c < 0)
