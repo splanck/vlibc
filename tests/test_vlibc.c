@@ -4387,9 +4387,16 @@ static const char *test_vfork_basic(void)
 static const char *test_system_fn(void)
 {
     int r = system("true");
-    mu_assert("system true", r == 0);
+    mu_assert("system true", WIFEXITED(r) && WEXITSTATUS(r) == 0);
     r = system("exit 7");
-    mu_assert("system exit code", (r >> 8) == 7);
+    mu_assert("system exit code", WIFEXITED(r) && WEXITSTATUS(r) == 7);
+    return 0;
+}
+
+static const char *test_system_signal_status(void)
+{
+    int r = system("kill -TERM $$");
+    mu_assert("system signal", WIFSIGNALED(r) && WTERMSIG(r) == SIGTERM);
     return 0;
 }
 
@@ -4801,7 +4808,7 @@ static const char *test_shell_errno(void)
     errno = 0;
     int r = system("true");
     int serr = errno;
-    mu_assert("system errno", r == -1 && serr == ENOENT);
+    mu_assert("system errno", WIFEXITED(r) && WEXITSTATUS(r) == 127 && serr == ENOENT);
 
     errno = 0;
     FILE *f = popen("echo fail", "r");
@@ -7169,6 +7176,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("process", test_process_group_wrappers),
         REGISTER_TEST("process", test_vfork_basic),
         REGISTER_TEST("process", test_system_fn),
+        REGISTER_TEST("process", test_system_signal_status),
         REGISTER_TEST("process", test_system_interrupted),
         REGISTER_TEST("process", test_execv_fn),
         REGISTER_TEST("process", test_execl_fn),

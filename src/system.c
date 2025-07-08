@@ -55,11 +55,6 @@ int system(const char *command)
     int child_err = 0;
     ssize_t n = read(errpipe[0], &child_err, sizeof(child_err));
     close(errpipe[0]);
-    if (n > 0) {
-        waitpid(pid, NULL, 0);
-        errno = child_err;
-        return -1;
-    }
 
     int status = 0;
     pid_t r;
@@ -68,6 +63,10 @@ int system(const char *command)
     } while (r < 0 && errno == EINTR);
     if (r < 0)
         return -1;
+
+    if (n > 0)
+        errno = child_err;
+
     return status;
 }
 
