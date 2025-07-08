@@ -2465,6 +2465,33 @@ static const char *test_vscanf_variants(void)
     return 0;
 }
 
+static const char *test_init_stream_fallback(void)
+{
+    /* fail stdin allocation */
+    vlibc_test_alloc_fail_after = 0;
+    vlibc_init();
+    mu_assert("stdin fallback", stdin != NULL);
+    mu_assert("stdout ok", stdout != NULL);
+    mu_assert("stderr ok", stderr != NULL);
+
+    /* fail stdout allocation */
+    vlibc_test_alloc_fail_after = 1;
+    vlibc_init();
+    mu_assert("stdout fallback", stdout != NULL);
+
+    /* fail stderr allocation */
+    vlibc_test_alloc_fail_after = 2;
+    vlibc_init();
+    mu_assert("stderr fallback", stderr != NULL);
+
+    vlibc_test_alloc_fail_after = -1;
+
+    mu_assert("printf works", printf("fallback ok\n") > 0);
+    fprintf(stderr, "err\n");
+    fflush(stdout);
+    return 0;
+}
+
 static const char *test_fseek_rewind(void)
 {
     FILE *f = fopen("tmp_seek", "w+");
@@ -6698,6 +6725,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("stdio", test_dprintf_functions),
         REGISTER_TEST("stdio", test_scanf_functions),
         REGISTER_TEST("stdio", test_vscanf_variants),
+        REGISTER_TEST("stdio", test_init_stream_fallback),
         REGISTER_TEST("stdio", test_fseek_rewind),
         REGISTER_TEST("stdio", test_fgetpos_fsetpos),
         REGISTER_TEST("stdio", test_fgetc_fputc),
