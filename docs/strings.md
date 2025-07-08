@@ -139,7 +139,8 @@ int c2 = wctob(L'A');       // 'A'
 
 `fgetwc` and `fputwc` mirror `fgetc` and `fputc` but operate on wide
 characters. The `getwc` and `putwc` wrappers simply call these
-functions.
+functions. On failure they return `WEOF` and set `errno`. Passing a
+`NULL` stream sets `EINVAL` while conversion errors use `EILSEQ`.
 
 ```c
 FILE *fp = tmpfile();

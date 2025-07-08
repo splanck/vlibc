@@ -8,6 +8,7 @@
 
 #include "process.h"
 #include "errno.h"
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <unistd.h>
