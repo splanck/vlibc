@@ -8,6 +8,7 @@
 
 #include "string.h"
 #include "memory.h"
+#include "errno.h"
 
 /*
  * Return the length of a NUL terminated string. This helper
@@ -99,8 +100,10 @@ char *strdup(const char *s)
 {
     size_t len = vstrlen(s);
     char *dup = malloc(len + 1);
-    if (!dup)
+    if (!dup) {
+        errno = ENOMEM;
         return NULL;
+    }
     vstrcpy(dup, s);
     return dup;
 }

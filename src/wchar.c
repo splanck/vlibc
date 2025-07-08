@@ -8,6 +8,7 @@
 
 #include "wchar.h"
 #include "memory.h"
+#include "errno.h"
 #include "string.h"
 #include "locale.h"
 
@@ -148,8 +149,10 @@ wchar_t *wcsdup(const wchar_t *s)
 {
     size_t len = wcslen(s);
     wchar_t *dup = malloc((len + 1) * sizeof(wchar_t));
-    if (!dup)
+    if (!dup) {
+        errno = ENOMEM;
         return NULL;
+    }
     wcscpy(dup, s);
     return dup;
 }

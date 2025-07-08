@@ -9,6 +9,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "memory.h"
+#include "errno.h"
 
 /*
  * basename() - return the last path component of the provided string.  A
@@ -32,8 +33,10 @@ char *basename(const char *path)
 
     size_t len = end - p;
     char *out = malloc(len + 1);
-    if (!out)
+    if (!out) {
+        errno = ENOMEM;
         return NULL;
+    }
     memcpy(out, p, len);
     out[len] = '\0';
     return out;
@@ -66,8 +69,10 @@ char *dirname(const char *path)
         return strdup(".");
 
     char *out = malloc(len + 1);
-    if (!out)
+    if (!out) {
+        errno = ENOMEM;
         return NULL;
+    }
     memcpy(out, start, len);
     out[len] = '\0';
     return out;

@@ -10,25 +10,32 @@
 #include "stdio.h"
 #include "memory.h"
 #include "string.h"
+#include "errno.h"
 
 void vlibc_init(void)
 {
     stdin = malloc(sizeof(FILE));
-    if (stdin) {
+    if (!stdin) {
+        errno = ENOMEM;
+    } else {
         memset(stdin, 0, sizeof(FILE));
         atomic_flag_clear(&stdin->lock);
         stdin->fd = 0;
     }
 
     stdout = malloc(sizeof(FILE));
-    if (stdout) {
+    if (!stdout) {
+        errno = ENOMEM;
+    } else {
         memset(stdout, 0, sizeof(FILE));
         atomic_flag_clear(&stdout->lock);
         stdout->fd = 1;
     }
 
     stderr = malloc(sizeof(FILE));
-    if (stderr) {
+    if (!stderr) {
+        errno = ENOMEM;
+    } else {
         memset(stderr, 0, sizeof(FILE));
         atomic_flag_clear(&stderr->lock);
         stderr->fd = 2;

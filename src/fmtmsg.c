@@ -9,6 +9,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "errno.h"
 
 #define DFLT_MSGVERB "label:severity:text:action:tag"
 #define MAX_MSGVERB  sizeof(DFLT_MSGVERB)
@@ -97,8 +98,10 @@ printfmt(char *msgverb, long class, const char *label, int sev,
         size += strlen(tag);
 
     output = malloc(size);
-    if (output == NULL)
+    if (output == NULL) {
+        errno = ENOMEM;
         return NULL;
+    }
     *output = '\0';
     while ((comp = nextcomp(msgverb)) != NULL) {
         if (strcmp(comp, "label") == 0 && label != MM_NULLLBL) {

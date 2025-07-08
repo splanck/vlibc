@@ -27,13 +27,16 @@ size_t wcsftime(wchar_t *s, size_t max, const wchar_t *format, const struct tm *
         return 0;
     }
     char *fmt = malloc(flen + 1);
-    if (!fmt)
+    if (!fmt) {
+        errno = ENOMEM;
         return 0;
+    }
     wcstombs(fmt, format, flen + 1);
 
     char *buf = malloc(max);
     if (!buf) {
         free(fmt);
+        errno = ENOMEM;
         return 0;
     }
 

@@ -230,8 +230,10 @@ int getaddrinfo(const char *node, const char *service,
         port = (uint16_t)atoi(service);
 
     struct addrinfo *ai = malloc(sizeof(struct addrinfo));
-    if (!ai)
+    if (!ai) {
+        errno = ENOMEM;
         return EAI_MEMORY;
+    }
     ai->ai_flags = 0;
     ai->ai_family = family;
     ai->ai_socktype = 0;
@@ -242,6 +244,7 @@ int getaddrinfo(const char *node, const char *service,
         struct sockaddr_in6 *sa6 = malloc(sizeof(struct sockaddr_in6));
         if (!sa6) {
             free(ai);
+            errno = ENOMEM;
             return EAI_MEMORY;
         }
         sa6->sin6_family = AF_INET6;
@@ -255,6 +258,7 @@ int getaddrinfo(const char *node, const char *service,
         struct sockaddr_in *sa = malloc(sizeof(struct sockaddr_in));
         if (!sa) {
             free(ai);
+            errno = ENOMEM;
             return EAI_MEMORY;
         }
         sa->sin_family = AF_INET;
