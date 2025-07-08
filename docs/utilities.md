@@ -28,11 +28,12 @@ regfree(&re);
 ```
 
 Supported features include:
-`.` wildcard, `*`, `+`, `?`, and `{m,n}` repetition,
+`.` wildcard, `*`, `+`, `?`, and repetition with `{m,n}`, `{m}` or `{m,}`,
 character classes `[]` (including POSIX forms like `[:digit:]`),
-alternation using `|`, and `^`/`$` anchors. Parentheses both group
-expressions and create numbered capture groups which can be
-referenced via backreferences like `\1` and `\2`.
+alternation using `|`, and anchors `^` and `$` which may appear
+anywhere. Parentheses both group expressions and create numbered
+capture groups which can be referenced via backreferences like
+`\1` and `\2`.
 Repetition ranges apply to the preceding token or group.
 
 Example with a backreference:

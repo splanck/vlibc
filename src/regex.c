@@ -204,8 +204,9 @@ static int match_posix_class(char c, const char *name, size_t len)
     return 0;
 }
 
-/* Expand repetition ranges like {m,n} in PAT. Only positive numbers and
- * m <= n are supported. The returned string must be freed by the caller. */
+/* Expand repetition ranges like {m,n}, {m} and {m,} in PAT. Only
+ * non-negative values are handled and m <= n when n is given.  The
+ * returned string must be freed by the caller. */
 static char *expand_ranges(const char *pat)
 {
     size_t len = strlen(pat);
@@ -248,6 +249,7 @@ static char *expand_ranges(const char *pat)
         size_t item_len = item_end - item_start;
         i = item_end;
         int m = -1, n = -1;
+        int open = 0;
         if (i < len && pat[i] == '{' && isdigit((unsigned char)pat[i+1])) {
             size_t p = i + 1;
             m = 0;
@@ -257,16 +259,24 @@ static char *expand_ranges(const char *pat)
             }
             if (p < len && pat[p] == ',') {
                 p++;
-                n = 0;
-                while (p < len && isdigit((unsigned char)pat[p])) {
-                    n = n * 10 + (pat[p] - '0');
-                    p++;
-                }
                 if (p < len && pat[p] == '}') {
+                    open = 1;
                     i = p + 1;
                 } else {
-                    m = -1; /* treat as literal */
+                    n = 0;
+                    while (p < len && isdigit((unsigned char)pat[p])) {
+                        n = n * 10 + (pat[p] - '0');
+                        p++;
+                    }
+                    if (p < len && pat[p] == '}') {
+                        i = p + 1;
+                    } else {
+                        m = -1; /* treat as literal */
+                    }
                 }
+            } else if (p < len && pat[p] == '}') {
+                n = m;
+                i = p + 1;
             } else {
                 m = -1;
             }
@@ -274,8 +284,11 @@ static char *expand_ranges(const char *pat)
 
         /* ensure capacity */
         size_t need = item_len;
-        if (m >= 0 && n >= m)
+        if (m >= 0 && open) {
+            need = item_len * (size_t)(m + 1) + 1; /* trailing '*' */
+        } else if (m >= 0 && n >= m) {
             need = item_len * (size_t)n + (n - m); /* for '?' */
+        }
         if (o + need + 1 >= cap) {
             if (cap > SIZE_MAX / 2 || need > SIZE_MAX - cap - 1) {
                 free(out);
@@ -297,7 +310,15 @@ static char *expand_ranges(const char *pat)
             out = tmp;
         }
 
-        if (m >= 0 && n >= m) {
+        if (m >= 0 && open) {
+            for (int k = 0; k < m; k++) {
+                memcpy(out + o, pat + item_start, item_len);
+                o += item_len;
+            }
+            memcpy(out + o, pat + item_start, item_len);
+            o += item_len;
+            out[o++] = '*';
+        } else if (m >= 0 && n >= m) {
             for (int k = 0; k < m; k++) {
                 memcpy(out + o, pat + item_start, item_len);
                 o += item_len;
@@ -624,8 +645,22 @@ static int matchpattern(struct token *pat, const char *text, int *matchlen,
             continue;
         }
 
-        if (pat[0].type == END && pat[1].type == UNUSED)
-            return *text == '\0';
+        if (pat[0].type == BEGIN) {
+            if (text != string) {
+                *matchlen = pre;
+                return 0;
+            }
+            pat++;
+            continue;
+        } else if (pat[0].type == END) {
+            if (*text != '\0') {
+                *matchlen = pre;
+                return 0;
+            }
+            pat++;
+            continue;
+        }
+
         if (pat[0].type == UNUSED)
             return 1;
         if (pat[1].type == QUESTION)
