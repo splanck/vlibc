@@ -172,11 +172,12 @@ free(out);
 ### Character Set Conversion
 
 `iconv_open` returns a descriptor for translating between character
-sets.  vlibc understands only conversions between `"ASCII"` and
-`"UTF-8"`.  The `iconv` function copies bytes from the input buffer to
-the output buffer and fails with `EILSEQ` on bytes that cannot be
-represented.  On BSD systems other conversions are delegated to the
-host `iconv` implementation when present.
+sets.  vlibc ships with small tables supporting conversions between
+`"ASCII"`, `"ISO-8859-1"`, `"UTF-8"` and `"UTF-16"`.  The `iconv`
+function copies bytes from the input buffer to the output buffer and
+fails with `EILSEQ` on sequences that cannot be represented.  On BSD
+systems other conversions are delegated to the host `iconv`
+implementation when present.
 
 ## Character Classification
 
