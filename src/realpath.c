@@ -36,6 +36,11 @@ char *realpath(const char *path, char *resolved_path)
                 free(cwd);
                 return NULL;
             }
+            if (cap > SIZE_MAX / 2) {
+                free(cwd);
+                errno = ENAMETOOLONG;
+                return NULL;
+            }
             size_t new_cap = cap * 2;
             char *tmp = realloc(cwd, new_cap);
             if (!tmp) {
