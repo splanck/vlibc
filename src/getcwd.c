@@ -53,6 +53,11 @@ char *getcwd(char *buf, size_t size)
 #else
         (void)out; (void)cap; errno = ENOSYS; break;
 #endif
+        if (cap > SIZE_MAX / 2) {
+            free(out);
+            errno = ENAMETOOLONG;
+            return NULL;
+        }
         size_t new_cap = cap * 2;
         char *tmp = realloc(out, new_cap);
         if (!tmp) {

@@ -28,6 +28,7 @@ extern int __posix_spawnp(pid_t *, const char *,
 #include "syscall.h"
 #include "env.h"
 #include "memory.h"
+#include <stdint.h>
 #include <stdarg.h>
 #include <fcntl.h>
 #include "stdio.h"

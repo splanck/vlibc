@@ -10,6 +10,8 @@
 #include "memory.h"
 #include <string.h>
 #include <ctype.h>
+#include "errno.h"
+#include <stdint.h>
 
 /*
  * This implementation is adapted from the public domain tiny-regex-c
@@ -275,7 +277,18 @@ static char *expand_ranges(const char *pat)
         if (m >= 0 && n >= m)
             need = item_len * (size_t)n + (n - m); /* for '?' */
         if (o + need + 1 >= cap) {
-            cap = (cap + need + 1) * 2;
+            if (cap > SIZE_MAX / 2 || need > SIZE_MAX - cap - 1) {
+                free(out);
+                errno = ENAMETOOLONG;
+                return NULL;
+            }
+            size_t req = cap + need + 1;
+            if (req > SIZE_MAX / 2) {
+                free(out);
+                errno = ENAMETOOLONG;
+                return NULL;
+            }
+            cap = req * 2;
             char *tmp = realloc(out, cap);
             if (!tmp) {
                 free(out);
