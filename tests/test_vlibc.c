@@ -6408,6 +6408,20 @@ static const char *test_math_functions(void)
     mu_assert("round neg", round(-1.6) == -2.0);
     mu_assert("trunc", trunc(2.9) == 2.0);
     mu_assert("trunc neg", trunc(-2.9) == -2.0);
+    mu_assert("asin", fabs(asin(0.5) - 0.523598) < 1e-6);
+    mu_assert("acos", fabs(acos(0.5) - 1.047197) < 1e-6);
+    mu_assert("atan", fabs(atan(1.0) - 0.785398) < 1e-6);
+    mu_assert("asinh", fabs(asinh(1.0) - 0.881373) < 1e-6);
+    mu_assert("acosh", fabs(acosh(2.0) - 1.316957) < 1e-6);
+    mu_assert("atanh", fabs(atanh(0.5) - 0.549306) < 1e-6);
+    mu_assert("exp2", fabs(exp2(3.0) - 8.0) < 1e-6);
+    mu_assert("expm1", fabs(expm1(0.5) - (exp(0.5) - 1.0)) < 1e-6);
+    mu_assert("log1p", fabs(log1p(1.0) - log(2.0)) < 1e-6);
+    mu_assert("asinf", fabsf(asinf(0.5f) - 0.523598f) < 1e-6f);
+    long double ldv = asinl(0.5L) - 0.523598L;
+    if (ldv < 0)
+        ldv = -ldv;
+    mu_assert("asinl", ldv < 1e-6L);
     return 0;
 }
 
