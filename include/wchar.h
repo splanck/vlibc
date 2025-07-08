@@ -111,7 +111,10 @@ int vswscanf(const wchar_t *str, const wchar_t *format, va_list ap);
 size_t wcsftime(wchar_t *s, size_t max, const wchar_t *format,
                 const struct tm *tm);
 
-/* Wide-character byte I/O */
+/* Wide-character byte I/O. These return WEOF on failure and set errno to
+ * indicate the reason (EINVAL for NULL stream, EILSEQ for conversion
+ * errors).
+ */
     wint_t fgetwc(FILE *stream);
     wint_t fputwc(wchar_t wc, FILE *stream);
 #define getwc(stream) fgetwc(stream)

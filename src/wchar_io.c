@@ -6,17 +6,20 @@
 
 #include "wchar.h"
 #include "stdio.h"
+#include "errno.h"
 /*
  * Read the next wide character from the given stream. If the stream
  * comes from open_wmemstream() the value is read directly. Otherwise
  * the next multibyte sequence is converted with mbrtowc(). Returns
- * WEOF on failure.
+ * WEOF on failure and sets errno to indicate the error.
  */
 
 wint_t fgetwc(FILE *stream)
 {
-    if (!stream)
+    if (!stream) {
+        errno = EINVAL;
         return -1;
+    }
     if (stream->is_wmem) {
         wchar_t wc = 0;
         if (fread(&wc, sizeof(wchar_t), 1, stream) != 1)
@@ -27,21 +30,25 @@ wint_t fgetwc(FILE *stream)
     if (c == -1)
         return -1;
     wchar_t wc = 0;
-    if (mbrtowc(&wc, (char[]){(char)c, '\0'}, 1, NULL) == (size_t)-1)
+    if (mbrtowc(&wc, (char[]){(char)c, '\0'}, 1, NULL) == (size_t)-1) {
+        errno = EILSEQ;
         return -1;
+    }
     return (wint_t)wc;
 }
 /*
  * Write a wide character to the stream. Memory backed streams
  * store the character directly while normal streams use wcrtomb()
  * to encode it as multibyte bytes. Returns the character written or
- * WEOF on error.
+ * WEOF on error and sets errno to indicate the failure.
  */
 
 wint_t fputwc(wchar_t wc, FILE *stream)
 {
-    if (!stream)
+    if (!stream) {
+        errno = EINVAL;
         return -1;
+    }
     if (stream->is_wmem) {
         if (fwrite(&wc, sizeof(wchar_t), 1, stream) != 1)
             return -1;
@@ -49,8 +56,10 @@ wint_t fputwc(wchar_t wc, FILE *stream)
     }
     char buf[8];
     size_t len = wcrtomb(buf, wc, NULL);
-    if (len == (size_t)-1)
+    if (len == (size_t)-1) {
+        errno = EILSEQ;
         return -1;
+    }
     if (fwrite(buf, 1, len, stream) != len)
         return -1;
     return (wint_t)wc;
