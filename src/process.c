@@ -36,6 +36,10 @@ extern int __posix_spawnp(pid_t *, const char *,
 #include <stdint.h>
 extern long syscall(long number, ...);
 
+#ifndef _NSIG
+#define _NSIG (SIGRTMAX + 1)
+#endif
+
 /* from atexit.c */
 extern void __run_atexit(void);
 
@@ -861,7 +865,7 @@ int posix_spawn(pid_t *pid, const char *path,
             if (attrp->flags & POSIX_SPAWN_SETSIGMASK)
                 sigprocmask(SIG_SETMASK, &attrp->sigmask, NULL);
             if (attrp->flags & POSIX_SPAWN_SETSIGDEF)
-                for (int s = 1; s < 64; s++)
+                for (int s = 1; s < _NSIG; s++)
                     if (sigismember(&attrp->sigdefault, s))
                         signal(s, SIG_DFL);
         }
