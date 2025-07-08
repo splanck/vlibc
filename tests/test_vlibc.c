@@ -2180,6 +2180,38 @@ static const char *test_iconv_invalid_byte(void)
     return 0;
 }
 
+static const char *test_iconv_iso8859_utf8(void)
+{
+    iconv_t cd = iconv_open("UTF-8", "ISO-8859-1");
+    mu_assert("open", cd != (iconv_t)-1);
+    char in[] = { 'h', (char)0xE9, 0 };
+    char *pin = in;
+    size_t inleft = 2;
+    char out[8] = {0};
+    char *pout = out;
+    size_t outleft = sizeof(out);
+    size_t r = iconv(cd, &pin, &inleft, &pout, &outleft);
+    mu_assert("conv", r != (size_t)-1 && strcmp(out, "h\xC3\xA9") == 0);
+    iconv_close(cd);
+    return 0;
+}
+
+static const char *test_iconv_utf16_ascii(void)
+{
+    iconv_t cd = iconv_open("ASCII", "UTF-16");
+    mu_assert("open", cd != (iconv_t)-1);
+    char in[] = { 'h', 0, 'i', 0, 0, 0 };
+    char *pin = in;
+    size_t inleft = 4;
+    char out[4] = {0};
+    char *pout = out;
+    size_t outleft = sizeof(out);
+    size_t r = iconv(cd, &pin, &inleft, &pout, &outleft);
+    mu_assert("conv", r != (size_t)-1 && strcmp(out, "hi") == 0);
+    iconv_close(cd);
+    return 0;
+}
+
 static const char *test_strtok_basic(void)
 {
     char buf[] = "a,b,c";
@@ -6946,6 +6978,8 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("stdio", test_fopencookie_basic),
         REGISTER_TEST("stdlib", test_iconv_ascii_roundtrip),
         REGISTER_TEST("stdlib", test_iconv_invalid_byte),
+        REGISTER_TEST("stdlib", test_iconv_iso8859_utf8),
+        REGISTER_TEST("stdlib", test_iconv_utf16_ascii),
         REGISTER_TEST("stdlib", test_strtok_basic),
         REGISTER_TEST("stdlib", test_strtok_r_basic),
         REGISTER_TEST("stdlib", test_strsep_basic),
