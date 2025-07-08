@@ -25,6 +25,13 @@ static int digit_val(char c)
 
 long strtol(const char *nptr, char **endptr, int base)
 {
+    if (base != 0 && (base < 2 || base > 36)) {
+        if (endptr)
+            *endptr = (char *)nptr;
+        errno = EINVAL;
+        return 0;
+    }
+
     const char *s = nptr;
     while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r' || *s == '\f' || *s == '\v')
         s++;
@@ -90,6 +97,13 @@ long strtol(const char *nptr, char **endptr, int base)
 
 unsigned long strtoul(const char *nptr, char **endptr, int base)
 {
+    if (base != 0 && (base < 2 || base > 36)) {
+        if (endptr)
+            *endptr = (char *)nptr;
+        errno = EINVAL;
+        return 0;
+    }
+
     const char *s = nptr;
     while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r' || *s == '\f' ||
            *s == '\v')
@@ -155,6 +169,13 @@ unsigned long strtoul(const char *nptr, char **endptr, int base)
 
 long long strtoll(const char *nptr, char **endptr, int base)
 {
+    if (base != 0 && (base < 2 || base > 36)) {
+        if (endptr)
+            *endptr = (char *)nptr;
+        errno = EINVAL;
+        return 0;
+    }
+
     const char *s = nptr;
     while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r' || *s == '\f' ||
            *s == '\v')
@@ -221,6 +242,13 @@ long long strtoll(const char *nptr, char **endptr, int base)
 
 unsigned long long strtoull(const char *nptr, char **endptr, int base)
 {
+    if (base != 0 && (base < 2 || base > 36)) {
+        if (endptr)
+            *endptr = (char *)nptr;
+        errno = EINVAL;
+        return 0;
+    }
+
     const char *s = nptr;
     while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r' || *s == '\f' ||
            *s == '\v')

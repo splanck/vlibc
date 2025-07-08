@@ -1615,6 +1615,20 @@ static const char *test_string_helpers(void)
     mu_assert("strtoumax overflow",
               strtoumax(numbuf, &end, 10) == UINTMAX_MAX && errno == ERANGE && *end == '\0');
 
+    const char *bad = "10";
+    errno = 0;
+    mu_assert("strtol bad base", strtol(bad, &end, 1) == 0 && errno == EINVAL && end == bad);
+    errno = 0;
+    mu_assert("strtoul bad base", strtoul(bad, &end, 37) == 0 && errno == EINVAL && end == bad);
+    errno = 0;
+    mu_assert("strtoll bad base", strtoll(bad, &end, 1) == 0 && errno == EINVAL && end == bad);
+    errno = 0;
+    mu_assert("strtoull bad base", strtoull(bad, &end, 37) == 0 && errno == EINVAL && end == bad);
+    errno = 0;
+    mu_assert("strtoimax bad base", strtoimax(bad, &end, 1) == 0 && errno == EINVAL && end == bad);
+    errno = 0;
+    mu_assert("strtoumax bad base", strtoumax(bad, &end, 37) == 0 && errno == EINVAL && end == bad);
+
     wchar_t wbuf[64];
     mbstowcs(wbuf, "ff", 64);
     wchar_t *wend;
