@@ -65,12 +65,11 @@ regfree(&p);
 
 ## Math Functions
 
-`sin`, `cos`, `tan`, `sqrt`, `pow`, `log`, `log2`, `log10`, `exp`, `ldexp`,
-`floor`, `ceil`, `round`, `trunc`, `hypot`, `fmod`, `fabs`, `fabsf`, `fmin`,
-`fmax`, `copysign`, `atan2`, `sinh`, `cosh`, and `tanh` are provided in
-`math.h`. These use simple series approximations and are suitable for basic
-calculations but may lack high precision.
-
+`sin`, `cos`, `tan`, `sqrt`, `pow`, `log`, `log2`, `log10`, `exp`, `exp2`,
+`expm1`, `log1p`, `ldexp`, `floor`, `ceil`, `round`, `trunc`, `hypot`, `fmod`,
+`fabs`, `fabsf`, `fmin`, `fmax`, `copysign`, `atan2`, `atan`, `asin`, `acos`,
+`asinh`, `acosh`, `atanh`, `sinh`, `cosh`, and `tanh` are provided in
+`math.h`. `float` and `long double` variants exist for the inverse and exponential helpers. These use simple series approximations and are suitable for basic calculations but may lack high precision.
 `complex.h` declares simple complex routines `cabs`, `carg`, `cexp`, `ccos`
 and `csin` built on the same helpers.
 

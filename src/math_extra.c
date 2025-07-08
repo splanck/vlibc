@@ -82,6 +82,141 @@ double tanh(double x)
     return c == 0.0 ? 0.0 : s / c;
 }
 
+double atan(double x)
+{
+    return atan_approx(x);
+}
+
+double asin(double x)
+{
+    return atan2(x, sqrt(1.0 - x * x));
+}
+
+double acos(double x)
+{
+    return PI / 2.0 - asin(x);
+}
+
+double asinh(double x)
+{
+    return log(x + sqrt(x * x + 1.0));
+}
+
+double acosh(double x)
+{
+    return log(x + sqrt((x - 1.0) * (x + 1.0)));
+}
+
+double atanh(double x)
+{
+    return 0.5 * log((1.0 + x) / (1.0 - x));
+}
+
+double exp2(double x)
+{
+    return pow(2.0, x);
+}
+
+double expm1(double x)
+{
+    return exp(x) - 1.0;
+}
+
+double log1p(double x)
+{
+    return log(1.0 + x);
+}
+
+float asinf(float x)
+{
+    return (float)asin((double)x);
+}
+
+float acosf(float x)
+{
+    return (float)acos((double)x);
+}
+
+float atanf(float x)
+{
+    return (float)atan((double)x);
+}
+
+float asinhf(float x)
+{
+    return (float)asinh((double)x);
+}
+
+float acoshf(float x)
+{
+    return (float)acosh((double)x);
+}
+
+float atanhf(float x)
+{
+    return (float)atanh((double)x);
+}
+
+float exp2f(float x)
+{
+    return (float)exp2((double)x);
+}
+
+float expm1f(float x)
+{
+    return (float)expm1((double)x);
+}
+
+float log1pf(float x)
+{
+    return (float)log1p((double)x);
+}
+
+long double asinl(long double x)
+{
+    return (long double)asin((double)x);
+}
+
+long double acosl(long double x)
+{
+    return (long double)acos((double)x);
+}
+
+long double atanl(long double x)
+{
+    return (long double)atan((double)x);
+}
+
+long double asinhl(long double x)
+{
+    return (long double)asinh((double)x);
+}
+
+long double acoshl(long double x)
+{
+    return (long double)acosh((double)x);
+}
+
+long double atanhl(long double x)
+{
+    return (long double)atanh((double)x);
+}
+
+long double exp2l(long double x)
+{
+    return (long double)exp2((double)x);
+}
+
+long double expm1l(long double x)
+{
+    return (long double)expm1((double)x);
+}
+
+long double log1pl(long double x)
+{
+    return (long double)log1p((double)x);
+}
+
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
 extern double host_fmod(double, double) __asm("fmod");
