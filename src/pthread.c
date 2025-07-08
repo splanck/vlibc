@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <stdatomic.h>
 #include "time.h"
+#include "futex.h"
+#include <limits.h>
 
 /*
  * Reference the host's pthread symbols directly by their GLIBC versioned
@@ -43,7 +45,7 @@ int pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
     if (attr)
         type = ((pthread_mutexattr_t *)attr)->type;
 
-    atomic_flag_clear(&mutex->locked);
+    atomic_store(&mutex->locked, 0);
     mutex->type = type;
     mutex->owner = 0;
     mutex->recursion = 0;
@@ -59,9 +61,9 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
         return 0;
     }
 
-    while (atomic_flag_test_and_set_explicit(&mutex->locked,
-                                             memory_order_acquire))
-        ;
+    while (atomic_exchange_explicit(&mutex->locked, 1,
+                                    memory_order_acquire))
+        futex_wait(&mutex->locked, 1, NULL);
 
     mutex->owner = self;
     mutex->recursion = 1;
@@ -77,8 +79,11 @@ int pthread_mutex_trylock(pthread_mutex_t *mutex)
         return 0;
     }
 
-    if (atomic_flag_test_and_set_explicit(&mutex->locked,
-                                          memory_order_acquire))
+    int expected = 0;
+    if (!atomic_compare_exchange_strong_explicit(&mutex->locked,
+                                                 &expected, 1,
+                                                 memory_order_acquire,
+                                                 memory_order_relaxed))
         return EBUSY;
 
     mutex->owner = self;
@@ -100,7 +105,8 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex)
         mutex->recursion = 0;
     }
 
-    atomic_flag_clear_explicit(&mutex->locked, memory_order_release);
+    atomic_store_explicit(&mutex->locked, 0, memory_order_release);
+    futex_wake(&mutex->locked, 1);
     return 0;
 }
 
@@ -159,13 +165,10 @@ int pthread_cond_init(pthread_cond_t *cond, void *attr)
 /* Wait for a condition signal while temporarily releasing the mutex. */
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
-    int ticket = atomic_fetch_add_explicit(&cond->next, 1,
-                                           memory_order_acquire);
+    int seq = atomic_load_explicit(&cond->seq, memory_order_acquire);
     pthread_mutex_unlock(mutex);
-    while (atomic_load_explicit(&cond->seq, memory_order_acquire) <= ticket) {
-        struct timespec ts = {0, 1000000};
-        nanosleep(&ts, NULL);
-    }
+    while (atomic_load_explicit(&cond->seq, memory_order_acquire) == seq)
+        futex_wait(&cond->seq, seq, NULL);
     pthread_mutex_lock(mutex);
     return 0;
 }
@@ -177,22 +180,25 @@ int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
     if (!abstime)
         return pthread_cond_wait(cond, mutex);
 
-    int ticket = atomic_fetch_add_explicit(&cond->next, 1,
-                                           memory_order_acquire);
+    int seq = atomic_load_explicit(&cond->seq, memory_order_acquire);
     pthread_mutex_unlock(mutex);
 
     struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-    while (atomic_load_explicit(&cond->seq, memory_order_acquire) <= ticket) {
+    while (atomic_load_explicit(&cond->seq, memory_order_acquire) == seq) {
+        clock_gettime(CLOCK_REALTIME, &now);
         if (now.tv_sec > abstime->tv_sec ||
             (now.tv_sec == abstime->tv_sec &&
              now.tv_nsec >= abstime->tv_nsec)) {
             pthread_mutex_lock(mutex);
             return ETIMEDOUT;
         }
-        struct timespec ts = {0, 1000000};
-        nanosleep(&ts, NULL);
-        clock_gettime(CLOCK_REALTIME, &now);
+        struct timespec rel = {abstime->tv_sec - now.tv_sec,
+                               abstime->tv_nsec - now.tv_nsec};
+        if (rel.tv_nsec < 0) {
+            rel.tv_sec--;
+            rel.tv_nsec += 1000000000;
+        }
+        futex_wait(&cond->seq, seq, &rel);
     }
 
     pthread_mutex_lock(mutex);
@@ -202,18 +208,16 @@ int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
 /* Wake one thread waiting on the condition. */
 int pthread_cond_signal(pthread_cond_t *cond)
 {
-    int next = atomic_load_explicit(&cond->next, memory_order_acquire);
-    int seq = atomic_load_explicit(&cond->seq, memory_order_acquire);
-    if (seq < next)
-        atomic_fetch_add_explicit(&cond->seq, 1, memory_order_release);
+    atomic_fetch_add_explicit(&cond->seq, 1, memory_order_release);
+    futex_wake(&cond->seq, 1);
     return 0;
 }
 
 /* Wake all threads waiting on the condition. */
 int pthread_cond_broadcast(pthread_cond_t *cond)
 {
-    int next = atomic_load_explicit(&cond->next, memory_order_acquire);
-    atomic_store_explicit(&cond->seq, next, memory_order_release);
+    atomic_fetch_add_explicit(&cond->seq, 1, memory_order_release);
+    futex_wake(&cond->seq, INT_MAX);
     return 0;
 }
 

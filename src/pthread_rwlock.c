@@ -10,6 +10,8 @@
 #include <stdatomic.h>
 #include <errno.h>
 #include "time.h"
+#include "futex.h"
+#include <limits.h>
 
 /* Initialize a read-write lock object. */
 int pthread_rwlock_init(pthread_rwlock_t *rwlock, void *attr)
@@ -25,7 +27,7 @@ int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock)
 {
     for (;;) {
         while (atomic_load_explicit(&rwlock->writer, memory_order_acquire))
-            ;
+            futex_wait(&rwlock->writer, 1, NULL);
         atomic_fetch_add_explicit(&rwlock->readers, 1, memory_order_acquire);
         if (!atomic_load_explicit(&rwlock->writer, memory_order_acquire))
             break;
@@ -38,21 +40,21 @@ int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock)
 int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock)
 {
     while (atomic_exchange_explicit(&rwlock->writer, 1, memory_order_acquire))
-        ;
-    while (atomic_load_explicit(&rwlock->readers, memory_order_acquire) != 0) {
-        struct timespec ts = {0, 1000000};
-        nanosleep(&ts, NULL);
-    }
+        futex_wait(&rwlock->writer, 1, NULL);
+    while (atomic_load_explicit(&rwlock->readers, memory_order_acquire) != 0)
+        futex_wait(&rwlock->readers, 0, NULL);
     return 0;
 }
 
 /* Release a read or write hold on the lock. */
 int pthread_rwlock_unlock(pthread_rwlock_t *rwlock)
 {
-    if (atomic_load_explicit(&rwlock->writer, memory_order_acquire))
+    if (atomic_load_explicit(&rwlock->writer, memory_order_acquire)) {
         atomic_store_explicit(&rwlock->writer, 0, memory_order_release);
-    else
-        atomic_fetch_sub_explicit(&rwlock->readers, 1, memory_order_release);
+        futex_wake(&rwlock->writer, INT_MAX);
+    } else if (atomic_fetch_sub_explicit(&rwlock->readers, 1, memory_order_release) == 1) {
+        futex_wake(&rwlock->readers, INT_MAX);
+    }
     return 0;
 }
 
