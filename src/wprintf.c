@@ -207,8 +207,10 @@ static int vfdwprintf(int fd, const wchar_t *format, va_list ap)
             return -1;
         }
         ssize_t w = write(fd, buf, out);
-        if (w < 0)
+        if (w != (ssize_t)out) {
+            errno = EIO;
             return -1;
+        }
     }
     return len;
 }
