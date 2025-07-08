@@ -75,7 +75,7 @@
 #define _NSIG (SIGRTMAX + 1)
 #endif
 #include <openssl/evp.h>
-#include "../include/setjmp.h"
+#include <setjmp.h>
 #include "ucontext.h"
 #include "../include/time.h"
 #include "../include/sys/resource.h"
@@ -5273,6 +5273,16 @@ static const char *test_sigsetjmp_nosave(void)
     return 0;
 }
 
+static jmp_buf jbuf3;
+static const char *test_setjmp_basic(void)
+{
+    volatile int val = _setjmp(jbuf3);
+    if (val == 0)
+        _longjmp(jbuf3, 7);
+    mu_assert("value", val == 7);
+    return 0;
+}
+
 static const char *test_mlock_basic(void)
 {
     char buf[128];
@@ -7168,6 +7178,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("process", test_sigaltstack_basic),
         REGISTER_TEST("process", test_sigsetjmp_restore),
         REGISTER_TEST("process", test_sigsetjmp_nosave),
+        REGISTER_TEST("process", test_setjmp_basic),
         REGISTER_TEST("memory", test_mlock_basic),
         REGISTER_TEST("memory", test_mprotect_anon),
         REGISTER_TEST("memory", test_shm_basic),
