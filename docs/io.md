@@ -216,10 +216,12 @@ Use `open_memstream` to capture output into a dynamically growing buffer or
 `fmemopen` to read and write to an existing memory region.
 
 Streams may be given a custom buffer with `setvbuf` or the simpler
-`setbuf`. When buffered, I/O operates on that memory until it is filled
-or explicitly flushed. When multiple threads share a stream use
-`flockfile(stream)` and `funlockfile(stream)` to guard accesses.
-`ftrylockfile` attempts the lock without blocking.
+`setbuf` and `setbuffer` helpers.  `_IOFBF` enables full buffering,
+`_IOLBF` line buffering and `_IONBF` turns buffering off.  When buffered,
+I/O operates on that memory until it is filled, a newline is written in
+line mode, or an explicit flush occurs. When multiple threads share a
+stream use `flockfile(stream)` and `funlockfile(stream)` to guard
+accesses. `ftrylockfile` attempts the lock without blocking.
 
 `freopen` can replace the file associated with an existing stream so the same
 `FILE` handle refers to a new path. This is handy for redirecting a standard

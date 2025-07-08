@@ -175,6 +175,7 @@ FILE *tmpfile(void)
     memset(f, 0, sizeof(FILE));
     atomic_flag_clear(&f->lock);
     f->fd = fd;
+    f->buf_mode = _IONBF;
     return f;
 }
 

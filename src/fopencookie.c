@@ -20,6 +20,7 @@ FILE *fopencookie(void *cookie, const char *mode,
     memset(f, 0, sizeof(FILE));
     atomic_flag_clear(&f->lock);
     f->fd = -1;
+    f->buf_mode = _IONBF;
     f->is_cookie = 1;
     f->cookie = cookie;
     f->cookie_read = functions.read;
