@@ -963,9 +963,9 @@ static const char *test_ttyname_dev_tty(void)
 static const char *test_ttyname_openpty(void)
 {
     int m, s;
-    char expect[64];
+    char expect[PATH_MAX];
     mu_assert("openpty", openpty(&m, &s, expect, sizeof(expect), NULL, NULL) == 0);
-    char buf[64];
+    char buf[PATH_MAX];
     int r = ttyname_r(s, buf, sizeof(buf));
     char *name = ttyname(s);
     close(m);

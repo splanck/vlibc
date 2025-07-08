@@ -14,6 +14,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include <fcntl.h>
+#include <limits.h>
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
@@ -25,20 +26,44 @@ int openpty(int *amaster, int *aslave, char *name, size_t namesz,
 {
     if (!amaster || !aslave)
         return (errno = EINVAL, -1);
-    char buf[64];
+    char *buf = NULL;
+    size_t cap = 0;
+    if (name) {
+#ifdef PATH_MAX
+        cap = PATH_MAX;
+#else
+        cap = 256;
+#endif
+        buf = malloc(cap);
+        if (!buf)
+            return (errno = ENOMEM, -1);
+    }
     int r = host_openpty(amaster, aslave, name ? buf : NULL, termp, winp);
     if (r == 0 && name)
         strlcpy(name, buf, namesz);
+    free(buf);
     return r;
 }
 
 int forkpty(int *amaster, char *name, size_t namesz,
             struct termios *termp, struct winsize *winp)
 {
-    char buf[64];
+    char *buf = NULL;
+    size_t cap = 0;
+    if (name) {
+#ifdef PATH_MAX
+        cap = PATH_MAX;
+#else
+        cap = 256;
+#endif
+        buf = malloc(cap);
+        if (!buf)
+            return (errno = ENOMEM, -1);
+    }
     int pid = host_forkpty(amaster, name ? buf : NULL, termp, winp);
     if (pid >= 0 && name)
         strlcpy(name, buf, namesz);
+    free(buf);
     return pid;
 }
 
@@ -59,14 +84,47 @@ static int do_openpty(int *amaster, int *aslave, char *name, size_t namesz,
         close(m);
         return -1;
     }
-    char buf[64];
-    if (host_ptsname_r(m, buf, sizeof(buf))) {
+    size_t cap = 0;
+#ifdef PATH_MAX
+    cap = PATH_MAX;
+#else
+    cap = 256;
+#endif
+    char *buf = malloc(cap);
+    if (!buf) {
         close(m);
+        errno = ENOMEM;
         return -1;
+    }
+    for (;;) {
+        if (host_ptsname_r(m, buf, cap) == 0)
+            break;
+        if (errno != ERANGE) {
+            free(buf);
+            close(m);
+            return -1;
+        }
+        if (cap > SIZE_MAX / 2) {
+            free(buf);
+            close(m);
+            errno = ENAMETOOLONG;
+            return -1;
+        }
+        size_t new_cap = cap * 2;
+        char *tmp = realloc(buf, new_cap);
+        if (!tmp) {
+            free(buf);
+            close(m);
+            errno = ENOMEM;
+            return -1;
+        }
+        buf = tmp;
+        cap = new_cap;
     }
     int s = open(buf, O_RDWR | O_NOCTTY);
     if (s < 0) {
         close(m);
+        free(buf);
         return -1;
     }
     if (termp)
@@ -75,6 +133,7 @@ static int do_openpty(int *amaster, int *aslave, char *name, size_t namesz,
         ioctl(s, TIOCSWINSZ, winp);
     if (name)
         strlcpy(name, buf, namesz);
+    free(buf);
     *amaster = m;
     *aslave = s;
     return 0;
