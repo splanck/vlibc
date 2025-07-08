@@ -6364,6 +6364,47 @@ static const char *test_regex_range(void)
     return 0;
 }
 
+static const char *test_regex_exact_repetition(void)
+{
+    regex_t re;
+    regcomp(&re, "^ab{3}$", 0);
+    mu_assert("exact ok", regexec(&re, "abbb", 0, NULL, 0) == 0);
+    mu_assert("exact nomatch", regexec(&re, "abbbb", 0, NULL, 0) == REG_NOMATCH);
+    regfree(&re);
+    return 0;
+}
+
+static const char *test_regex_open_repetition(void)
+{
+    regex_t re;
+    regcomp(&re, "ab{2,}", 0);
+    mu_assert("open min", regexec(&re, "abb", 0, NULL, 0) == 0);
+    mu_assert("open more", regexec(&re, "abbbbb", 0, NULL, 0) == 0);
+    mu_assert("open less", regexec(&re, "ab", 0, NULL, 0) == REG_NOMATCH);
+    regfree(&re);
+    return 0;
+}
+
+static const char *test_regex_anchor_anywhere(void)
+{
+    regex_t re;
+    regcomp(&re, "foo^bar", 0);
+    mu_assert("anchor nomatch1", regexec(&re, "foo^bar", 0, NULL, 0) == REG_NOMATCH);
+    mu_assert("anchor nomatch2", regexec(&re, "foobar", 0, NULL, 0) == REG_NOMATCH);
+    regfree(&re);
+    return 0;
+}
+
+static const char *test_regex_neg_class(void)
+{
+    regex_t re;
+    regcomp(&re, "[^[:digit:]]+", 0);
+    mu_assert("negclass ok", regexec(&re, "abc", 0, NULL, 0) == 0);
+    mu_assert("negclass fail", regexec(&re, "123", 0, NULL, 0) == REG_NOMATCH);
+    regfree(&re);
+    return 0;
+}
+
 static const char *test_math_functions(void)
 {
     mu_assert("fabs", fabs(-3.5) == 3.5);
@@ -7055,6 +7096,10 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("regex", test_regex_posix_class),
         REGISTER_TEST("regex", test_regex_alternation),
         REGISTER_TEST("regex", test_regex_range),
+        REGISTER_TEST("regex", test_regex_exact_repetition),
+        REGISTER_TEST("regex", test_regex_open_repetition),
+        REGISTER_TEST("regex", test_regex_anchor_anywhere),
+        REGISTER_TEST("regex", test_regex_neg_class),
         REGISTER_TEST("stdlib", test_math_functions),
         REGISTER_TEST("stdlib", test_complex_cabs_cexp),
         REGISTER_TEST("stdlib", test_abs_div_functions),
