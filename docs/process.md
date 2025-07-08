@@ -76,10 +76,15 @@ void exit(int status);
 ```
 
 `vfork` returns 0 in the child process and the child's PID in the parent,
-matching the behaviour of `fork`.  The implementation emulates `vfork` by
-calling `fork` instead of issuing the `SYS_vfork` syscall directly.  This
-avoids issues that arise when the child invokes library functions before
-exiting or executing a new program.
+matching the behaviour of `fork`.  When the `SYS_vfork` system call is
+available the wrapper invokes it directly so the parent is suspended until
+the child execs or exits.  Platforms lacking this call fall back to
+`fork`.
+
+`fork` and `posix_spawn` are implemented using the BSD system call
+interfaces from `<sys/syscall.h>` when available.  Systems without
+those calls transparently fall back to portable implementations built
+around `fork` and `execve`.
 
 These wrappers retrieve and manipulate process information. `getuid`,
 `geteuid`, `getgid`, and `getegid` return the real and effective user and

@@ -80,7 +80,8 @@ speeds stored in a `termios` structure are changed with `cfsetispeed()` and
 
  - The I/O routines support optional full and line buffering with more
    detailed error codes but remain minimal compared to a full libc.
- - Process creation currently relies on Linux-specific syscalls.
+ - Process creation now uses BSD system calls or a portable fork/exec
+   fallback instead of Linux-specific primitives.
  - BSD support is experimental and some subsystems may not compile yet.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
    codes.
