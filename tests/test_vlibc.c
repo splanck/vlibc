@@ -111,6 +111,7 @@ static void handle_usr1(int);
 static void *send_signal(void *);
 static void handle_alarm(int);
 static volatile sig_atomic_t alarm_count;
+static volatile sig_atomic_t got_signal;
 
 #define REGISTER_TEST(cat, fn) { #fn, cat, fn }
 
@@ -827,6 +828,51 @@ static const char *test_writev_nonblocking(void)
 
     close(sv[0]);
     pthread_join(t, NULL);
+    close(sv[1]);
+    return 0;
+}
+
+static const char *test_send_retry_eintr(void)
+{
+    int sv[2];
+    mu_assert("socketpair", socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0);
+
+    fcntl(sv[0], F_SETFL, O_NONBLOCK);
+    char fill[4096];
+    memset(fill, 'x', sizeof(fill));
+    for (;;) {
+        ssize_t w = send(sv[0], fill, sizeof(fill), 0);
+        if (w < 0) {
+            mu_assert("fill", errno == EAGAIN);
+            break;
+        }
+    }
+    fcntl(sv[0], F_SETFL, 0);
+
+    struct sigaction sa;
+    sa.sa_handler = handle_usr1;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGUSR1, &sa, NULL);
+
+    got_signal = 0;
+    pthread_t tsig, tdrain;
+    int sig = SIGUSR1;
+    pthread_create(&tsig, NULL, send_signal, &sig);
+    pthread_create(&tdrain, NULL, drain_socket, &sv[1]);
+
+    char c = 'z';
+    ssize_t r = send(sv[0], &c, 1, 0);
+
+    pthread_join(tsig, NULL);
+    pthread_join(tdrain, NULL);
+
+    mu_assert("send", r == 1 && got_signal == 1);
+    char buf[2] = {0};
+    ssize_t rec = recv(sv[1], buf, sizeof(buf), 0);
+    mu_assert("recv", rec == 1 && buf[0] == 'z');
+
+    close(sv[0]);
     close(sv[1]);
     return 0;
 }
@@ -4949,7 +4995,6 @@ static const char *test_abort_fn(void)
     return 0;
 }
 
-static volatile sig_atomic_t got_signal;
 
 static void handle_alarm(int signo)
 {
@@ -6761,6 +6806,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("network", test_socket),
         REGISTER_TEST("network", test_socketpair_basic),
         REGISTER_TEST("network", test_writev_nonblocking),
+        REGISTER_TEST("network", test_send_retry_eintr),
         REGISTER_TEST("network", test_socket_addresses),
         REGISTER_TEST("network", test_sendmsg_recvmsg),
         REGISTER_TEST("network", test_udp_send_recv),

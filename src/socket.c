@@ -94,12 +94,20 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 /* Send data on a connected socket */
 ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 {
-    long ret = vlibc_syscall(SYS_sendto, sockfd, (long)buf, len, flags, 0, 0);
-    if (ret < 0) {
-        errno = -ret;
-        return -1;
+    const char *p = (const char *)buf;
+    size_t total = 0;
+    while (total < len) {
+        long ret = vlibc_syscall(SYS_sendto, sockfd, (long)(p + total),
+                                 len - total, flags, 0, 0);
+        if (ret < 0) {
+            if (-ret == EINTR)
+                continue;
+            errno = -ret;
+            return total ? (ssize_t)total : -1;
+        }
+        total += (size_t)ret;
     }
-    return (ssize_t)ret;
+    return (ssize_t)total;
 }
 
 /* Receive data from a connected socket */
