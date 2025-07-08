@@ -252,6 +252,7 @@ int clearenv(void)
     if (!environ_owned) {
         for (int i = 0; environ[i]; ++i)
             environ[i] = NULL;
+        errno = 0;
         return 0;
     }
     char **oldenv = environ;

@@ -3683,7 +3683,9 @@ static const char *test_env_init_clearenv(void)
 
     env_init(copy);
     char **orig = environ;
+    errno = 1;
     mu_assert("clearenv", clearenv() == 0);
+    mu_assert("errno cleared", errno == 0);
     mu_assert("same pointer", environ == orig);
     mu_assert("first null", copy[0] == NULL);
     env_init(NULL);

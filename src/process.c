@@ -31,6 +31,7 @@ extern int __posix_spawnp(pid_t *, const char *,
 #include <stdarg.h>
 #include <fcntl.h>
 #include "stdio.h"
+#include <stdint.h>
 extern long syscall(long number, ...);
 
 /* from atexit.c */
