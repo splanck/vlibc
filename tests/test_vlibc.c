@@ -6375,6 +6375,14 @@ static const char *test_abs_div_functions(void)
     return 0;
 }
 
+static const char *test_abs_min_values(void)
+{
+    mu_assert("abs INT_MIN", abs(INT_MIN) == INT_MIN);
+    mu_assert("labs LONG_MIN", labs(LONG_MIN) == LONG_MIN);
+    mu_assert("llabs LLONG_MIN", llabs(LLONG_MIN) == LLONG_MIN);
+    return 0;
+}
+
 static const char *test_fp_checks(void)
 {
     volatile double zero = 0.0;
@@ -7004,6 +7012,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("stdlib", test_math_functions),
         REGISTER_TEST("stdlib", test_complex_cabs_cexp),
         REGISTER_TEST("stdlib", test_abs_div_functions),
+        REGISTER_TEST("stdlib", test_abs_min_values),
         REGISTER_TEST("stdlib", test_vis_roundtrip),
         REGISTER_TEST("stdlib", test_nvis_basic),
         REGISTER_TEST("stdlib", test_fp_checks),
