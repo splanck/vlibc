@@ -83,8 +83,8 @@ speeds stored in a `termios` structure are changed with `cfsetispeed()` and
  - Process creation now uses BSD system calls or a portable fork/exec
    fallback instead of Linux-specific primitives.
  - BSD support is experimental and some subsystems may not compile yet.
- - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
-   codes.
+ - The `system()` helper spawns `/bin/sh -c` and returns the raw
+   `waitpid` status so callers can inspect exit codes and signals.
  - `perror` and `strerror` support the full set of standard errno values.
 - Thread support is limited to basic mutexes, condition variables,
   semaphores, barriers and join/detach.
