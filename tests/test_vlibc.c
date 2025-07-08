@@ -4837,6 +4837,37 @@ static const char *test_posix_spawn_sigdefault_all(void)
     return 0;
 }
 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__) || defined(__APPLE__)
+
+static const char *test_bsd_fork_exec(void)
+{
+    pid_t pid = fork();
+    mu_assert("fork", pid >= 0);
+    if (pid == 0)
+        execl("/bin/sh", "sh", "-c", "exit 4", (char *)NULL);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("fork exit", WIFEXITED(status) && WEXITSTATUS(status) == 4);
+    return 0;
+}
+
+static const char *test_bsd_spawn_exec(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+    char *argv[] = {"/bin/sh", "-c", "exit 9", NULL};
+    pid_t pid;
+    int r = posix_spawn(&pid, "/bin/sh", NULL, NULL, argv, __environ);
+    mu_assert("spawn", r == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("spawn exit", WIFEXITED(status) && WEXITSTATUS(status) == 9);
+    return 0;
+}
+
+#endif /* BSD process tests */
+
 static const char *test_rand_fn(void)
 {
     srand(1);
@@ -7147,6 +7178,11 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("process", test_popen_fn),
         REGISTER_TEST("process", test_shell_errno),
         REGISTER_TEST("process", test_posix_spawn_sigdefault_all),
+#if defined(__FreeBSD__) || defined(__NetBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__) || defined(__APPLE__)
+        REGISTER_TEST("process", test_bsd_fork_exec),
+        REGISTER_TEST("process", test_bsd_spawn_exec),
+#endif
         REGISTER_TEST("stdlib", test_rand_fn),
         REGISTER_TEST("stdlib", test_rand48_fn),
         REGISTER_TEST("stdlib", test_arc4random_uniform_basic),

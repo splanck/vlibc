@@ -44,39 +44,44 @@ extern long syscall(long number, ...);
 extern void __run_atexit(void);
 
 /*
- * fork() - create a new process using the underlying fork or clone
- * system call. Returns the child's PID to the parent and 0 to the
- * child. On failure the wrapper stores the negative return value in
- * errno and returns -1.
+ * fork() - create a new process using the BSD fork system call.  The
+ * wrapper returns the child's PID to the parent and 0 to the child.
+ * On failure the negative error code from vlibc_syscall is converted
+ * to errno and -1 is returned.
  */
-
 
 pid_t fork(void)
 {
 #ifdef SYS_fork
     long ret = vlibc_syscall(SYS_fork, 0, 0, 0, 0, 0, 0);
-#else
-    long ret = vlibc_syscall(SYS_clone, SIGCHLD, 0, 0, 0, 0, 0);
-#endif
     if (ret < 0) {
         errno = -ret;
         return -1;
     }
     return (pid_t)ret;
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
 }
 
 /*
- * vfork() - create a new process and temporarily suspend the parent until the
- * child either execs or exits.  The original implementation invoked the
- * `SYS_vfork` syscall directly when available, but that can leave the parent
- * using a corrupted stack if the child calls into the C library.  To avoid
- * those issues we emulate `vfork` using `fork`.  This still returns 0 in the
- * child and the child's PID in the parent while allowing the child to safely
- * call into the library before exiting or executing a new program.
+ * vfork() - create a new process and suspend the parent until the child
+ * either calls exec or exits.  When the vfork system call is available it
+ * is used directly; otherwise the wrapper falls back to fork().
  */
 pid_t vfork(void)
 {
+#ifdef SYS_vfork
+    long ret = vlibc_syscall(SYS_vfork, 0, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return (pid_t)ret;
+#else
     return fork();
+#endif
 }
 
 /*
@@ -818,13 +823,13 @@ static __attribute__((unused)) pid_t vlibc_vfork(void)
     return vfork();
 }
 
-/*
- * posix_spawn() - create a new process using fork() and execve(). File actions
- * and spawn attributes are applied in the child. Errors detected before execve
- * are written through a pipe so the parent can return an errno value.
- */
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
     defined(__DragonFly__) || defined(__APPLE__)
+/*
+ * posix_spawn() - create a new process using the native BSD implementation.
+ * File actions and spawn attributes are passed through to the underlying
+ * system call which handles process creation efficiently.
+ */
 
 int posix_spawn(pid_t *pid, const char *path,
                 const posix_spawn_file_actions_t *file_actions,
