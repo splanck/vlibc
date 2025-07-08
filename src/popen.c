@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "string.h"
 #include "errno.h"
+#include "fcntl.h"
 #include "vlibc.h"
 
 struct popen_file {
@@ -33,14 +34,28 @@ FILE *popen(const char *command, const char *mode)
     if (pipe(pipefd) < 0)
         return NULL;
 
-    pid_t pid = fork();
-    if (pid < 0) {
+    int errpipe[2];
+    if (pipe(errpipe) < 0) {
         close(pipefd[0]);
         close(pipefd[1]);
         return NULL;
     }
+    fcntl(errpipe[0], F_SETFD, FD_CLOEXEC);
+    fcntl(errpipe[1], F_SETFD, FD_CLOEXEC);
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        int err = errno;
+        close(pipefd[0]);
+        close(pipefd[1]);
+        close(errpipe[0]);
+        close(errpipe[1]);
+        errno = err;
+        return NULL;
+    }
 
     if (pid == 0) {
+        close(errpipe[0]);
         if (read_mode) {
             dup2(pipefd[1], 1);
             close(pipefd[0]);
@@ -54,7 +69,23 @@ FILE *popen(const char *command, const char *mode)
         char *argv[] = {(char *)shell, "-c", (char *)command, NULL};
         extern char **environ;
         execve(shell, argv, environ);
+        int err = errno;
+        ssize_t w = write(errpipe[1], &err, sizeof(err));
+        if (w < (ssize_t)sizeof(err))
+            _exit(127);
         _exit(127);
+    }
+
+    close(errpipe[1]);
+    int child_err = 0;
+    ssize_t n = read(errpipe[0], &child_err, sizeof(child_err));
+    close(errpipe[0]);
+    if (n > 0) {
+        waitpid(pid, NULL, 0);
+        errno = child_err;
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return NULL;
     }
 
     struct popen_file *pf = malloc(sizeof(struct popen_file));

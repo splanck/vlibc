@@ -4586,6 +4586,24 @@ static const char *test_popen_fn(void)
     return 0;
 }
 
+static const char *test_shell_errno(void)
+{
+    setenv("VLIBC_SHELL", "/no/such/shell", 1);
+
+    errno = 0;
+    int r = system("true");
+    int serr = errno;
+    mu_assert("system errno", r == -1 && serr == ENOENT);
+
+    errno = 0;
+    FILE *f = popen("echo fail", "r");
+    int perr = errno;
+    mu_assert("popen errno", f == NULL && perr == ENOENT);
+
+    unsetenv("VLIBC_SHELL");
+    return 0;
+}
+
 static const char *test_rand_fn(void)
 {
     srand(1);
@@ -6800,6 +6818,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("process", test_posix_spawn_fchdir),
         REGISTER_TEST("process", test_posix_spawn_actions_alloc_fail),
         REGISTER_TEST("process", test_popen_fn),
+        REGISTER_TEST("process", test_shell_errno),
         REGISTER_TEST("stdlib", test_rand_fn),
         REGISTER_TEST("stdlib", test_rand48_fn),
         REGISTER_TEST("stdlib", test_arc4random_uniform_basic),
