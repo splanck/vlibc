@@ -71,6 +71,9 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <signal.h>
+#ifndef _NSIG
+#define _NSIG (SIGRTMAX + 1)
+#endif
 #include <openssl/evp.h>
 #include "../include/setjmp.h"
 #include "ucontext.h"
@@ -4650,6 +4653,31 @@ static const char *test_shell_errno(void)
     return 0;
 }
 
+static const char *test_posix_spawn_sigdefault_all(void)
+{
+    extern char **__environ;
+    env_init(__environ);
+
+    signal(SIGINT, SIG_IGN);
+
+    posix_spawnattr_t at;
+    posix_spawnattr_init(&at);
+    posix_spawnattr_setflags(&at, POSIX_SPAWN_SETSIGDEF);
+    sigfillset(&at.sigdefault);
+
+    char *argv[] = {"/bin/sh", "-c", "kill -INT $$; echo hi", NULL};
+    pid_t pid;
+    int r = posix_spawn(&pid, "/bin/sh", NULL, &at, argv, __environ);
+    mu_assert("spawn", r == 0);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    mu_assert("sigdefault", WIFSIGNALED(status) && WTERMSIG(status) == SIGINT);
+    posix_spawnattr_destroy(&at);
+    signal(SIGINT, SIG_DFL);
+
+    return 0;
+}
+
 static const char *test_rand_fn(void)
 {
     srand(1);
@@ -6891,6 +6919,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("process", test_posix_spawn_actions_alloc_fail),
         REGISTER_TEST("process", test_popen_fn),
         REGISTER_TEST("process", test_shell_errno),
+        REGISTER_TEST("process", test_posix_spawn_sigdefault_all),
         REGISTER_TEST("stdlib", test_rand_fn),
         REGISTER_TEST("stdlib", test_rand48_fn),
         REGISTER_TEST("stdlib", test_arc4random_uniform_basic),
