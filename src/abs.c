@@ -7,32 +7,39 @@
  */
 
 #include "stdlib.h"
+#include <limits.h>
 
 /* Return the absolute value of a signed int. */
 int abs(int j)
 {
-    unsigned int u = (unsigned int)j;
-    if (j < 0)
-        u = 0u - u;
-    return (int)u;
+    if (j < 0) {
+        if (j == INT_MIN)
+            return j;
+        return -j;
+    }
+    return j;
 }
 
 /* Return the absolute value of a signed long. */
 long labs(long j)
 {
-    unsigned long u = (unsigned long)j;
-    if (j < 0)
-        u = 0ul - u;
-    return (long)u;
+    if (j < 0) {
+        if (j == LONG_MIN)
+            return j;
+        return -j;
+    }
+    return j;
 }
 
 /* Return the absolute value of a signed long long. */
 long long llabs(long long j)
 {
-    unsigned long long u = (unsigned long long)j;
-    if (j < 0)
-        u = 0ull - u;
-    return (long long)u;
+    if (j < 0) {
+        if (j == LLONG_MIN)
+            return j;
+        return -j;
+    }
+    return j;
 }
 
 /* Compute quotient and remainder of numer divided by denom. */
