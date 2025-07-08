@@ -2268,6 +2268,36 @@ static const char *test_printf_functions(void)
     n = snprintf(buf, sizeof(buf), "[%.4x]", 3);
     mu_assert("precision", strcmp(buf, "[0003]") == 0);
 
+    n = snprintf(buf, sizeof(buf), "%+d", 5);
+    mu_assert("plus flag", strcmp(buf, "+5") == 0);
+
+    n = snprintf(buf, sizeof(buf), "% d", 5);
+    mu_assert("space flag", strcmp(buf, " 5") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%05d", 2);
+    mu_assert("zero flag", strcmp(buf, "00002") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%-5d", 2);
+    mu_assert("dash flag", strcmp(buf, "2    ") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%#x", 0x1a);
+    mu_assert("hash hex", strcmp(buf, "0x1a") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%#o", 9);
+    mu_assert("hash oct", strcmp(buf, "011") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%hhd", (signed char)-1);
+    mu_assert("hhd length", strcmp(buf, "-1") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%hd", (short)32000);
+    mu_assert("hd length", strcmp(buf, "32000") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%zd", (size_t)123);
+    mu_assert("zd length", strcmp(buf, "123") == 0);
+
+    n = snprintf(buf, sizeof(buf), "%+05d", 3);
+    mu_assert("plus zero width", strcmp(buf, "+0003") == 0);
+
     n = snprintf(buf, sizeof(buf), "%ld", (long)123456L);
     mu_assert("snprintf long", n == (int)strlen("123456") && strcmp(buf, "123456") == 0);
 
