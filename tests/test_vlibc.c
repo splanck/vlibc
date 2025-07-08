@@ -5638,6 +5638,14 @@ static const char *test_fts_alloc_fail(void)
     return 0;
 }
 
+static const char *test_fts_close_null(void)
+{
+    errno = 0;
+    mu_assert("fts_close", fts_close(NULL) == -1);
+    mu_assert("errno EINVAL", errno == EINVAL);
+    return 0;
+}
+
 static const char *test_passwd_lookup(void)
 {
     char tmpl[] = "/tmp/pwtestXXXXXX";
@@ -6936,6 +6944,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("ftw", test_ftw_long_path_fail),
         REGISTER_TEST("dirent", test_fts_walk),
         REGISTER_TEST("dirent", test_fts_alloc_fail),
+        REGISTER_TEST("dirent", test_fts_close_null),
         REGISTER_TEST("stdlib", test_qsort_int),
         REGISTER_TEST("stdlib", test_qsort_strings),
         REGISTER_TEST("stdlib", test_bsearch_large),

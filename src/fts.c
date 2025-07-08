@@ -222,8 +222,10 @@ FTSENT *fts_read(FTS *fts)
  */
 int fts_close(FTS *fts)
 {
-    if (!fts)
+    if (!fts) {
+        errno = EINVAL;
         return -1;
+    }
     free_entry(fts->cur);
     struct node *n;
     while ((n = queue_pop(fts))) {
