@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdint.h>
 #ifdef tmpnam
 #undef tmpnam
 #endif
@@ -219,17 +220,24 @@ char *tempnam(const char *dir, const char *pfx)
 {
     const char *d = dir ? dir : "/tmp";
     const char *p = pfx ? pfx : "vlibc";
-    char tmpl[256];
-    snprintf(tmpl, sizeof(tmpl), "%s/%sXXXXXX", d, p);
-    char *res = strdup(tmpl);
-    if (!res)
+    size_t len_d = strlen(d);
+    size_t len_p = strlen(p);
+    /* account for '/' + pfx + "XXXXXX" + null */
+    if (len_p > SIZE_MAX - 8 || len_d > SIZE_MAX - (len_p + 8)) {
+        errno = ENAMETOOLONG;
         return NULL;
-    int fd = mkstemp(res);
+    }
+    size_t tlen = len_d + len_p + 8;
+    char *tmpl = malloc(tlen);
+    if (!tmpl)
+        return NULL;
+    snprintf(tmpl, tlen, "%s/%sXXXXXX", d, p);
+    int fd = mkstemp(tmpl);
     if (fd < 0) {
-        free(res);
+        free(tmpl);
         return NULL;
     }
     close(fd);
-    unlink(res);
-    return res;
+    unlink(tmpl);
+    return tmpl;
 }
