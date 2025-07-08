@@ -8,6 +8,7 @@
 
 #include "semaphore.h"
 #include <errno.h>
+#include "futex.h"
 
 /*
  * Initialize a semaphore with the provided initial count.
@@ -50,8 +51,7 @@ int sem_wait(sem_t *sem)
                                                   memory_order_acquire,
                                                   memory_order_relaxed))
             return 0;
-        struct timespec ts = {0, 1000000};
-        nanosleep(&ts, NULL);
+        futex_wait(&sem->count, 0, NULL);
     }
 }
 
@@ -81,5 +81,6 @@ int sem_post(sem_t *sem)
     if (!sem)
         return EINVAL;
     atomic_fetch_add_explicit(&sem->count, 1, memory_order_release);
+    futex_wake(&sem->count, 1);
     return 0;
 }

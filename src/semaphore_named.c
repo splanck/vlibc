@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include "memory.h"
+#include "futex.h"
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)
@@ -115,8 +116,13 @@ int sem_timedwait(sem_t *sem, const struct timespec *abstime)
         if (now.tv_sec > abstime->tv_sec ||
             (now.tv_sec == abstime->tv_sec && now.tv_nsec >= abstime->tv_nsec))
             return ETIMEDOUT;
-        struct timespec ts = {0, 1000000};
-        nanosleep(&ts, NULL);
+        struct timespec rel = {abstime->tv_sec - now.tv_sec,
+                               abstime->tv_nsec - now.tv_nsec};
+        if (rel.tv_nsec < 0) {
+            rel.tv_sec--;
+            rel.tv_nsec += 1000000000;
+        }
+        futex_wait(&sem->count, 0, &rel);
     }
 }
 

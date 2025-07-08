@@ -9,6 +9,7 @@
 #include "pthread.h"
 #include <errno.h>
 #include <stdatomic.h>
+#include "futex.h"
 
 /* Initialize a spin lock object. Only process-private locks are supported. */
 int pthread_spin_init(pthread_spinlock_t *lock, int pshared)
@@ -16,7 +17,7 @@ int pthread_spin_init(pthread_spinlock_t *lock, int pshared)
     (void)pshared;
     if (!lock)
         return EINVAL;
-    atomic_flag_clear(&lock->locked);
+    atomic_store(&lock->locked, 0);
     return 0;
 }
 
@@ -25,8 +26,8 @@ int pthread_spin_lock(pthread_spinlock_t *lock)
 {
     if (!lock)
         return EINVAL;
-    while (atomic_flag_test_and_set_explicit(&lock->locked, memory_order_acquire))
-        ;
+    while (atomic_exchange_explicit(&lock->locked, 1, memory_order_acquire))
+        futex_wait(&lock->locked, 1, NULL);
     return 0;
 }
 
@@ -35,7 +36,10 @@ int pthread_spin_trylock(pthread_spinlock_t *lock)
 {
     if (!lock)
         return EINVAL;
-    if (atomic_flag_test_and_set_explicit(&lock->locked, memory_order_acquire))
+    int expected = 0;
+    if (!atomic_compare_exchange_strong_explicit(&lock->locked, &expected, 1,
+                                                 memory_order_acquire,
+                                                 memory_order_relaxed))
         return EBUSY;
     return 0;
 }
@@ -45,7 +49,8 @@ int pthread_spin_unlock(pthread_spinlock_t *lock)
 {
     if (!lock)
         return EINVAL;
-    atomic_flag_clear_explicit(&lock->locked, memory_order_release);
+    atomic_store_explicit(&lock->locked, 0, memory_order_release);
+    futex_wake(&lock->locked, 1);
     return 0;
 }
 

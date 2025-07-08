@@ -3125,6 +3125,38 @@ static const char *test_pthread_cond_broadcast(void)
     return 0;
 }
 
+static pthread_mutex_t block_mutex;
+
+static void *block_worker(void *arg)
+{
+    long *cpu = arg;
+    struct rusage r1, r2;
+    getrusage(RUSAGE_THREAD, &r1);
+    pthread_mutex_lock(&block_mutex);
+    getrusage(RUSAGE_THREAD, &r2);
+    *cpu = (r2.ru_utime.tv_sec - r1.ru_utime.tv_sec) * 1000000L +
+           (r2.ru_utime.tv_usec - r1.ru_utime.tv_usec) +
+           (r2.ru_stime.tv_sec - r1.ru_stime.tv_sec) * 1000000L +
+           (r2.ru_stime.tv_usec - r1.ru_stime.tv_usec);
+    pthread_mutex_unlock(&block_mutex);
+    return NULL;
+}
+
+static const char *test_pthread_mutex_blocking(void)
+{
+    pthread_t t;
+    long cpu = 0;
+    pthread_mutex_init(&block_mutex, NULL);
+    pthread_mutex_lock(&block_mutex);
+    pthread_create(&t, NULL, block_worker, &cpu);
+    usleep(20000);
+    pthread_mutex_unlock(&block_mutex);
+    pthread_join(t, NULL);
+    pthread_mutex_destroy(&block_mutex);
+    mu_assert("thread blocked", cpu < 5000000);
+    return 0;
+}
+
 static void *delayed_write(void *arg)
 {
     int fd = *(int *)arg;
@@ -6725,6 +6757,7 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("process", test_pthread_spinlock),
         REGISTER_TEST("process", test_pthread_cond_signal),
         REGISTER_TEST("process", test_pthread_cond_broadcast),
+        REGISTER_TEST("process", test_pthread_mutex_blocking),
         REGISTER_TEST("process", test_semaphore_basic),
         REGISTER_TEST("process", test_semaphore_trywait),
         REGISTER_TEST("process", test_select_pipe),

@@ -42,7 +42,7 @@
 #include <sys/syscall.h>
 #include "syscall.h"
 
-static pthread_mutex_t gr_lock = { ATOMIC_FLAG_INIT, PTHREAD_MUTEX_RECURSIVE, 0, 0 };
+static pthread_mutex_t gr_lock = { ATOMIC_VAR_INIT(0), PTHREAD_MUTEX_RECURSIVE, 0, 0 };
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__)

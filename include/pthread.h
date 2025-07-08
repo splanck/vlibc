@@ -18,7 +18,7 @@
 typedef unsigned long pthread_t;
 
 typedef struct {
-    atomic_flag locked;
+    atomic_int locked;    /* 0 unlocked, 1 locked */
     int type;             /* mutex behavior */
     pthread_t owner;      /* thread holding the lock */
     unsigned recursion;   /* recursion depth for recursive mutexes */
@@ -30,7 +30,7 @@ typedef struct {
 
 #define PTHREAD_MUTEX_NORMAL 0
 #define PTHREAD_MUTEX_RECURSIVE 1
-#define PTHREAD_MUTEX_INITIALIZER { ATOMIC_FLAG_INIT, PTHREAD_MUTEX_NORMAL, 0, 0 }
+#define PTHREAD_MUTEX_INITIALIZER { ATOMIC_VAR_INIT(0), PTHREAD_MUTEX_NORMAL, 0, 0 }
 
 typedef struct {
     atomic_int seq;  /* number of signals issued */
@@ -154,7 +154,7 @@ int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
 /* Destroy a read-write lock object (no-op). */
 
 typedef struct {
-    atomic_flag locked;
+    atomic_int locked;    /* 0 unlocked, 1 locked */
 } pthread_spinlock_t;
 int pthread_spin_init(pthread_spinlock_t *lock, int pshared);
 /* Initialize a spin lock. "pshared" is ignored and only process-private
