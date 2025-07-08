@@ -2782,6 +2782,57 @@ static const char *test_fopen_invalid_mode(void)
     return 0;
 }
 
+static const char *test_line_buffering(void)
+{
+    FILE *f = fopen("tmp_linebuf", "w");
+    mu_assert("open", f != NULL);
+    mu_assert("setvbuf", setvbuf(f, NULL, _IOLBF, BUFSIZ) == 0);
+    fputs("one\n", f);
+    struct stat st;
+    stat("tmp_linebuf", &st);
+    mu_assert("newline flush", st.st_size == 4);
+    fputs("two", f);
+    stat("tmp_linebuf", &st);
+    mu_assert("no flush", st.st_size == 4);
+    fflush(f);
+    stat("tmp_linebuf", &st);
+    mu_assert("flushed", st.st_size == 7);
+    fclose(f);
+    unlink("tmp_linebuf");
+    return 0;
+}
+
+static const char *test_full_buffering(void)
+{
+    FILE *f = fopen("tmp_fullbuf", "w");
+    mu_assert("open", f != NULL);
+    mu_assert("setvbuf", setvbuf(f, NULL, _IOFBF, 16) == 0);
+    fputs("abc", f);
+    struct stat st;
+    stat("tmp_fullbuf", &st);
+    mu_assert("not flushed", st.st_size == 0);
+    fflush(f);
+    stat("tmp_fullbuf", &st);
+    mu_assert("after flush", st.st_size == 3);
+    fclose(f);
+    unlink("tmp_fullbuf");
+    return 0;
+}
+
+static const char *test_fflush_error_propagation(void)
+{
+    FILE *f = fopen("tmp_flush_err", "w");
+    mu_assert("open", f != NULL);
+    int fd = fileno(f);
+    close(fd);
+    errno = 0;
+    size_t w = fwrite("x", 1, 1, f);
+    mu_assert("fwrite fail", w == 0 && errno == EBADF && ferror(f));
+    fclose(f);
+    unlink("tmp_flush_err");
+    return 0;
+}
+
 struct write_arg {
     FILE *f;
     char ch;
@@ -6963,6 +7014,9 @@ static const char *run_tests(const char *category, const char *name)
         REGISTER_TEST("stdio", test_getline_various),
         REGISTER_TEST("stdio", test_getdelim_various),
         REGISTER_TEST("stdio", test_fflush),
+        REGISTER_TEST("stdio", test_line_buffering),
+        REGISTER_TEST("stdio", test_full_buffering),
+        REGISTER_TEST("stdio", test_fflush_error_propagation),
         REGISTER_TEST("stdio", test_feof_flag),
         REGISTER_TEST("stdio", test_ferror_flag),
         REGISTER_TEST("stdio", test_fopen_invalid_mode),

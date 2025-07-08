@@ -133,6 +133,7 @@ FILE *fopen(const char *path, const char *mode)
     memset(f, 0, sizeof(FILE));
     atomic_flag_clear(&f->lock);
     f->fd = fd;
+    f->buf_mode = _IONBF;
     if (mode[0] == 'r')
         f->readable = 1;
     if (mode[0] == 'w' || mode[0] == 'a')
@@ -260,19 +261,36 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
             if (stream->bufpos > stream->buflen)
                 stream->buflen = stream->bufpos;
             written += n;
-        } else if (stream->buf) {
-            if (stream->buflen == stream->bufsize) {
-                if (flush_buffer(stream) < 0)
-                    break;
-            }
-            size_t avail = stream->bufsize - stream->buflen;
-            size_t n = total - written < avail ? total - written : avail;
-            memcpy(stream->buf + stream->buflen, in + written, n);
-            stream->buflen += n;
-            written += n;
-            if (stream->buflen == stream->bufsize) {
-                if (flush_buffer(stream) < 0)
-                    break;
+        } else if (stream->buf && stream->buf_mode != _IONBF) {
+            if (stream->buf_mode == _IOLBF) {
+                while (written < total) {
+                    if (stream->buflen == stream->bufsize) {
+                        if (flush_buffer(stream) < 0)
+                            goto end;
+                    }
+                    stream->buf[stream->buflen++] = in[written++];
+                    if (stream->buf[stream->buflen-1] == '\n' ||
+                        stream->buflen == stream->bufsize) {
+                        if (flush_buffer(stream) < 0)
+                            goto end;
+                    }
+                    if (written == total)
+                        break;
+                }
+            } else {
+                if (stream->buflen == stream->bufsize) {
+                    if (flush_buffer(stream) < 0)
+                        break;
+                }
+                size_t avail = stream->bufsize - stream->buflen;
+                size_t n = total - written < avail ? total - written : avail;
+                memcpy(stream->buf + stream->buflen, in + written, n);
+                stream->buflen += n;
+                written += n;
+                if (stream->buflen == stream->bufsize) {
+                    if (flush_buffer(stream) < 0)
+                        break;
+                }
             }
         } else {
             ssize_t w = write(stream->fd, in + written, total - written);
@@ -283,6 +301,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
             written += (size_t)w;
         }
     }
+end:
     return written / size;
 }
 
@@ -512,19 +531,27 @@ int fflush(FILE *stream)
 
 int setvbuf(FILE *stream, char *buf, int mode, size_t size)
 {
-    (void)mode; /* buffering mode not currently used */
-    if (!stream)
+    if (!stream) {
+        errno = EBADF;
         return -1;
+    }
+    if (mode != _IOFBF && mode != _IOLBF && mode != _IONBF) {
+        errno = EINVAL;
+        return -1;
+    }
     if (stream->buf && stream->buf_owned)
         free(stream->buf);
-    if (size == 0) {
+    if (mode == _IONBF) {
         stream->buf = NULL;
         stream->bufsize = 0;
         stream->bufpos = 0;
         stream->buflen = 0;
         stream->buf_owned = 0;
+        stream->buf_mode = mode;
         return 0;
     }
+    if (size == 0)
+        size = BUFSIZ;
     if (buf) {
         stream->buf = (unsigned char *)buf;
         stream->buf_owned = 0;
@@ -539,12 +566,30 @@ int setvbuf(FILE *stream, char *buf, int mode, size_t size)
     stream->bufsize = size;
     stream->bufpos = 0;
     stream->buflen = 0;
+    stream->buf_mode = mode;
     return 0;
 }
 
 void setbuf(FILE *stream, char *buf)
 {
     setvbuf(stream, buf, _IOFBF, BUFSIZ);
+}
+
+void setbuffer(FILE *stream, char *buf, size_t size)
+{
+    if (!stream)
+        return;
+    if (buf && size)
+        setvbuf(stream, buf, _IOFBF, size);
+    else
+        setvbuf(stream, NULL, _IONBF, 0);
+}
+
+int setlinebuf(FILE *stream)
+{
+    if (!stream)
+        return -1;
+    return setvbuf(stream, NULL, _IOLBF, BUFSIZ);
 }
 
 int feof(FILE *stream)

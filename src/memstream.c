@@ -30,6 +30,7 @@ FILE *open_memstream(char **bufp, size_t *sizep)
     memset(f, 0, sizeof(FILE));
     atomic_flag_clear(&f->lock);
     f->fd = -1;
+    f->buf_mode = _IOFBF;
     f->is_mem = 1;
     f->writable = 1;
     f->mem_bufp = (void **)bufp;
@@ -66,6 +67,7 @@ FILE *open_wmemstream(wchar_t **bufp, size_t *sizep)
     memset(f, 0, sizeof(FILE));
     atomic_flag_clear(&f->lock);
     f->fd = -1;
+    f->buf_mode = _IOFBF;
     f->is_mem = 1;
     f->is_wmem = 1;
     f->writable = 1;
@@ -103,6 +105,7 @@ FILE *fmemopen(void *buf, size_t size, const char *mode)
     memset(f, 0, sizeof(FILE));
     atomic_flag_clear(&f->lock);
     f->fd = -1;
+    f->buf_mode = _IOFBF;
     f->is_mem = 1;
 
     if (!mode)

@@ -18,6 +18,7 @@ typedef struct {
     size_t bufpos;               /* current read/write position in buf */
     size_t buflen;               /* valid data length in buf */
     int buf_owned;               /* buffer should be freed on close */
+    int buf_mode;                /* buffering mode (_IOFBF, _IOLBF, _IONBF) */
     int error;                   /* error indicator */
     int eof;                     /* end-of-file indicator */
     int have_ungot;              /* ungetc() character available */
@@ -88,6 +89,8 @@ int fputs(const char *s, FILE *stream);
 int fflush(FILE *stream);
 int setvbuf(FILE *stream, char *buf, int mode, size_t size);
 void setbuf(FILE *stream, char *buf);
+void setbuffer(FILE *stream, char *buf, size_t size);
+int setlinebuf(FILE *stream);
 int feof(FILE *stream);
 int ferror(FILE *stream);
 void clearerr(FILE *stream);

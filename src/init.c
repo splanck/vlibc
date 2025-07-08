@@ -21,6 +21,7 @@ void vlibc_init(void)
         memset(stdin, 0, sizeof(FILE));
         atomic_flag_clear(&stdin->lock);
         stdin->fd = 0;
+        stdin->buf_mode = _IONBF;
     }
 
     stdout = malloc(sizeof(FILE));
@@ -30,6 +31,7 @@ void vlibc_init(void)
         memset(stdout, 0, sizeof(FILE));
         atomic_flag_clear(&stdout->lock);
         stdout->fd = 1;
+        stdout->buf_mode = _IONBF;
     }
 
     stderr = malloc(sizeof(FILE));
@@ -39,5 +41,6 @@ void vlibc_init(void)
         memset(stderr, 0, sizeof(FILE));
         atomic_flag_clear(&stderr->lock);
         stderr->fd = 2;
+        stderr->buf_mode = _IONBF;
     }
 }

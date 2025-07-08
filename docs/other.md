@@ -77,8 +77,8 @@ speeds stored in a `termios` structure are changed with `cfsetispeed()` and
 
 ## Limitations
 
- - The I/O routines perform simple optional buffering and provide only
-   basic error reporting.
+ - The I/O routines support optional full and line buffering with more
+   detailed error codes but remain minimal compared to a full libc.
  - Process creation currently relies on Linux-specific syscalls.
  - BSD support is experimental and some subsystems may not compile yet.
  - The `system()` helper spawns `/bin/sh -c` and lacks detailed status
