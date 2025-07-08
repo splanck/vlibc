@@ -233,6 +233,7 @@ static char *wcs_to_mb_tmp(const wchar_t *s, char *stack, size_t stack_sz, size_
     char *buf = malloc(len + 1);
     if (!buf) {
         *out_len = 0;
+        errno = ENOMEM;
         return NULL;
     }
     wcstombs(buf, s, len + 1);

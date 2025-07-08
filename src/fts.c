@@ -37,11 +37,14 @@ struct _fts {
 static int queue_push(FTS *fts, const char *path, int level)
 {
     struct node *n = malloc(sizeof(*n));
-    if (!n)
+    if (!n) {
+        errno = ENOMEM;
         return -1;
+    }
     n->path = strdup(path);
     if (!n->path) {
         free(n);
+        errno = ENOMEM;
         return -1;
     }
     n->level = level;
@@ -185,6 +188,7 @@ FTSENT *fts_read(FTS *fts)
                     closedir(d);
                     free_entry(ent);
                     free(n);
+                    errno = ENOMEM;
                     return NULL;
                 }
                 memcpy(child, ent->fts_path, len);

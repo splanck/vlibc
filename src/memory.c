@@ -76,8 +76,10 @@ void *malloc(size_t size)
         vlibc_test_alloc_fail_after = -1;
         return NULL;
     }
-    if (size == 0)
+    if (size == 0) {
+        errno = ENOMEM;
         return NULL;
+    }
 
     /*
      * When unit tests force the next sbrk call to fail we need to bypass
@@ -163,8 +165,10 @@ void *malloc(size_t size)
         vlibc_test_alloc_fail_after = -1;
         return NULL;
     }
-    if (size == 0)
+    if (size == 0) {
+        errno = ENOMEM;
         return NULL;
+    }
 
     if (size > SIZE_MAX - sizeof(struct mmap_header)) {
         errno = ENOMEM;
@@ -174,8 +178,10 @@ void *malloc(size_t size)
     size_t total = sizeof(struct mmap_header) + size;
     struct mmap_header *hdr = mmap(NULL, total, PROT_READ | PROT_WRITE,
                                    MAP_PRIVATE | MAP_ANON, -1, 0);
-    if (hdr == MAP_FAILED)
+    if (hdr == MAP_FAILED) {
+        errno = ENOMEM;
         return NULL;
+    }
 
     hdr->size = size;
     return (void *)(hdr + 1);

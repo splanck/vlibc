@@ -96,8 +96,10 @@ FILE *fmemopen(void *buf, size_t size, const char *mode)
         return NULL;
     }
     FILE *f = malloc(sizeof(FILE));
-    if (!f)
+    if (!f) {
+        errno = ENOMEM;
         return NULL;
+    }
     memset(f, 0, sizeof(FILE));
     atomic_flag_clear(&f->lock);
     f->fd = -1;

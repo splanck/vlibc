@@ -27,8 +27,10 @@ char *realpath(const char *path, char *resolved_path)
         cap = PATH_MAX;
 #endif
         cwd = malloc(cap);
-        if (!cwd)
+        if (!cwd) {
+            errno = ENOMEM;
             return NULL;
+        }
         for (;;) {
             if (getcwd(cwd, cap))
                 break;
@@ -58,6 +60,7 @@ char *realpath(const char *path, char *resolved_path)
         full = malloc(len + 1);
         if (!full) {
             free(cwd);
+            errno = ENOMEM;
             return NULL;
         }
         strcpy(full, cwd);
@@ -67,14 +70,17 @@ char *realpath(const char *path, char *resolved_path)
         free(cwd);
     } else {
         full = strdup(path);
-        if (!full)
+        if (!full) {
+            errno = ENOMEM;
             return NULL;
+        }
     }
 
     size_t out_cap = strlen(full) + 2;
     char *outbuf = resolved_path ? resolved_path : malloc(out_cap);
     if (!outbuf) {
         free(full);
+        errno = ENOMEM;
         return NULL;
     }
 
