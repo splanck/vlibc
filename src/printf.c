@@ -13,6 +13,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
+#include <stddef.h>
+#include <sys/types.h>
 
 static int uint_to_base(unsigned long value, unsigned base, int upper,
                         char *buf, size_t size)
@@ -82,8 +84,17 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
             continue;
         }
 
+        int left = 0, plus = 0, spacef = 0, zero = 0, alt = 0;
         int width = 0;
         int precision = -1;
+        for (;; ++p) {
+            if (*p == '-') { left = 1; continue; }
+            if (*p == '+') { plus = 1; continue; }
+            if (*p == ' ') { spacef = 1; continue; }
+            if (*p == '0') { zero = 1; continue; }
+            if (*p == '#') { alt = 1; continue; }
+            break;
+        }
         while (*p >= '0' && *p <= '9') {
             width = width * 10 + (*p - '0');
             ++p;
@@ -97,16 +108,33 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
             }
         }
 
-        int length = 0;
-        if (*p == 'l') {
-            length = 1;
+        enum { LEN_NONE, LEN_HH, LEN_H, LEN_L, LEN_LL, LEN_J, LEN_Z,
+               LEN_T, LEN_LD } length = LEN_NONE;
+        if (*p == 'h') {
+            length = LEN_H;
+            ++p;
+            if (*p == 'h') {
+                length = LEN_HH;
+                ++p;
+            }
+        } else if (*p == 'l') {
+            length = LEN_L;
             ++p;
             if (*p == 'l') {
-                length = 2;
+                length = LEN_LL;
                 ++p;
             }
         } else if (*p == 'j') {
-            length = 3;
+            length = LEN_J;
+            ++p;
+        } else if (*p == 'z') {
+            length = LEN_Z;
+            ++p;
+        } else if (*p == 't') {
+            length = LEN_T;
+            ++p;
+        } else if (*p == 'L') {
+            length = LEN_LD;
             ++p;
         }
 
@@ -116,6 +144,7 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
         const char *prefix = "";
         int prefix_len = 0;
         int sign = 0;
+        char sign_char = 0;
 
         switch (spec) {
         case 's': {
@@ -125,91 +154,98 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
             size_t slen = strlen(s);
             if (precision >= 0 && (size_t)precision < slen)
                 slen = (size_t)precision;
-            if (width > 0 && (int)slen < width) {
-                for (int i = 0; i < width - (int)slen; i++)
-                    out_char(str, size, &pos, ' ');
+            if (width > (int)slen) {
+                if (left) {
+                    out_str(str, size, &pos, s, slen);
+                    for (int i = 0; i < width - (int)slen; i++)
+                        out_char(str, size, &pos, ' ');
+                } else {
+                    char pad = zero ? '0' : ' ';
+                    for (int i = 0; i < width - (int)slen; i++)
+                        out_char(str, size, &pos, pad);
+                    out_str(str, size, &pos, s, slen);
+                }
+            } else {
+                out_str(str, size, &pos, s, slen);
             }
-            out_str(str, size, &pos, s, slen);
             break;
         }
         case 'd': {
-            if (length == 3) {
-                intmax_t v = va_arg(ap, intmax_t);
-                unsigned long long uv = (unsigned long long)v;
-                sign = v < 0;
-                if (sign)
-                    uv = 0ull - uv;
-                len = ull_to_base(uv, 10, 0, buf, sizeof(buf));
-            } else if (length == 2) {
-                long long v = va_arg(ap, long long);
-                unsigned long long uv = (unsigned long long)v;
-                sign = v < 0;
-                if (sign)
-                    uv = 0ull - uv;
-                len = ull_to_base(uv, 10, 0, buf, sizeof(buf));
-            } else if (length == 1) {
-                long v = va_arg(ap, long);
-                unsigned long uv = (unsigned long)v;
-                sign = v < 0;
-                if (sign)
-                    uv = 0ul - uv;
-                len = uint_to_base(uv, 10, 0, buf, sizeof(buf));
-            } else {
-                int v = va_arg(ap, int);
-                unsigned int uv = (unsigned int)v;
-                sign = v < 0;
-                if (sign)
-                    uv = 0u - uv;
-                len = uint_to_base(uv, 10, 0, buf, sizeof(buf));
+            long long sv = 0;
+            switch (length) {
+            case LEN_HH: sv = (signed char)va_arg(ap, int); break;
+            case LEN_H:  sv = (short)va_arg(ap, int); break;
+            case LEN_L:  sv = va_arg(ap, long); break;
+            case LEN_LL: sv = va_arg(ap, long long); break;
+            case LEN_J:  sv = va_arg(ap, intmax_t); break;
+            case LEN_Z:  sv = (ssize_t)va_arg(ap, ssize_t); break;
+            case LEN_T:  sv = va_arg(ap, ptrdiff_t); break;
+            default:     sv = va_arg(ap, int); break;
             }
+            unsigned long long uv = (unsigned long long)sv;
+            sign = sv < 0;
+            if (sign)
+                uv = (unsigned long long)(-sv);
+            if (sign)
+                sign_char = '-';
+            else if (plus)
+                sign_char = '+';
+            else if (spacef)
+                sign_char = ' ';
+            len = ull_to_base(uv, 10, 0, buf, sizeof(buf));
             break;
         }
         case 'u': {
-            if (length == 3) {
-                uintmax_t v = va_arg(ap, uintmax_t);
-                len = ull_to_base((unsigned long long)v, 10, 0, buf, sizeof(buf));
-            } else if (length == 2) {
-                unsigned long long v = va_arg(ap, unsigned long long);
-                len = ull_to_base(v, 10, 0, buf, sizeof(buf));
-            } else if (length == 1) {
-                unsigned long v = va_arg(ap, unsigned long);
-                len = uint_to_base(v, 10, 0, buf, sizeof(buf));
-            } else {
-                unsigned int v = va_arg(ap, unsigned int);
-                len = uint_to_base(v, 10, 0, buf, sizeof(buf));
+            unsigned long long uv = 0;
+            switch (length) {
+            case LEN_HH: uv = (unsigned char)va_arg(ap, int); break;
+            case LEN_H:  uv = (unsigned short)va_arg(ap, int); break;
+            case LEN_L:  uv = va_arg(ap, unsigned long); break;
+            case LEN_LL: uv = va_arg(ap, unsigned long long); break;
+            case LEN_J:  uv = (unsigned long long)va_arg(ap, uintmax_t); break;
+            case LEN_Z:  uv = va_arg(ap, size_t); break;
+            case LEN_T:  uv = (unsigned long long)va_arg(ap, ptrdiff_t); break;
+            default:     uv = va_arg(ap, unsigned int); break;
             }
+            len = ull_to_base(uv, 10, 0, buf, sizeof(buf));
             break;
         }
         case 'x':
         case 'X': {
-            if (length == 3) {
-                uintmax_t v = va_arg(ap, uintmax_t);
-                len = ull_to_base((unsigned long long)v, 16, spec == 'X', buf, sizeof(buf));
-            } else if (length == 2) {
-                unsigned long long v = va_arg(ap, unsigned long long);
-                len = ull_to_base(v, 16, spec == 'X', buf, sizeof(buf));
-            } else if (length == 1) {
-                unsigned long v = va_arg(ap, unsigned long);
-                len = uint_to_base(v, 16, spec == 'X', buf, sizeof(buf));
-            } else {
-                unsigned int v = va_arg(ap, unsigned int);
-                len = uint_to_base(v, 16, spec == 'X', buf, sizeof(buf));
+            unsigned long long uv = 0;
+            switch (length) {
+            case LEN_HH: uv = (unsigned char)va_arg(ap, int); break;
+            case LEN_H:  uv = (unsigned short)va_arg(ap, int); break;
+            case LEN_L:  uv = va_arg(ap, unsigned long); break;
+            case LEN_LL: uv = va_arg(ap, unsigned long long); break;
+            case LEN_J:  uv = (unsigned long long)va_arg(ap, uintmax_t); break;
+            case LEN_Z:  uv = va_arg(ap, size_t); break;
+            case LEN_T:  uv = (unsigned long long)va_arg(ap, ptrdiff_t); break;
+            default:     uv = va_arg(ap, unsigned int); break;
             }
+            if (alt && uv != 0) {
+                prefix = (spec == 'X') ? "0X" : "0x";
+                prefix_len = 2;
+            }
+            len = ull_to_base(uv, 16, spec == 'X', buf, sizeof(buf));
             break;
         }
         case 'o': {
-            if (length == 3) {
-                uintmax_t v = va_arg(ap, uintmax_t);
-                len = ull_to_base((unsigned long long)v, 8, 0, buf, sizeof(buf));
-            } else if (length == 2) {
-                unsigned long long v = va_arg(ap, unsigned long long);
-                len = ull_to_base(v, 8, 0, buf, sizeof(buf));
-            } else if (length == 1) {
-                unsigned long v = va_arg(ap, unsigned long);
-                len = uint_to_base(v, 8, 0, buf, sizeof(buf));
-            } else {
-                unsigned int v = va_arg(ap, unsigned int);
-                len = uint_to_base(v, 8, 0, buf, sizeof(buf));
+            unsigned long long uv = 0;
+            switch (length) {
+            case LEN_HH: uv = (unsigned char)va_arg(ap, int); break;
+            case LEN_H:  uv = (unsigned short)va_arg(ap, int); break;
+            case LEN_L:  uv = va_arg(ap, unsigned long); break;
+            case LEN_LL: uv = va_arg(ap, unsigned long long); break;
+            case LEN_J:  uv = (unsigned long long)va_arg(ap, uintmax_t); break;
+            case LEN_Z:  uv = va_arg(ap, size_t); break;
+            case LEN_T:  uv = (unsigned long long)va_arg(ap, ptrdiff_t); break;
+            default:     uv = va_arg(ap, unsigned int); break;
+            }
+            len = ull_to_base(uv, 8, 0, buf, sizeof(buf));
+            if (alt && (uv != 0 || precision == 0)) {
+                prefix = "0";
+                prefix_len = 1;
             }
             break;
         }
@@ -235,17 +271,25 @@ static int vsnprintf_impl(char *str, size_t size, const char *fmt, va_list ap)
         int num_len = len;
         if (precision > num_len)
             num_len = precision;
-        int total = prefix_len + (sign ? 1 : 0) + num_len;
-        if (width > total) {
-            for (int i = 0; i < width - total; i++)
-                out_char(str, size, &pos, ' ');
-        }
-        if (sign)
-            out_char(str, size, &pos, '-');
+        int prefix_total = prefix_len + (sign_char ? 1 : 0);
+        int zero_pad = 0;
+        if (zero && precision < 0 && !left && width > prefix_total + num_len)
+            zero_pad = width - (prefix_total + num_len);
+        int total = prefix_total + zero_pad + num_len;
+        int spaces_pre = (!left && width > total) ? width - total : 0;
+        int spaces_post = (left && width > total) ? width - total : 0;
+        for (int i = 0; i < spaces_pre; i++)
+            out_char(str, size, &pos, ' ');
+        if (sign_char)
+            out_char(str, size, &pos, sign_char);
         out_str(str, size, &pos, prefix, (size_t)prefix_len);
+        for (int i = 0; i < zero_pad; i++)
+            out_char(str, size, &pos, '0');
         for (int i = 0; i < num_len - len; i++)
             out_char(str, size, &pos, '0');
         out_str(str, size, &pos, buf, (size_t)len);
+        for (int i = 0; i < spaces_post; i++)
+            out_char(str, size, &pos, ' ');
     }
 
     if (size > 0) {

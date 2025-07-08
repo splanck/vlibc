@@ -26,7 +26,8 @@ The **string** module provides fundamental operations needed by most C programs:
   locale items such as `CODESET`. All strings are treated as byte sequences.
 - Utility functions for tokenizing and simple formatting.
 - `printf` style routines understand `%d`, `%u`, `%s`, `%x`, `%X`, `%o`, `%p`,
-  and `%c` with basic field width and precision handling.
+  and `%c`. Field width, precision, common flags (`#`, `0`, `-`, space, `+`)
+  and length modifiers like `h`, `hh`, `l`, `ll`, `j`, `z` and `t` are honored.
 - `scanf` style routines parse `%d`, `%u`, `%x`, `%o`, `%s`, and floating
   point formats such as `%f`, `%lf`, and `%g`.
 - `strtok` and `strtok_r` split a string into tokens based on a set of
